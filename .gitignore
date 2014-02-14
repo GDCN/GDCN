@@ -1,0 +1,7 @@
+
+*.class
+
+% IntelliJ proj
+*.iml
+*.ipr
+*.iws
