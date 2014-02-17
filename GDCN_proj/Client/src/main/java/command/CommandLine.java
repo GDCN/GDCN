@@ -18,6 +18,8 @@ public class CommandLine {
     }
 
     private boolean loop = true;
+    private boolean connected = true;
+
     private final Holder commandHolder;
     private CmdNode node;
 
@@ -38,6 +40,10 @@ public class CommandLine {
         commandMap.put("exit", new Command() {
             @Override
             public void execute(List<String> args) {
+                if(connected){
+                    System.out.println("You must run stop before you can exit!");
+                    return;
+                }
                 loop = false;
             }
         });
@@ -60,6 +66,20 @@ public class CommandLine {
             @Override
             public void execute(List<String> args) {
                 node.shutdown();
+                connected = false;
+            }
+        });
+
+        commandMap.put("discover2", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                Integer port = Integer.parseInt(args.get(0));
+                node.discover2(port, new Listener<String>() {
+                    @Override
+                    public void message(boolean success, String message) {
+                        System.out.println(message);
+                    }
+                });
             }
         });
 
