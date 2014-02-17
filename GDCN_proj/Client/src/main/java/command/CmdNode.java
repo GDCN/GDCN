@@ -1,9 +1,12 @@
 package command;
 
 import net.tomp2p.futures.BaseFutureAdapter;
+import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDHT;
+import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
+import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import org.apache.log4j.Logger;
@@ -37,6 +40,33 @@ public class CmdNode {
         if(!isShutdown()){
             peer.shutdown();
         }
+    }
+
+    public void discover(final Listener<String> listener){
+        DiscoverBuilder discoverBuilder = peer.discover().setPeerAddress(peer.getPeerAddress());
+        FutureDiscover futureDiscover = discoverBuilder.start();
+        futureDiscover.addListener(new BaseFutureAdapter<FutureDiscover>(){
+            @Override
+            public void operationComplete(FutureDiscover future) throws Exception {
+                if(!future.isSuccess()){
+                    listener.message(false,"Future discover failed");
+                    return;
+                }
+
+                FutureBootstrap futureBootstrap = peer.bootstrap().setPeerAddress(peer.getPeerAddress()).start();
+                futureBootstrap.addListener(new BaseFutureAdapter<FutureBootstrap>(){
+
+                    @Override
+                    public void operationComplete(FutureBootstrap future) throws Exception {
+                        if(!future.isSuccess()){
+                            listener.message(false, "Future bootstrap failed");
+                            return;
+                        }
+                        listener.message(true, "Bootstrap successful!\n"+future.getBootstrapTo().toString());
+                    }
+                });
+            }
+        });
     }
 
     public void put(final String name, final Data value, final Listener<String> listener){

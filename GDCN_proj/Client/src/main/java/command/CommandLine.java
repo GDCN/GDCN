@@ -63,6 +63,18 @@ public class CommandLine {
             }
         });
 
+        commandMap.put("discover", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                node.discover(new Listener<String>() {
+                    @Override
+                    public void message(boolean success, String message) {
+                        System.out.println(message);
+                    }
+                });
+            }
+        });
+
         commandMap.put("put", new Command() {
             @Override
             public void execute(List<String> args) {
