@@ -1,0 +1,19 @@
+
+# An algorithm computing the 100 first prime numbers
+
+def run() {
+    def primes := [].diverge(int)
+    for i in 2..100 {
+        var isPrime := true
+        for j in primes {
+            if (i % j == 0) {
+                isPrime := false
+                break
+            }
+        }
+        if (isPrime) {
+            primes.push(i)
+        }
+    }
+    return primes.snapshot()
+}
