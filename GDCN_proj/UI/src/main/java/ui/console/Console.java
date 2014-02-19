@@ -23,6 +23,11 @@ public class Console {
         commandLine = new CommandLineImpl(4001);
     }
 
+    public static void main(String[] args){
+        Console console = new Console();
+        console.read();
+    }
+
     public void read(){
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try {
