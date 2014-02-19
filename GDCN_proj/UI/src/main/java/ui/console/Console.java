@@ -7,6 +7,8 @@ import net.tomp2p.storage.Data;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -118,6 +120,27 @@ public class Console {
             @Override
             public void execute(List<String> args) {
                 commandLine.get(args.remove(0));
+            }
+        });
+
+        commandMap.put("connect", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                String site = "narrens.olf.sgsnet.se";
+                if(args.size() == 1){
+                    site = args.get(0);
+                }
+
+                try {
+                    InetAddress[] inetAddresses = InetAddress.getAllByName(site);
+                    for(InetAddress address : inetAddresses){
+
+                        System.out.println(""+address.toString());
+                    }
+                } catch (UnknownHostException e) {
+                    System.out.println("Unknown host: "+site);
+                    e.printStackTrace();
+                }
             }
         });
 
