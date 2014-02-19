@@ -1,6 +1,9 @@
+package taskbuilder;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import static taskbuilder.Utils.*;
 
 /**
  * Created by Joakim on 2014-02-15.
@@ -17,14 +20,7 @@ public class ERunner {
 
     // Runs the E-maker file given as a module and returns the results as a string
     public static String runAlgorithm(String module) throws IOException {
-
-        //TODO Possibly move to seperate class
-        String separator;
-        if (System.getProperty("os.name").startsWith("Windows")) {
-            separator = ";";
-        } else {
-            separator = ":";
-        }
+        char separator = getCPSeparator();
 
         String eClassPath = EJAR_PATH + separator + JOBCODE_PATH;
         String[] commands = {JAVA_PATH, "-cp", eClassPath,
