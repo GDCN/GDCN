@@ -2,6 +2,7 @@ package ui.console;
 
 import command.CommandLine;
 import command.CommandLineImpl;
+import net.tomp2p.storage.Data;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -80,35 +81,43 @@ public class Console {
         commandMap.put("stop", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.stop(args);
+                commandLine.stop();
             }
         });
 
         commandMap.put("discover2", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.discover2(args);
+                int port = Integer.parseInt(args.get(0));
+                commandLine.discover2(port);
             }
         });
 
         commandMap.put("discover", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.discover(args);
+                commandLine.discover();
             }
         });
 
         commandMap.put("put", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.put(args);
+                String name = args.remove(0);
+                Data data = null;
+                try {
+                    data = new Data(args);
+                    commandLine.put(name, data);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
         commandMap.put("get", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.get(args);
+                commandLine.get(args.remove(0));
             }
         });
 
