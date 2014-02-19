@@ -19,12 +19,12 @@ public class ERunner {
     public static final String ELOADER_PATH = ".../GDCN_proj/Compute/src/main/e/eloader.e";
 
     // Runs the E-maker file given as a module and returns the results as a string
-    public static String runAlgorithm(String module) throws IOException {
+    public static String runAlgorithm(String module, String input) throws IOException {
         char separator = getCPSeparator();
 
         String eClassPath = EJAR_PATH + separator + JOBCODE_PATH;
         String[] commands = {JAVA_PATH, "-cp", eClassPath,
-                    "org.erights.e.elang.interp.Rune", ELOADER_PATH, module};
+                    "org.erights.e.elang.interp.Rune", ELOADER_PATH, module, input};
         StringBuilder output = new StringBuilder();
 
         ProcessBuilder processBuilder = new ProcessBuilder(commands);
