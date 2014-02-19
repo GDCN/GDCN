@@ -33,14 +33,13 @@ public class CommandLineImpl implements CommandLine {
     }
 
     @Override
-    public void stop(List<String> args) {
+    public void stop() {
         node.shutdown();
         connected = false;
     }
 
     @Override
-    public void discover2(List<String> args) {
-        Integer port = Integer.parseInt(args.get(0));
+    public void discover2(int port) {
         node.discover2(port, new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
@@ -50,7 +49,7 @@ public class CommandLineImpl implements CommandLine {
     }
 
     @Override
-    public void discover(List<String> args) {
+    public void discover() {
         node.discover(new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
@@ -60,24 +59,18 @@ public class CommandLineImpl implements CommandLine {
     }
 
     @Override
-    public void put(List<String> args) {
-        String name = args.remove(0);
+    public void put(String name, Data data) {
         Listener<String> listener = new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
                 System.out.println(message);
             }
         };
-        try {
-            node.put(name, new Data(args), listener);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        node.put(name, data, listener);
     }
 
     @Override
-    public void get(List<String> args) {
-        String name = args.remove(0);
+    public void get(String name) {
         node.get(name, new Listener<Data>() {
             @Override
             public void message(boolean success, Data message) {

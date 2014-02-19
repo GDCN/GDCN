@@ -1,20 +1,22 @@
 package command;
 
+import net.tomp2p.storage.Data;
+
 import java.util.List;
 
 /**
  * Created by HalfLeif on 2014-02-19.
  */
 public interface CommandLine {
-    public boolean isConnected();
+    boolean isConnected();
 
-    public void stop(List<String> args);
+    void stop();
 
-    public void discover2(List<String> args);
+    void discover2(int port);
 
-    public void discover(List<String> args);
+    void discover();
 
-    public void put(List<String> args);
+    void put(String name, Data data);
 
-    public void get(List<String> args);
+    void get(String name);
 }
