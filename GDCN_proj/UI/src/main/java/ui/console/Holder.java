@@ -1,4 +1,4 @@
-package command;
+package ui.console;
 
 import java.util.HashMap;
 import java.util.List;

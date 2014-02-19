@@ -11,5 +11,13 @@
 
     <artifactId>UI</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>GDCN</groupId>
+            <artifactId>Client</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
+
 
 </project>
