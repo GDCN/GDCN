@@ -151,13 +151,19 @@ public class Console {
         commandMap.put("bootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
-                if(args.size()!=2){
+
+                String host = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==0){
+
+                } else if(args.size()==2){
+                    host = args.get(0);
+                    port = Integer.parseInt(args.get(1));
+                } else {
                     System.out.println("Must take two arguments! Host and Port");
                     return;
                 }
-                String host = args.get(0);
-                int port = Integer.parseInt(args.get(1));
-
                 commandLine.bootstrap(host, port);
             }
         });
