@@ -3,6 +3,8 @@ package command;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -20,9 +22,8 @@ public class CommandLineImpl implements CommandLine {
 
     @Override
     public void start(int port){
-
-        //TODO report error
         if(isConnected()){
+            System.out.println("Has a node already!");
             return;
         }
 
@@ -38,12 +39,22 @@ public class CommandLineImpl implements CommandLine {
 
     @Override
     public void bootstrap(String host, int port){
-        //TODO report error
         if(!isConnected()){
+            System.out.println("Not connected!");
             return;
         }
 
-        //TODO implement
+        try {
+            InetAddress inetAddress = InetAddress.getByName(host);
+            node.bootstrap(inetAddress,port,new Listener<String>() {
+                @Override
+                public void message(boolean success, String message) {
+                    System.out.println(message);
+                }
+            });
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

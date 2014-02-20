@@ -1,11 +1,9 @@
 package command;
 
-import net.tomp2p.futures.BaseFutureAdapter;
-import net.tomp2p.futures.FutureBootstrap;
-import net.tomp2p.futures.FutureDHT;
-import net.tomp2p.futures.FutureDiscover;
+import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
+import net.tomp2p.p2p.builder.BootstrapBuilder;
 import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -13,6 +11,7 @@ import net.tomp2p.storage.Data;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -44,6 +43,11 @@ public class CmdNode {
         }
     }
 
+    /**
+     * @deprecated 
+     * @param port
+     * @param listener
+     */
     public void discover2(final int port, final Listener<String> listener){
         FutureBootstrap futureBootstrap = peer.bootstrap().setBroadcast().setPorts(port).start();
         futureBootstrap.addListener(new BaseFutureAdapter<FutureBootstrap>() {
@@ -78,6 +82,10 @@ public class CmdNode {
         });
     }
 
+    /**
+     * @deprecated
+     * @param listener
+     */
     public void discover(final Listener<String> listener){
         DiscoverBuilder discoverBuilder = peer.discover().setPeerAddress(peer.getPeerAddress());
         FutureDiscover futureDiscover = discoverBuilder.start();
@@ -92,6 +100,33 @@ public class CmdNode {
                 FutureBootstrap futureBootstrap = peer.bootstrap().setPeerAddress(peer.getPeerAddress()).start();
                 futureBootstrap.addListener(new BaseFutureAdapter<FutureBootstrap>(){
 
+                    @Override
+                    public void operationComplete(FutureBootstrap future) throws Exception {
+                        if(!future.isSuccess()){
+                            listener.message(false, "Future bootstrap failed");
+                            return;
+                        }
+                        listener.message(true, "Bootstrap successful!\n"+future.getBootstrapTo().toString());
+                    }
+                });
+            }
+        });
+    }
+
+    public void bootstrap(final InetAddress inetAddress, final int port, final Listener<String> listener){
+        DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(inetAddress).setPorts(port);
+        FutureDiscover futureDiscover = discoverBuilder.start();
+        futureDiscover.addListener(new BaseFutureAdapter<FutureDiscover>() {
+            @Override
+            public void operationComplete(FutureDiscover future) throws Exception {
+                if(!future.isSuccess()){
+                    listener.message(false,"Future discover failed");
+                    return;
+                }
+
+                BootstrapBuilder bootstrapBuilder = peer.bootstrap().setInetAddress(inetAddress).setPorts(port);
+                FutureBootstrap futureBootstrap = bootstrapBuilder.start();
+                futureBootstrap.addListener(new BaseFutureAdapter<FutureBootstrap>() {
                     @Override
                     public void operationComplete(FutureBootstrap future) throws Exception {
                         if(!future.isSuccess()){

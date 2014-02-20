@@ -23,7 +23,7 @@ public class Console {
 
     public Console() {
         commandHolder = new Holder(createCommands());
-        commandLine = new CommandLineImpl(4001);
+        commandLine = new CommandLineImpl();
     }
 
     public static void main(String[] args){
@@ -80,7 +80,7 @@ public class Console {
                 if(args.size()==1){
                     port=Integer.parseInt(args.get(0));
                 }
-
+                commandLine.start(port);
             }
         });
 
