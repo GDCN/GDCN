@@ -151,7 +151,14 @@ public class Console {
         commandMap.put("bootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
+                if(args.size()!=2){
+                    System.out.println("Must take two arguments! Host and Port");
+                    return;
+                }
+                String host = args.get(0);
+                int port = Integer.parseInt(args.get(1));
 
+                commandLine.bootstrap(host, port);
             }
         });
 
