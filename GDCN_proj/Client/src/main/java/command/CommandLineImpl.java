@@ -4,27 +4,46 @@ import net.tomp2p.storage.Data;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
 
 /**
  * Created by Leif on 2014-02-17.
  */
 public class CommandLineImpl implements CommandLine {
 
-    private boolean connected = true;
+    private boolean connected = false;
 
+    private CmdNode node = null;
 
-    private CmdNode node;
+    public CommandLineImpl(){
 
-    public CommandLineImpl(int port){
+    }
+
+    @Override
+    public void start(int port){
+
+        //TODO report error
+        if(isConnected()){
+            return;
+        }
+
         try {
             node = new CmdNode(port);
+            connected = true;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
+    @Override
+    public void bootstrap(String host, int port){
+        //TODO report error
+        if(!isConnected()){
+            return;
+        }
+
+        //TODO implement
     }
 
     @Override

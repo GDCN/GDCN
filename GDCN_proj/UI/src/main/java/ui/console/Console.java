@@ -76,6 +76,10 @@ public class Console {
         commandMap.put("start", new Command() {
             @Override
             public void execute(List<String> args) {
+                int port = 4001;
+                if(args.size()==1){
+                    port=Integer.parseInt(args.get(0));
+                }
 
             }
         });
@@ -141,6 +145,13 @@ public class Console {
                     System.out.println("Unknown host: "+site);
                     e.printStackTrace();
                 }
+            }
+        });
+
+        commandMap.put("bootstrap", new Command() {
+            @Override
+            public void execute(List<String> args) {
+
             }
         });
 

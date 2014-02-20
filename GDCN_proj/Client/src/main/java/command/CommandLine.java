@@ -2,12 +2,14 @@ package command;
 
 import net.tomp2p.storage.Data;
 
-import java.util.List;
-
 /**
  * Created by HalfLeif on 2014-02-19.
  */
 public interface CommandLine {
+    void start(int port);
+
+    void bootstrap(String host, int port);
+
     boolean isConnected();
 
     void stop();
