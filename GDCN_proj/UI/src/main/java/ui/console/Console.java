@@ -156,7 +156,8 @@ public class Console {
                 int port = 4001;
 
                 if(args.size()==0){
-
+                    host = "narrens.olf.sgsnet.se";
+                    port = 4001;
                 } else if(args.size()==2){
                     host = args.get(0);
                     port = Integer.parseInt(args.get(1));
