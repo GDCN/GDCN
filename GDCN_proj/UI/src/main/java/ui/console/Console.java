@@ -177,6 +177,17 @@ public class Console {
         });
 
 
+        //As long as the help command is done in this way it needs to be at the bottom
+        final Set<String> commands = commandMap.keySet();
+
+        commandMap.put("help", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                System.out.println(commands.toString());
+            }
+        });
+
+
         return commandMap;
     }
 }
