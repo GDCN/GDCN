@@ -115,4 +115,18 @@ public class CommandLineImpl implements CommandLine {
         });
     }
 
+    @Override
+    public void getNeighbours() {
+
+        node.getNeighbours( new Listener<String>() {
+
+            @Override
+            public void message(boolean success, String message) {
+                System.out.println(message);
+            }
+        });
+    }
 }
+
+
+

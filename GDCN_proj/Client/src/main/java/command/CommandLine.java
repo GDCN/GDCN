@@ -21,4 +21,6 @@ public interface CommandLine {
     void put(String name, Data data);
 
     void get(String name);
+
+    void getNeighbours();
 }

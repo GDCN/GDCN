@@ -16,6 +16,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Leif on 2014-02-17.
@@ -170,5 +171,22 @@ public class CmdNode {
                 }
             }
         });
+
+    }
+
+    public void getNeighbours(final Listener<String> listener){
+
+        List<PeerAddress> peers = peer.getPeerBean().getPeerMap().getAll();
+        String message = "Neighbours: ";
+        if(peers.isEmpty()) {
+            message = message + "none";
+        } else {
+            for (PeerAddress p : peers) {
+//                message = message + p.getInetAddress() + "\n";
+                message = message + p.toString() + "\n";
+            }
+        }
+        message = message.trim();
+        listener.message(true, message);
     }
 }
