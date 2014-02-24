@@ -1,11 +1,13 @@
 package command;
 
+import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 /**
  * Created by Leif on 2014-02-17.
@@ -15,6 +17,8 @@ public class CommandLineImpl implements CommandLine {
     private boolean connected = false;
 
     private CmdNode node = null;
+
+    private List<PeerAddress> peers;
 
     public CommandLineImpl(){
 
@@ -116,10 +120,30 @@ public class CommandLineImpl implements CommandLine {
     }
 
     @Override
-    public void getNeighbours() {
+    public void getNeighbors() {
 
-        node.getNeighbours( new Listener<String>() {
+        if(!isConnected()){
+            System.out.println("Not connected!");
+            return;
+        }
 
+        peers = node.getNeighbors( new Listener<String>() {
+
+            @Override
+            public void message(boolean success, String message) {
+                System.out.println(message);
+            }
+        });
+    }
+
+    public void reBootstrap() {
+
+        if(!isConnected()){
+            System.out.println("Not connected!");
+            return;
+        }
+
+        node.reBootstrap(peers, new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
                 System.out.println(message);

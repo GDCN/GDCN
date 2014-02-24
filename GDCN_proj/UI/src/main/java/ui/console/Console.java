@@ -169,10 +169,17 @@ public class Console {
             }
         });
 
-        commandMap.put("neighbours", new Command() {
+        commandMap.put("neighbors", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.getNeighbours();
+                commandLine.getNeighbors();
+            }
+        });
+
+        commandMap.put("rebootstrap", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                commandLine.reBootstrap();
             }
         });
 

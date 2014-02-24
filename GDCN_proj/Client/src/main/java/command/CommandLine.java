@@ -22,5 +22,7 @@ public interface CommandLine {
 
     void get(String name);
 
-    void getNeighbours();
+    void getNeighbors();
+
+    void reBootstrap();
 }

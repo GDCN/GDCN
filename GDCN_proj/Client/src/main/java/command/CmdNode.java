@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -174,10 +175,10 @@ public class CmdNode {
 
     }
 
-    public void getNeighbours(final Listener<String> listener){
+    public List<PeerAddress> getNeighbors(final Listener<String> listener){
 
         List<PeerAddress> peers = peer.getPeerBean().getPeerMap().getAll();
-        String message = "Neighbours: ";
+        String message = "Neighbors: ";
         if(peers.isEmpty()) {
             message = message + "none";
         } else {
@@ -188,5 +189,19 @@ public class CmdNode {
         }
         message = message.trim();
         listener.message(true, message);
+
+        return peers;
+    }
+
+    public void reBootstrap(List<PeerAddress> peers, final Listener<String> listener) {
+
+        for (PeerAddress p : peers) {
+            try {
+                bootstrap(InetAddress.getByName(p.getInetAddress().getHostAddress()),p.portTCP(), listener);
+            } catch (UnknownHostException e) {
+                listener.message(false, "Node not active + \n" + p.toString());
+            }
+        }
+
     }
 }
