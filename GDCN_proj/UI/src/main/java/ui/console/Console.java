@@ -1,5 +1,6 @@
 package ui.console;
 
+import command.ClientImplementation;
 import command.ClientInput;
 
 import java.io.BufferedReader;
@@ -25,6 +26,12 @@ public class Console {
 
         Map<String, Command> commandMap = ConsoleFactory.createCommands(client, this);
         commandHolder = new Holder(commandMap);
+    }
+
+    public static void main(String[] args){
+        ClientInput client = new ClientImplementation();
+        Console console = new Console(client);
+        console.read();
     }
 
     /**
