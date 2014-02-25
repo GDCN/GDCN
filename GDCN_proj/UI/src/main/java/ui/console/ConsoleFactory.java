@@ -1,6 +1,6 @@
 package ui.console;
 
-import command.ClientInput;
+import command.communicationToUI.ClientInput;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
