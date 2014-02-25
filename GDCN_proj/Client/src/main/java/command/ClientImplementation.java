@@ -21,10 +21,6 @@ public class ClientImplementation implements ClientInput {
 
     private List<PeerAddress> peers;
 
-    public ClientImplementation(){
-
-    }
-
     @Override
     public boolean isConnected() {
         return connected;
