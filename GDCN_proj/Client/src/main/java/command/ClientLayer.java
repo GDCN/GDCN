@@ -29,6 +29,14 @@ public class ClientLayer implements ClientInput {
     }
 
     @Override
+    /**
+     * TODO - make into hashSet instead of max one listener
+     */
+    public void addListener(ClientOutput out) {
+        this.output = out;
+    }
+
+    @Override
     public void stop() {
         node.shutdown();
         connected = false;
@@ -108,6 +116,7 @@ public class ClientLayer implements ClientInput {
         });
     }
 
+    @Override
     public void reBootstrap() {
 
         if(!isConnected()){
