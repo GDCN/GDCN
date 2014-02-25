@@ -1,6 +1,6 @@
 package ui.console;
 
-import command.ClientImplementation;
+import command.ClientLayer;
 import command.ClientInput;
 
 import java.io.BufferedReader;
@@ -29,7 +29,7 @@ public class Console {
     }
 
     public static void main(String[] args){
-        ClientInput client = new ClientImplementation();
+        ClientInput client = new ClientLayer();
         Console console = new Console(client);
         console.read();
     }

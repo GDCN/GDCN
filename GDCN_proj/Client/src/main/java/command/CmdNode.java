@@ -11,7 +11,6 @@ import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import org.apache.log4j.Logger;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -25,8 +24,6 @@ import java.util.List;
  * Created by Leif on 2014-02-17.
  */
 public class CmdNode {
-
-    private static Logger logger = Logger.getLogger(CmdNode.class);
 
     private final Peer peer;
 
@@ -50,11 +47,14 @@ public class CmdNode {
     public void bootstrap(final InetAddress inetAddress, final int port, final Listener<String> listener){
         DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(inetAddress).setPorts(port);
         FutureDiscover futureDiscover = discoverBuilder.start();
+
+        final String address = inetAddress.toString()+":"+port;
+
         futureDiscover.addListener(new BaseFutureAdapter<FutureDiscover>() {
             @Override
             public void operationComplete(FutureDiscover future) throws Exception {
                 if(!future.isSuccess()){
-                    listener.message(false,"Future discover failed");
+                    listener.message(false,"Future discover failed\n"+address);
                     return;
                 }
 
@@ -64,7 +64,7 @@ public class CmdNode {
                     @Override
                     public void operationComplete(FutureBootstrap future) throws Exception {
                         if(!future.isSuccess()){
-                            listener.message(false, "Future bootstrap failed");
+                            listener.message(false, "Future bootstrap failed\n"+address);
                             return;
                         }
                         listener.message(true, "Bootstrap successful!\n"+future.getBootstrapTo().toString());
