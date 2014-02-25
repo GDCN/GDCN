@@ -2,6 +2,8 @@ package ui.console;
 
 import command.ClientLayer;
 import command.communicationToUI.ClientInput;
+import command.communicationToUI.ClientOutput;
+import net.tomp2p.storage.Data;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,15 +19,51 @@ import java.util.Map;
 public class Console {
 
     private final Holder commandHolder;
-    private final ClientInput client;
+    private final ClientOutput output = new ClientOutput() {
+
+        //TODO implement these...
+        @Override
+        public void started(boolean success, int port, String errorMessage) {
+
+        }
+
+        @Override
+        public void bootstrapped(boolean success, String host, int port, String errorMessage) {
+
+        }
+
+        @Override
+        public void stopped(boolean success, String errorMessage) {
+
+        }
+
+        @Override
+        public void put(boolean success, String name, Data data, String errorMessage) {
+
+        }
+
+        @Override
+        public void got(boolean success, String name, Data data, String errorMessage) {
+
+        }
+
+        @Override
+        public void gotNeighbors(boolean success, String errorMessage) {
+
+        }
+
+        @Override
+        public void reBootstrapped(boolean success, String errorMessage) {
+
+        }
+    };
 
     private boolean loop = true;
 
     public Console(ClientInput client) {
-        this.client = client;
-
         Map<String, Command> commandMap = ConsoleFactory.createCommands(client, this);
-        commandHolder = new Holder(commandMap);
+        this.commandHolder = new Holder(commandMap);
+        client.addListener(this.output);
     }
 
     public static void main(String[] args){
