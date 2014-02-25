@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by Leif on 2014-02-17.
  */
-public class ClientImplementation implements ClientInput {
+public class ClientLayer implements ClientInput {
 
     private boolean connected = false;
 
@@ -70,28 +70,21 @@ public class ClientImplementation implements ClientInput {
     }
 
     @Override
-    public void put(String name, Data data) {
-        Listener<String> listener = new Listener<String>() {
+    public void put(final String name, final Data data) {
+        node.put(name, data, new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
-                System.out.println(message);
+                output.put(true, name, data, message);
             }
-        };
-        node.put(name, data, listener);
+        });
     }
 
     @Override
-    public void get(String name) {
+    public void get(final String name) {
         node.get(name, new Listener<Data>() {
             @Override
             public void message(boolean success, Data message) {
-                try {
-                    System.out.println(message.getObject().toString());
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                output.got(success, name, message, "");
             }
         });
     }
@@ -100,7 +93,7 @@ public class ClientImplementation implements ClientInput {
     public void getNeighbors() {
 
         if(!isConnected()){
-            System.out.println("Not connected!");
+            output.gotNeighbors(false, "Not connected!");
             return;
         }
 
@@ -108,7 +101,7 @@ public class ClientImplementation implements ClientInput {
 
             @Override
             public void message(boolean success, String message) {
-                System.out.println(message);
+                output.gotNeighbors(success, message);
             }
         });
     }
@@ -116,14 +109,14 @@ public class ClientImplementation implements ClientInput {
     public void reBootstrap() {
 
         if(!isConnected()){
-            System.out.println("Not connected!");
+            output.reBootstrapped(false, "Not connected!");
             return;
         }
 
         node.reBootstrap(peers, new Listener<String>() {
             @Override
             public void message(boolean success, String message) {
-                System.out.println(message);
+                output.reBootstrapped(success, message);
             }
         });
     }
