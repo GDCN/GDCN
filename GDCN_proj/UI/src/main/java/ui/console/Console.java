@@ -1,15 +1,14 @@
 package ui.console;
 
-import command.Client;
-import command.ClientImplementation;
-import net.tomp2p.storage.Data;
+import command.ClientInput;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by HalfLeif on 2014-02-19.
@@ -17,18 +16,22 @@ import java.util.*;
 public class Console {
 
     private final Holder commandHolder;
-    private Client client = null;
+    private final ClientInput client;
 
     private boolean loop = true;
 
-    public Console() {
-        commandHolder = new Holder(createCommands());
-        client = new ClientImplementation();
+    public Console(ClientInput client) {
+        this.client = client;
+
+        Map<String, Command> commandMap = ConsoleFactory.createCommands(client, this);
+        commandHolder = new Holder(commandMap);
     }
 
-    public static void main(String[] args){
-        Console console = new Console();
-        console.read();
+    /**
+     * TODO Is it possible to this better?
+     */
+    void stop(){
+        loop = false;
     }
 
     public void read(){
@@ -59,146 +62,4 @@ public class Console {
         }
     }
 
-    /**
-     * TODO refactor out? Send client as argument. Finish loop in a nicer way
-     * @return
-     */
-    private Map<String, Command> createCommands(){
-        Map<String, Command> commandMap = new HashMap<String, Command>();
-
-        commandMap.put("exit", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                if(client.isConnected()){
-                    System.out.println("You must run stop before you can exit!");
-                    return;
-                }
-                loop = false;
-            }
-        });
-
-        commandMap.put("start", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                int port = 4001;
-                if(args.size()==1){
-                    port=Integer.parseInt(args.get(0));
-                }
-                client.start(port);
-            }
-        });
-
-        commandMap.put("stop", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.stop();
-            }
-        });
-
-        commandMap.put("discover2", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                int port = Integer.parseInt(args.get(0));
-                client.discover2(port);
-            }
-        });
-
-        commandMap.put("discover", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.discover();
-            }
-        });
-
-        commandMap.put("put", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                String name = args.remove(0);
-                Data data = null;
-                try {
-                    data = new Data(args);
-                    client.put(name, data);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        commandMap.put("get", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.get(args.remove(0));
-            }
-        });
-
-        commandMap.put("connect", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                String site = "narrens.olf.sgsnet.se";
-                if(args.size() == 1){
-                    site = args.get(0);
-                }
-
-                try {
-                    InetAddress[] inetAddresses = InetAddress.getAllByName(site);
-                    for(InetAddress address : inetAddresses){
-
-                        System.out.println(""+address.toString());
-                    }
-                } catch (UnknownHostException e) {
-                    System.out.println("Unknown host: "+site);
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        commandMap.put("bootstrap", new Command() {
-            @Override
-            public void execute(List<String> args) {
-
-                String host = "narrens.olf.sgsnet.se";
-                int port = 4001;
-
-                if(args.size()==0){
-                    host = "narrens.olf.sgsnet.se";
-                    port = 4001;
-                } else if(args.size()==2){
-                    host = args.get(0);
-                    port = Integer.parseInt(args.get(1));
-                } else {
-                    System.out.println("Must take two arguments! Host and Port");
-                    return;
-                }
-                client.bootstrap(host, port);
-            }
-        });
-
-        commandMap.put("neighbors", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.getNeighbors();
-            }
-        });
-
-        commandMap.put("rebootstrap", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.reBootstrap();
-            }
-        });
-
-
-        //As long as the help command is done in this way it needs to be at the bottom
-        final Set<String> commands = commandMap.keySet();
-
-        commandMap.put("help", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                System.out.println(commands.toString());
-            }
-        });
-
-
-        return commandMap;
-    }
 }

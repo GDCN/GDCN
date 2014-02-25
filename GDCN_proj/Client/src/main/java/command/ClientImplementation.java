@@ -12,53 +12,17 @@ import java.util.List;
 /**
  * Created by Leif on 2014-02-17.
  */
-public class ClientImplementation implements Client {
+public class ClientImplementation implements ClientInput {
 
     private boolean connected = false;
 
     private CmdNode node = null;
+    private ClientOutput output = null;
 
     private List<PeerAddress> peers;
 
     public ClientImplementation(){
 
-    }
-
-    @Override
-    public void start(int port){
-        if(isConnected()){
-            System.out.println("Has a node already!");
-            return;
-        }
-
-        try {
-            node = new CmdNode(port);
-            connected = true;
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void bootstrap(String host, int port){
-        if(!isConnected()){
-            System.out.println("Not connected!");
-            return;
-        }
-
-        try {
-            InetAddress inetAddress = InetAddress.getByName(host);
-            node.bootstrap(inetAddress,port,new Listener<String>() {
-                @Override
-                public void message(boolean success, String message) {
-                    System.out.println(message);
-                }
-            });
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
     }
 
     @Override
@@ -73,23 +37,40 @@ public class ClientImplementation implements Client {
     }
 
     @Override
-    public void discover2(int port) {
-        node.discover2(port, new Listener<String>() {
-            @Override
-            public void message(boolean success, String message) {
-                System.out.println(message);
-            }
-        });
+    public void start(int port){
+        if(isConnected()){
+            output.started(false, port,"Has a node already!");
+            return;
+        }
+
+        try {
+            node = new CmdNode(port);
+            connected = true;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void discover() {
-        node.discover(new Listener<String>() {
-            @Override
-            public void message(boolean success, String message) {
-                System.out.println(message);
-            }
-        });
+    public void bootstrap(final String host, final int port){
+        if(!isConnected()){
+            output.bootstrapped(false, host, port, "Not connected!");
+            return;
+        }
+
+        try {
+            InetAddress inetAddress = InetAddress.getByName(host);
+            node.bootstrap(inetAddress,port,new Listener<String>() {
+                @Override
+                public void message(boolean success, String message) {
+                    output.bootstrapped(true, host, port, message);
+                }
+            });
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
