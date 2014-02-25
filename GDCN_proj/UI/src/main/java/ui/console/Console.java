@@ -1,7 +1,7 @@
 package ui.console;
 
-import command.CommandLine;
-import command.CommandLineImpl;
+import command.Client;
+import command.ClientImplementation;
 import net.tomp2p.storage.Data;
 
 import java.io.BufferedReader;
@@ -17,13 +17,13 @@ import java.util.*;
 public class Console {
 
     private final Holder commandHolder;
-    private CommandLine commandLine = null;
+    private Client client = null;
 
     private boolean loop = true;
 
     public Console() {
         commandHolder = new Holder(createCommands());
-        commandLine = new CommandLineImpl();
+        client = new ClientImplementation();
     }
 
     public static void main(String[] args){
@@ -59,13 +59,17 @@ public class Console {
         }
     }
 
+    /**
+     * TODO refactor out? Send client as argument. Finish loop in a nicer way
+     * @return
+     */
     private Map<String, Command> createCommands(){
         Map<String, Command> commandMap = new HashMap<String, Command>();
 
         commandMap.put("exit", new Command() {
             @Override
             public void execute(List<String> args) {
-                if(commandLine.isConnected()){
+                if(client.isConnected()){
                     System.out.println("You must run stop before you can exit!");
                     return;
                 }
@@ -80,14 +84,14 @@ public class Console {
                 if(args.size()==1){
                     port=Integer.parseInt(args.get(0));
                 }
-                commandLine.start(port);
+                client.start(port);
             }
         });
 
         commandMap.put("stop", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.stop();
+                client.stop();
             }
         });
 
@@ -95,14 +99,14 @@ public class Console {
             @Override
             public void execute(List<String> args) {
                 int port = Integer.parseInt(args.get(0));
-                commandLine.discover2(port);
+                client.discover2(port);
             }
         });
 
         commandMap.put("discover", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.discover();
+                client.discover();
             }
         });
 
@@ -113,7 +117,7 @@ public class Console {
                 Data data = null;
                 try {
                     data = new Data(args);
-                    commandLine.put(name, data);
+                    client.put(name, data);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -123,7 +127,7 @@ public class Console {
         commandMap.put("get", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.get(args.remove(0));
+                client.get(args.remove(0));
             }
         });
 
@@ -165,21 +169,21 @@ public class Console {
                     System.out.println("Must take two arguments! Host and Port");
                     return;
                 }
-                commandLine.bootstrap(host, port);
+                client.bootstrap(host, port);
             }
         });
 
         commandMap.put("neighbors", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.getNeighbors();
+                client.getNeighbors();
             }
         });
 
         commandMap.put("rebootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
-                commandLine.reBootstrap();
+                client.reBootstrap();
             }
         });
 
