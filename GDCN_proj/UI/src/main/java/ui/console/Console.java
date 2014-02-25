@@ -1,7 +1,7 @@
 package ui.console;
 
 import command.ClientLayer;
-import command.ClientInput;
+import command.communicationToUI.ClientInput;
 
 import java.io.BufferedReader;
 import java.io.IOException;
