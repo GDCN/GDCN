@@ -1,6 +1,6 @@
 package command;
 
-import command.communicationToUI.ResultCode;
+import command.communicationToUI.ErrorCode;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDHT;
@@ -102,7 +102,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 @Override
                 public void operationComplete(FutureDiscover future) throws Exception {
                     if(!future.isSuccess()){
-                        notifier.firePropertyChange("Bootstrap", false, ResultCode.DISCOVER_FAILURE);
+                        notifier.firePropertyChange("Bootstrap", false, ErrorCode.DISCOVER_FAILURE);
                         return;
                     }
 
@@ -112,7 +112,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                         @Override
                         public void operationComplete(FutureBootstrap future) throws Exception {
                             if(!future.isSuccess()){
-                                notifier.firePropertyChange("Bootstrap", false, ResultCode.BOOTSTRAP_FAILURE);
+                                notifier.firePropertyChange("Bootstrap", false, ErrorCode.BOOTSTRAP_FAILURE);
                                 return;
                             }
                             notifier.firePropertyChange("Bootstrap", true, new Operation<InetAddress>(true,inetAddress));
