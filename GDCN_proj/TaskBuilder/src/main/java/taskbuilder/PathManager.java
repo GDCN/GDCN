@@ -30,11 +30,12 @@ public class PathManager {
     }
 
     public void loadFromFile(String file) {
+        InputStream input = null;
         Properties prop = new Properties();
         try {
-            InputStream input = new FileInputStream(file);
+            input = new FileInputStream(file);
             prop.load(input);
-            input.close();
+
             ghcPath = prop.getProperty("ghcPath");
             jobCodePath = prop.getProperty("jobCodePath");
             jobExecutablePath = prop.getProperty("jobExecutablePath");
@@ -47,6 +48,14 @@ public class PathManager {
         }
         catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
