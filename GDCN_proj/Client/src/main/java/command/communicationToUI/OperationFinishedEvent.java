@@ -17,13 +17,11 @@ public class OperationFinishedEvent<E> extends PropertyChangeEvent {
         super(source, null, commandWord, operationResult);
     }
 
-    @Override
-    public CommandWord getOldValue(){
+    public CommandWord getCommandWord(){
         return (CommandWord) super.getOldValue();
     }
 
-    @Override
-    public Operation<E> getNewValue(){
+    public Operation<E> getOperation(){
         return (Operation<E>) super.getNewValue();
     }
 
