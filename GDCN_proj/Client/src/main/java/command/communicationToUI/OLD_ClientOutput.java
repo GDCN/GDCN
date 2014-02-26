@@ -5,7 +5,7 @@ import net.tomp2p.storage.Data;
 /**
  * Created by Leif on 2014-02-25.
  */
-public interface ClientOutput {
+public interface OLD_ClientOutput {
     void started(boolean success, int port, String errorMessage);
 
     void bootstrapped(boolean success, String host, int port, String errorMessage);

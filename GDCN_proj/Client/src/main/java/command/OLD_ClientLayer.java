@@ -1,7 +1,7 @@
 package command;
 
 import command.communicationToUI.ClientInput;
-import command.communicationToUI.ClientOutput;
+import command.communicationToUI.OLD_ClientOutput;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
@@ -20,7 +20,7 @@ public class OLD_ClientLayer implements ClientInput {
     private boolean connected = false;
 
     private PeerOwner node = null;
-    private ClientOutput output = null;
+    private OLD_ClientOutput output = null;
 
     private List<PeerAddress> peers;
 
@@ -33,7 +33,7 @@ public class OLD_ClientLayer implements ClientInput {
     /**
      * TODO - make into hashSet instead of max one listener
      */
-    public void addListener(ClientOutput out) {
+    public void addListener(OLD_ClientOutput out) {
         this.output = out;
     }
 
@@ -108,7 +108,7 @@ public class OLD_ClientLayer implements ClientInput {
             return;
         }
 
-        peers = node.getNeighbors( new Listener<String>() {
+        peers = node.getNeighbours(new Listener<String>() {
 
             @Override
             public void message(boolean success, String message) {
