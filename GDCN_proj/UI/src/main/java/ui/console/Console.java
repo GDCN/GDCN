@@ -1,6 +1,6 @@
 package ui.console;
 
-import command.ClientLayer;
+import command.OLD_ClientLayer;
 import command.communicationToUI.ClientInput;
 import command.communicationToUI.ClientOutput;
 import net.tomp2p.storage.Data;
@@ -67,7 +67,7 @@ public class Console {
     }
 
     public static void main(String[] args){
-        ClientInput client = new ClientLayer();
+        ClientInput client = new OLD_ClientLayer();
         Console console = new Console(client);
         console.read();
     }

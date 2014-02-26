@@ -13,12 +13,13 @@ import java.util.List;
 
 /**
  * Created by Leif on 2014-02-17.
+ * @deprecated
  */
-public class ClientLayer implements ClientInput {
+public class OLD_ClientLayer implements ClientInput {
 
     private boolean connected = false;
 
-    private CmdNode node = null;
+    private PeerOwner node = null;
     private ClientOutput output = null;
 
     private List<PeerAddress> peers;
@@ -50,7 +51,7 @@ public class ClientLayer implements ClientInput {
         }
 
         try {
-            node = new CmdNode(port);
+            node = new PeerOwner(port);
             connected = true;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
