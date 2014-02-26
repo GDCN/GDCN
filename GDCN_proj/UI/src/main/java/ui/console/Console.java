@@ -2,7 +2,9 @@ package ui.console;
 
 import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
+import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;
+import command.communicationToUI.WordInterface;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -21,7 +23,31 @@ public class Console implements PropertyChangeListener{
 
     private final Holder commandHolder;
 
+    private boolean loop = true;
+
     Console(Map<String, Command> commandMap) {
+
+        commandMap.put(MetaCommand.EXIT.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                loop = false;
+            }
+        });
+
+        commandMap.put(MetaCommand.HELP.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                List<WordInterface> words = new ArrayList<>();
+                words.addAll(Arrays.asList(CommandWord.values()));
+                words.addAll(Arrays.asList(MetaCommand.values()));
+
+                print("-- commandname (arity): description --");
+                for(WordInterface word : words){
+                    print(word.getName()+" ("+word.getArity()+"):\t"+word.getHelp());
+                }
+            }
+        });
+
         this.commandHolder = new Holder(commandMap);
     }
 
@@ -30,10 +56,10 @@ public class Console implements PropertyChangeListener{
         OperationFinishedEvent event = (OperationFinishedEvent) evt;
         switch(event.getCommandWord()){
             case BOOTSTRAP:
-                print("Bootstrap: " + evt.getNewValue());
+                print("Bootstrap successful? " + event.getOperation().isSuccess());
                 break;
             default:
-                print("Console: Returned cmd with unimplemented output: " + event.getOldValue().getName());
+                print("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
                 break;
         }
     }
@@ -50,7 +76,6 @@ public class Console implements PropertyChangeListener{
 
     public void read(){
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-        boolean loop = true;
         try {
 
             while(loop){
@@ -60,15 +85,10 @@ public class Console implements PropertyChangeListener{
                 List<String> wordList = new ArrayList<String>(Arrays.asList(words));
                 String cmd = wordList.remove(0);
 
-                if("exit".equals(cmd)){
-                    loop = false;
-                    commandHolder.execute("stop", wordList);
-                } else {
-                    try{
-                        commandHolder.execute(cmd, wordList);
-                    } catch (UnsupportedOperationException e){
-                        System.out.println("Unsupported operation ("+cmd+"). Type \"exit\" to stop");
-                    }
+                try{
+                    commandHolder.execute(cmd, wordList);
+                } catch (UnsupportedOperationException e){
+                    System.out.println("Unsupported operation ("+cmd+"). Type \"exit\" to stop");
                 }
             }
         } catch (IOException e) {
