@@ -1,15 +1,15 @@
 package taskbuilder;
 
-public static class Utils {
-    private static boolean isWindows = null;
+public class Utils {
+    private static Boolean isWindows = null;
 
     public static char getCPSeparator() {
-        return isWindows() ? ";" : ":";
+        return isWindows() ? ';' : ':';
     }
 
     public static boolean isWindows() {
         if (isWindows == null) {
-            isWindows = System.getProperty("os.name").startsWith("Windows"));
+            isWindows = System.getProperty("os.name").startsWith("Windows");
         }
 
         return isWindows;
