@@ -26,8 +26,8 @@ public class OperationFinishedSupport {
         propertyChangeSupport.firePropertyChange(event);
     }
 
-    public void fireOperationFinished(String name, boolean success, Operation operation){
-        this.fireOperationFinished(new OperationFinishedEvent(source, name, success, operation));
+    public void fireOperationFinished(CommandWord commandWord, Operation operation){
+        this.fireOperationFinished(new OperationFinishedEvent(source, commandWord, operation));
     }
 
     public void addListener(PropertyChangeListener listener){
