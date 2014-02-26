@@ -16,50 +16,39 @@ import java.util.Map;
 /**
  * Created by HalfLeif on 2014-02-19.
  */
-public class Console {
+public class Console implements PropertyChangeListener{
 
     private final Holder commandHolder;
-    private final PropertyChangeListener listener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-            switch(evt.getPropertyName()){
-                case "Bootstrap":
-                    print("Bootstrap: "+evt.getOldValue());
-                    break;
-                default:
-                    print("Console: Returned unimplemented name: "+evt.getPropertyName());
-                    break;
-            }
+
+    Console(Map<String, Command> commandMap) {
+        this.commandHolder = new Holder(commandMap);
+    }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent evt) {
+        switch(evt.getPropertyName()){
+            case "Bootstrap":
+                print("Bootstrap: " + evt.getOldValue());
+                break;
+            default:
+                print("Console: Returned unimplemented name: " + evt.getPropertyName());
+                break;
         }
-    };
+    }
 
     private void print(String message){
         System.out.println(message);
     }
 
-    private boolean loop = true;
-
-    public Console(ClientInterface client) {
-        Map<String, Command> commandMap = ConsoleFactory.createCommands(client, this);
-        this.commandHolder = new Holder(commandMap);
-        client.addListener(this.listener);
-    }
-
     public static void main(String[] args){
         ClientInterface client = new PeerOwner();
-        Console console = new Console(client);
+        Console console = ConsoleFactory.create(client);
         console.read();
-    }
-
-    /**
-     * TODO Is it possible to this better?
-     */
-    void stop(){
-        loop = false;
     }
 
     public void read(){
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
+        boolean loop = true;
         try {
 
             while(loop){
@@ -68,12 +57,17 @@ public class Console {
                 String[] words = line.split("\\s");
                 List<String> wordList = new ArrayList<String>(Arrays.asList(words));
                 String cmd = wordList.remove(0);
-                try{
-                    commandHolder.execute(cmd, wordList);
-                } catch (UnsupportedOperationException e){
-                    System.out.println("Unsupported operation ("+cmd+"). Type \"exit\" to stop");
-                }
 
+                if("exit".equals(cmd)){
+                    loop = false;
+                    commandHolder.execute("stop", wordList);
+                } else {
+                    try{
+                        commandHolder.execute(cmd, wordList);
+                    } catch (UnsupportedOperationException e){
+                        System.out.println("Unsupported operation ("+cmd+"). Type \"exit\" to stop");
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
