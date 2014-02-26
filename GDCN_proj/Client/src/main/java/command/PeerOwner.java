@@ -1,6 +1,9 @@
 package command;
 
 import command.communicationToUI.ErrorCode;
+import command.communicationToUI.Operation;
+import command.communicationToUI.Operation.OperationBuilder;
+import command.communicationToUI.OperationFinishedSupport;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDHT;
@@ -14,7 +17,6 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
 import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -30,34 +32,16 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
     private List<PeerAddress> neighbours;
-    private PropertyChangeSupport notifier = new PropertyChangeSupport(this);
-
-    public static class Operation<E>{
-        private boolean success;
-        private E result;
-
-        public Operation(boolean success, E result) {
-            this.success = success;
-            this.result = result;
-        }
-
-        public boolean isSuccess() {
-            return success;
-        }
-
-        public E getResult() {
-            return result;
-        }
-    }
+    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
 
     @Override
     public void addListener(PropertyChangeListener listener){
-        notifier.addPropertyChangeListener(listener);
+        notifier.addListener(listener);
     }
 
     @Override
     public void removeListener(PropertyChangeListener listener){
-        notifier.removePropertyChangeListener(listener);
+        notifier.removeListener(listener);
     }
 
     @Override
@@ -73,19 +57,22 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //TODO notify UI
+
+        notifier.fireOperationFinished("start", peer != null,
+                new OperationBuilder<Integer>().setResult(port).create());
     }
 
     @Override
     public void stop(){
         if(peer == null){
-            //TODO alert UI?
+            notifier.fireOperationFinished("stop", false,
+                    new OperationBuilder().setErrorCode(ErrorCode.NOT_CONNECTED).setSuccess(false).create());
             return;
         }
         if(!peer.isShutdown()){
-            //TODO alert UI?
             peer.shutdown();
         }
+        notifier.fireOperationFinished("stop", true, new OperationBuilder().setSuccess(true).create());
     }
 
     @Override
@@ -102,7 +89,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 @Override
                 public void operationComplete(FutureDiscover future) throws Exception {
                     if(!future.isSuccess()){
-                        notifier.firePropertyChange("Bootstrap", false, ErrorCode.DISCOVER_FAILURE);
+                        notifier.fireOperationFinished("Bootstrap", false,
+                                new OperationBuilder<InetAddress>().setSuccess(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
                         return;
                     }
 
@@ -112,10 +100,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                         @Override
                         public void operationComplete(FutureBootstrap future) throws Exception {
                             if(!future.isSuccess()){
-                                notifier.firePropertyChange("Bootstrap", false, ErrorCode.BOOTSTRAP_FAILURE);
+                                notifier.fireOperationFinished("Bootstrap", false,
+                                        new OperationBuilder<InetAddress>().setSuccess(false).setResult(inetAddress).setErrorCode(ErrorCode.BOOTSTRAP_FAILURE).create());
                                 return;
                             }
-                            notifier.firePropertyChange("Bootstrap", true, new Operation<InetAddress>(true,inetAddress));
+                            notifier.fireOperationFinished("Bootstrap", true,
+                                    new OperationBuilder<InetAddress>().setSuccess(true).setResult(inetAddress).create());
                         }
                     });
                 }
@@ -135,13 +125,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             public void operationComplete(FutureDHT future) throws Exception {
                 boolean success = future.isSuccess();
                 String msg = "Put "+value.getObject().toString()+" under "+name;
-//                notifier.firePropertyChange("Put", null, null);
-                if(success){
-//                    listener.message(success, msg);
-                } else {
-//                    listener.message(success, "Failed to "+msg);
-                }
-
+                Operation<Data> result = new OperationBuilder<Data>().setResult(value).setKey(name).setSuccess(success).create();
+                notifier.fireOperationFinished("Put", success, result);
             }
         });
     }
@@ -152,11 +137,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
-                if(future.isSuccess()){
-//                    listener.message(true, future.getData());
-                } else {
-//                    listener.message(false, null);
-                }
+                boolean success = future.isSuccess();
+                notifier.fireOperationFinished("get", success,
+                        new OperationBuilder<Data>().setSuccess(success).setKey(name).setResult(future.getData()).create());
             }
         });
 
