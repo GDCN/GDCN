@@ -16,6 +16,7 @@ public class PathManager {
     private String ghcPath;
     private String jobCodePath;
     private String jobExecutablePath;
+    private String taskInitDataPath;
     private String headerPath;
     private String dumpPath;
 
@@ -37,6 +38,7 @@ public class PathManager {
             ghcPath = prop.getProperty("ghcPath");
             jobCodePath = prop.getProperty("jobCodePath");
             jobExecutablePath = prop.getProperty("jobExecutablePath");
+            taskInitDataPath = prop.getProperty("taskInitDataPath");
             headerPath = prop.getProperty("headerPath");
             dumpPath = prop.getProperty("dumpPath");
         }
@@ -60,9 +62,15 @@ public class PathManager {
         return jobExecutablePath;
     }
 
+    public String getTaskInitDataPath() {
+        return taskInitDataPath;
+    }
+
     public String getHeaderPath() {
         return headerPath;
     }
 
-    public String getDumpPath() { return dumpPath; }
+    public String getDumpPath() {
+        return dumpPath;
+    }
 }

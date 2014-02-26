@@ -12,9 +12,11 @@ import java.io.StringWriter;
 public class Task {
 
     private final String moduleName;
+    private final String initData;
 
-    public Task(String module) {
-        moduleName = module;
+    public Task(String moduleName, String initData) {
+        this.moduleName = moduleName;
+        this.initData = initData;
     }
 
     // Compiles task code
@@ -22,9 +24,9 @@ public class Task {
 	    PathManager pathman = PathManager.getInstance();
         //TODO Manage trust in a non hardcoded way
         String[] command = {pathman.getGhcPath(), "-o", pathman.getJobExecutablePath() + moduleName,
-			    "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
+		        "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
                 "-outputdir", pathman.getDumpPath(),
-			    "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
+		        "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
         Process proc = new ProcessBuilder(command).start();
 
         try {
@@ -42,8 +44,9 @@ public class Task {
 
     // Executes a task
     public byte[] execute() throws IOException, InterruptedException, ExitFailureException {
-        //TODO Give command input files (how to handle input must be implemented first)
-        String[] command = {PathManager.getInstance().getJobExecutablePath() + moduleName};
+        PathManager pathman = PathManager.getInstance();
+        String[] command = {pathman.getJobExecutablePath() + moduleName,
+                pathman.getTaskInitDataPath() + initData};
 
         Process proc = new ProcessBuilder(command).start();
 
@@ -78,8 +81,11 @@ public class Task {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
-	    PathManager.getInstance().loadFromFile("GDCN.properties");
-        Task t = new Task("Prime");
+        //NOTE: This test only works for Unix with current GDCN.properties
+        // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
+	    PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+                File.separator + "TaskBuilder/src/main/resources/GDCN.properties");
+        Task t = new Task("Prime", "2_2000.raw");
 	    byte[] res = t.run();
         System.out.println(res);
     }
