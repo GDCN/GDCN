@@ -68,7 +68,7 @@ public class ClientTest {
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "Bootstrap") {
+                if(true) {
                     success = (Boolean) evt.getOldValue();
                     sem.release();
                 }
@@ -141,8 +141,6 @@ public class ClientTest {
         peer.addListener(listener);
 
 
-        peer.bootstrap("localhost", 4001);
-
         peer.put(putKey, putValue);
 
         try {
@@ -164,7 +162,7 @@ public class ClientTest {
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "Get") {
+                if(evt.getPropertyName() == "get") {
                     success = (Boolean) evt.getOldValue();
                     sem.release();
                 }
@@ -174,7 +172,7 @@ public class ClientTest {
         peer.addListener(listener);
 
         peer2.bootstrap("localhost", 4002);
-        peer.bootstrap("localhost", 4001);
+        peer.bootstrap("localhost", 4002);
 
         peer2.put(putKey, putValue);
 
@@ -186,6 +184,10 @@ public class ClientTest {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("THIS WILL LEAD TO" + success);
+
+        peer2.stop();
 
         assert (success);
 
@@ -201,7 +203,7 @@ public class ClientTest {
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "Get") {
+                if(evt.getPropertyName() == "get") {
                     success = (Boolean) evt.getOldValue();
                     sem.release();
                 }
@@ -211,7 +213,7 @@ public class ClientTest {
         peer.addListener(listener);
 
         peer2.bootstrap("localhost", 4002);
-        peer.bootstrap("localhost", 4001);
+        peer.bootstrap("localhost", 4002);
 
         peer2.put(putKey, putValue);
 
@@ -224,7 +226,17 @@ public class ClientTest {
             e.printStackTrace();
         }
 
+        peer2.stop();
+
         Assert.assertFalse(success);
 
+    }
+
+    @Test
+    public void startStop() {
+        peer.stop();
+        peer.start(4001);
+        peer.stop();
+        peer.start(4001);
     }
 }
