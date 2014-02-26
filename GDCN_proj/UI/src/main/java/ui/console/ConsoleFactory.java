@@ -16,16 +16,16 @@ import java.util.Set;
  */
 public class ConsoleFactory {
 
-    static Map<String, Command> createCommands(final ClientInterface client, final Console console){
-        Map<String, Command> commandMap = new HashMap<String, Command>();
+    public static Console create(final ClientInterface client){
+        Map<String, Command> commandMap = ConsoleFactory.createCommands(client);
+        Console console = new Console(commandMap);
+        client.addListener(console);
 
-        commandMap.put("exit", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.stop();
-                console.stop();
-            }
-        });
+        return console;
+    }
+
+    private static Map<String, Command> createCommands(final ClientInterface client){
+        Map<String, Command> commandMap = new HashMap<String, Command>();
 
         commandMap.put("start", new Command() {
             @Override
