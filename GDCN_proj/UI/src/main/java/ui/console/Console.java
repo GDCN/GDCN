@@ -2,6 +2,7 @@ package ui.console;
 
 import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
+import command.communicationToUI.OperationFinishedEvent;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -26,9 +27,10 @@ public class Console implements PropertyChangeListener{
 
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        switch(evt.getPropertyName()){
-            case "Bootstrap":
-                print("Bootstrap: " + evt.getOldValue());
+        OperationFinishedEvent event = (OperationFinishedEvent) evt;
+        switch(event.getOldValue()){
+            case BOOTSTRAP:
+                print("Bootstrap: " + evt.getNewValue());
                 break;
             default:
                 print("Console: Returned unimplemented name: " + evt.getPropertyName());
