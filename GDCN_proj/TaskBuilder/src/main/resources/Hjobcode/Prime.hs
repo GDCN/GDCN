@@ -11,6 +11,7 @@ import Data.ByteString.Lazy (ByteString)
 -}
 
 run :: [ByteString] -> ByteString
+run [] = encode $ prime 2 1000 [] []
 run (h:rs) = let (start, end) = (decode h) :: (Integer, Integer) -- Reads input of task
                  primes = (concatMap decode rs) :: [Integer] -- Reads previous results
              in encode $ prime start end primes []
