@@ -2,6 +2,7 @@ package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 
@@ -16,7 +17,7 @@ public class Task {
         moduleName = module;
     }
 
-    // Compiles job code
+    // Compiles task code
     public void compile() throws IOException, InterruptedException, ExitFailureException {
 	    PathManager pathman = PathManager.getInstance();
         //TODO Manage trust in a non hardcoded way
@@ -40,14 +41,9 @@ public class Task {
     }
 
     // Executes a task
-    public byte[] execute(String[] inputFiles) throws IOException, InterruptedException, ExitFailureException {
-        PathManager pathman = PathManager.getInstance();
-        String[] command = new String[inputFiles.length + 1];
-
-        command[0] = pathman.getJobExecutablePath() + moduleName;
-        for (int i = 0; i < inputFiles.length; i++) {
-            command[i+1] = inputFiles[i];
-        }
+    public byte[] execute() throws IOException, InterruptedException, ExitFailureException {
+        //TODO Give command input files (how to handle input must be implemented first)
+        String[] command = {PathManager.getInstance().getJobExecutablePath() + moduleName};
 
         Process proc = new ProcessBuilder(command).start();
 
@@ -68,12 +64,23 @@ public class Task {
         }
     }
 
+    // Compiles and executes a task
+    public byte[] run() throws IOException, InterruptedException, ExitFailureException {
+        String path = PathManager.getInstance().getJobExecutablePath() + moduleName;
+        File executable = new File(path);
+        if (executable.isDirectory()) {
+            throw new IOException(path + " is a directory.");
+        }
+        if (!executable.exists()) {
+            compile();
+        }
+        return execute();
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
 	    PathManager.getInstance().loadFromFile("GDCN.properties");
         Task t = new Task("Prime");
-	    t.compile();
-        String[] in = {};
-	    byte[] res = t.execute(in);
+	    byte[] res = t.run();
         System.out.println(res);
     }
 }
