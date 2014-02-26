@@ -3,7 +3,6 @@ package taskbuilder;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * Class for compiling and executing Haskell code
@@ -11,11 +10,11 @@ import java.io.InputStream;
 public class HaskellRunner {
 
     // Compiles job code
-    //TODO Clean up/Prevent GHC from generating .hi and .o files for compiled programs
     public static void compile(String module) throws IOException, InterruptedException {
 	    PathManager pathman = PathManager.getInstance();
         String[] command = {pathman.getGhcPath(), "-o", pathman.getJobExecutablePath() + module,
 			    "-DMODULE=" + module, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
+                "-outputdir", pathman.getDumpPath(),
 			    "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
         Process proc = new ProcessBuilder(command).start();
 

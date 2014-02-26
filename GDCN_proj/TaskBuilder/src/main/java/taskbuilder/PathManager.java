@@ -17,6 +17,7 @@ public class PathManager {
     private String jobCodePath;
     private String jobExecutablePath;
     private String headerPath;
+    private String dumpPath;
 
     private PathManager() {}
 
@@ -37,6 +38,7 @@ public class PathManager {
             jobCodePath = prop.getProperty("jobCodePath");
             jobExecutablePath = prop.getProperty("jobExecutablePath");
             headerPath = prop.getProperty("headerPath");
+            dumpPath = prop.getProperty("dumpPath");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -61,4 +63,6 @@ public class PathManager {
     public String getHeaderPath() {
         return headerPath;
     }
+
+    public String getDumpPath() { return dumpPath; }
 }
