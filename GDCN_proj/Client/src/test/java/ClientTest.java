@@ -1,5 +1,7 @@
 import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
+import command.communicationToUI.CommandWord;
+import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -35,7 +37,7 @@ public class ClientTest {
 
 
     @BeforeMethod
-    public void setUp() throws IOException {
+    public void setUp() {
         sem = new Semaphore(0);
 
         peer = new PeerOwner();
@@ -44,8 +46,6 @@ public class ClientTest {
         peer.start(4001);
         bootStrapNode.start(4002);
 
-
-        putValue = new Data("Value");
     }
 
 
@@ -68,8 +68,9 @@ public class ClientTest {
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(true) {
-                    success = (Boolean) evt.getOldValue();
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() == CommandWord.BOOTSTRAP) {
+                    success = event.getOperation().isSuccess();
                     sem.release();
                 }
             }
@@ -100,8 +101,9 @@ public class ClientTest {
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "Bootstrap") {
-                    success = (Boolean) evt.getOldValue();
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() == CommandWord.BOOTSTRAP) {
+                    success = event.getOperation().isSuccess();
                     sem.release();
                 }
             }
@@ -126,13 +128,14 @@ public class ClientTest {
      *
      */
     @Test
-    public void putTest1() {
+    public void putTest1() throws IOException {
 
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "Put") {
-                    success = (Boolean) evt.getOldValue();
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() == CommandWord.PUT) {
+                    success = event.getOperation().isSuccess();
                     sem.release();
                 }
             }
@@ -140,6 +143,7 @@ public class ClientTest {
 
         peer.addListener(listener);
 
+        putValue = new Data("Value");
 
         peer.put(putKey, putValue);
 
@@ -153,28 +157,30 @@ public class ClientTest {
     }
 
     @Test
-    public void getTest1() {
+    public void getTest1() throws IOException {
 
         ClientInterface peer2 = new PeerOwner();
 
         peer2.start(4003);
+        putValue = new Data("Value");
+
+        peer2.put(putKey, putValue);
 
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "get") {
-                    success = (Boolean) evt.getOldValue();
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() == CommandWord.GET) {
+                    success = event.getOperation().isSuccess();
                     sem.release();
                 }
             }
         };
 
-        peer.addListener(listener);
-
         peer2.bootstrap("localhost", 4002);
         peer.bootstrap("localhost", 4002);
 
-        peer2.put(putKey, putValue);
+        peer.addListener(listener);
 
         peer.get(putKey);
 
@@ -185,7 +191,7 @@ public class ClientTest {
             e.printStackTrace();
         }
 
-        System.out.println("THIS WILL LEAD TO" + success);
+        System.out.println("THIS WILL LEAD TO " + success);
 
         peer2.stop();
 
@@ -196,15 +202,12 @@ public class ClientTest {
     @Test
     public void getTest2() {
 
-        ClientInterface peer2 = new PeerOwner();
-
-        peer2.start(4003);
-
         PropertyChangeListener listener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                if(evt.getPropertyName() == "get") {
-                    success = (Boolean) evt.getOldValue();
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() == CommandWord.GET) {
+                    success = event.getOperation().isSuccess();
                     sem.release();
                 }
             }
@@ -212,10 +215,7 @@ public class ClientTest {
 
         peer.addListener(listener);
 
-        peer2.bootstrap("localhost", 4002);
         peer.bootstrap("localhost", 4002);
-
-        peer2.put(putKey, putValue);
 
         peer.get("none-existing");
 
@@ -226,7 +226,6 @@ public class ClientTest {
             e.printStackTrace();
         }
 
-        peer2.stop();
 
         Assert.assertFalse(success);
 

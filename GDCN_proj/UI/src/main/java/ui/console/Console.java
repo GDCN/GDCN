@@ -28,7 +28,7 @@ public class Console implements PropertyChangeListener{
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         OperationFinishedEvent event = (OperationFinishedEvent) evt;
-        switch(event.getOldValue()){
+        switch(event.getCommandWord()){
             case BOOTSTRAP:
                 print("Bootstrap: " + evt.getNewValue());
                 break;
