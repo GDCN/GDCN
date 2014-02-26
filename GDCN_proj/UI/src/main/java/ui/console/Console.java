@@ -22,9 +22,20 @@ public class Console {
     private final PropertyChangeListener listener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
-
+            switch(evt.getPropertyName()){
+                case "Bootstrap":
+                    print("Bootstrap: "+evt.getOldValue());
+                    break;
+                default:
+                    print("Console: Returned unimplemented name: "+evt.getPropertyName());
+                    break;
+            }
         }
     };
+
+    private void print(String message){
+        System.out.println(message);
+    }
 
     private boolean loop = true;
 
