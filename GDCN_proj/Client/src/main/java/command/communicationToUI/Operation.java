@@ -34,14 +34,14 @@ public class Operation<E>{
 
     public static class OperationBuilder<E>{
 
-        private boolean success = false;
+        private final boolean success;
+
         private E result = null;
         private ErrorCode errorCode = null;
         private String key = "";
 
-        public OperationBuilder<E> setSuccess(boolean success) {
+        public OperationBuilder(boolean success){
             this.success = success;
-            return this;
         }
 
         public OperationBuilder<E> setResult(E result) {
