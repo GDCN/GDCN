@@ -1,6 +1,5 @@
 package ui.console;
 
-import command.communicationToUI.ClientInput;
 import command.communicationToUI.ClientInterface;
 import net.tomp2p.storage.Data;
 
@@ -16,10 +15,6 @@ import java.util.Set;
  * Created by Leif on 2014-02-25.
  */
 public class ConsoleFactory {
-
-    static Console createConsole(final ClientInput client){
-        return null;
-    }
 
     static Map<String, Command> createCommands(final ClientInterface client, final Console console){
         Map<String, Command> commandMap = new HashMap<String, Command>();
