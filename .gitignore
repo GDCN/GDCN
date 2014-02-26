@@ -7,6 +7,7 @@
 *.iws
 .idea/
 
+
 *.DS_Store
 
 *.jar
