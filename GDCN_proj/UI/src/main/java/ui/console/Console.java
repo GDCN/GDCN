@@ -37,6 +37,7 @@ public class Console implements PropertyChangeListener{
         commandMap.put(MetaCommand.HELP.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
+                //TODO use TreeSet instead?
                 List<WordInterface> words = new ArrayList<>();
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
