@@ -1,10 +1,10 @@
 package ui.console;
 
-import command.OLD_ClientLayer;
-import command.communicationToUI.ClientInput;
-import command.communicationToUI.ClientOutput;
-import net.tomp2p.storage.Data;
+import command.PeerOwner;
+import command.communicationToUI.ClientInterface;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,55 +19,23 @@ import java.util.Map;
 public class Console {
 
     private final Holder commandHolder;
-    private final ClientOutput output = new ClientOutput() {
-
-        //TODO implement these...
+    private final PropertyChangeListener listener = new PropertyChangeListener() {
         @Override
-        public void started(boolean success, int port, String errorMessage) {
-
-        }
-
-        @Override
-        public void bootstrapped(boolean success, String host, int port, String errorMessage) {
-
-        }
-
-        @Override
-        public void stopped(boolean success, String errorMessage) {
-
-        }
-
-        @Override
-        public void put(boolean success, String name, Data data, String errorMessage) {
-
-        }
-
-        @Override
-        public void got(boolean success, String name, Data data, String errorMessage) {
-
-        }
-
-        @Override
-        public void gotNeighbors(boolean success, String errorMessage) {
-
-        }
-
-        @Override
-        public void reBootstrapped(boolean success, String errorMessage) {
+        public void propertyChange(PropertyChangeEvent evt) {
 
         }
     };
 
     private boolean loop = true;
 
-    public Console(ClientInput client) {
+    public Console(ClientInterface client) {
         Map<String, Command> commandMap = ConsoleFactory.createCommands(client, this);
         this.commandHolder = new Holder(commandMap);
-        client.addListener(this.output);
+        client.addListener(this.listener);
     }
 
     public static void main(String[] args){
-        ClientInput client = new OLD_ClientLayer();
+        ClientInterface client = new PeerOwner();
         Console console = new Console(client);
         console.read();
     }

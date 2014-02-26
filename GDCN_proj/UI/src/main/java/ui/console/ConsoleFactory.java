@@ -1,6 +1,7 @@
 package ui.console;
 
 import command.communicationToUI.ClientInput;
+import command.communicationToUI.ClientInterface;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
@@ -20,16 +21,13 @@ public class ConsoleFactory {
         return null;
     }
 
-    static Map<String, Command> createCommands(final ClientInput client, final Console console){
+    static Map<String, Command> createCommands(final ClientInterface client, final Console console){
         Map<String, Command> commandMap = new HashMap<String, Command>();
 
         commandMap.put("exit", new Command() {
             @Override
             public void execute(List<String> args) {
-                if(client.isConnected()){
-                    System.out.println("You must run stop before you can exit!");
-                    return;
-                }
+                client.stop();
                 console.stop();
             }
         });
@@ -115,17 +113,18 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("neighbors", new Command() {
+        commandMap.put("neighbours", new Command() {
             @Override
             public void execute(List<String> args) {
-                client.getNeighbors();
+                client.getNeighbours();
             }
         });
 
         commandMap.put("rebootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
-                client.reBootstrap();
+                //TODO fix!
+//                client.reBootstrap();
             }
         });
 

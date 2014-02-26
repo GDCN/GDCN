@@ -1,5 +1,6 @@
 package command;
 
+import command.communicationToUI.ResultCode;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDHT;
@@ -25,19 +26,41 @@ import java.util.List;
 /**
  * Created by Leif on 2014-02-17.
  */
-public class PeerOwner {
+public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
+    private List<PeerAddress> neighbours;
     private PropertyChangeSupport notifier = new PropertyChangeSupport(this);
 
+    public static class Operation<E>{
+        private boolean success;
+        private E result;
+
+        public Operation(boolean success, E result) {
+            this.success = success;
+            this.result = result;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public E getResult() {
+            return result;
+        }
+    }
+
+    @Override
     public void addListener(PropertyChangeListener listener){
         notifier.addPropertyChangeListener(listener);
     }
 
+    @Override
     public void removeListener(PropertyChangeListener listener){
         notifier.removePropertyChangeListener(listener);
     }
 
+    @Override
     public void start(int port){
         try {
 
@@ -53,6 +76,7 @@ public class PeerOwner {
         //TODO notify UI
     }
 
+    @Override
     public void stop(){
         if(peer == null){
             //TODO alert UI?
@@ -64,7 +88,8 @@ public class PeerOwner {
         }
     }
 
-    public void bootstrap(final String host, final int port, final Listener<String> listener){
+    @Override
+    public void bootstrap(final String host, final int port){
         try {
             final InetAddress inetAddress = InetAddress.getByName(host);
 
@@ -77,7 +102,7 @@ public class PeerOwner {
                 @Override
                 public void operationComplete(FutureDiscover future) throws Exception {
                     if(!future.isSuccess()){
-                        listener.message(false,"Future discover failed\n"+address);
+                        notifier.firePropertyChange("Bootstrap", false, ResultCode.DISCOVER_FAILURE);
                         return;
                     }
 
@@ -87,10 +112,10 @@ public class PeerOwner {
                         @Override
                         public void operationComplete(FutureBootstrap future) throws Exception {
                             if(!future.isSuccess()){
-                                listener.message(false, "Future bootstrap failed\n"+address);
+                                notifier.firePropertyChange("Bootstrap", false, ResultCode.BOOTSTRAP_FAILURE);
                                 return;
                             }
-                            listener.message(true, "Bootstrap successful!\n"+future.getBootstrapTo().toString());
+                            notifier.firePropertyChange("Bootstrap", true, new Operation<InetAddress>(true,inetAddress));
                         }
                     });
                 }
@@ -101,7 +126,8 @@ public class PeerOwner {
 
     }
 
-    public void put(final String name, final Data value, final Listener<String> listener){
+    @Override
+    public void put(final String name, final Data value){
         FutureDHT futureDHT = peer.put(Number160.createHash(name)).setData(value).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>(){
 
@@ -109,52 +135,56 @@ public class PeerOwner {
             public void operationComplete(FutureDHT future) throws Exception {
                 boolean success = future.isSuccess();
                 String msg = "Put "+value.getObject().toString()+" under "+name;
+//                notifier.firePropertyChange("Put", null, null);
                 if(success){
-                    listener.message(success, msg);
+//                    listener.message(success, msg);
                 } else {
-                    listener.message(success, "Failed to "+msg);
+//                    listener.message(success, "Failed to "+msg);
                 }
 
             }
         });
     }
 
-    public void get(final String name, final Listener<Data> listener){
+    @Override
+    public void get(final String name){
         FutureDHT futureDHT = peer.get(Number160.createHash(name)).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
                 if(future.isSuccess()){
-                    listener.message(true, future.getData());
+//                    listener.message(true, future.getData());
                 } else {
-                    listener.message(false, null);
+//                    listener.message(false, null);
                 }
             }
         });
 
     }
 
-    public List<PeerAddress> getNeighbors(final Listener<String> listener){
+    @Override
+    public List<PeerAddress> getNeighbours(){
 
         List<PeerAddress> peers = peer.getPeerBean().getPeerMap().getAll();
-        String message = "Neighbors: ";
-        if(peers.isEmpty()) {
-            message = message + "none";
-        } else {
-            for (PeerAddress p : peers) {
-//                message = message + p.getInetAddress() + "\n";
-                message = message + p.toString() + "\n";
-            }
-        }
-        message = message.trim();
-        listener.message(true, message);
+//        String message = "Neighbors: ";
+//        if(peers.isEmpty()) {
+//            message = message + "none";
+//        } else {
+//            for (PeerAddress p : peers) {
+////                message = message + p.getInetAddress() + "\n";
+//                message = message + p.toString() + "\n";
+//            }
+//        }
+//        message = message.trim();
+////        listener.message(true, message);
 
         return peers;
     }
 
-    public void reBootstrap(List<PeerAddress> peers, final Listener<String> listener) {
+    @Override
+    public void reBootstrap(List<PeerAddress> peers) {
         for (PeerAddress p : peers) {
-            bootstrap(p.getInetAddress().getHostAddress(),p.portTCP(), listener);
+            bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
         }
 
     }

@@ -7,7 +7,7 @@ import net.tomp2p.storage.Data;
  */
 public interface ClientInput {
 
-    void addListener(ClientOutput out);
+    void addListener(OLD_ClientOutput out);
 
     void start(int port);
 
