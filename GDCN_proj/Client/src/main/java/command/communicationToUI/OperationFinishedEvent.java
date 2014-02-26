@@ -18,4 +18,15 @@ public class OperationFinishedEvent<E> extends PropertyChangeEvent {
     public OperationFinishedEvent(Object source, String propertyName, boolean oldValue, Operation<E> newValue) {
         super(source, propertyName, oldValue, newValue);
     }
+
+    @Override
+    public Boolean getOldValue(){
+        return (Boolean) super.getOldValue();
+    }
+
+    @Override
+    public E getNewValue(){
+        return (E) super.getNewValue();
+    }
+    
 }
