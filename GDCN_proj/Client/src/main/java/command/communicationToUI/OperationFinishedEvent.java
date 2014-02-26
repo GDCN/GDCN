@@ -23,8 +23,8 @@ public class OperationFinishedEvent<E> extends PropertyChangeEvent {
     }
 
     @Override
-    public E getNewValue(){
-        return (E) super.getNewValue();
+    public Operation<E> getNewValue(){
+        return (Operation<E>) super.getNewValue();
     }
 
 }
