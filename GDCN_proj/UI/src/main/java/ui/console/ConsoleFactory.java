@@ -16,6 +16,10 @@ import java.util.Set;
  */
 public class ConsoleFactory {
 
+    static Console createConsole(final ClientInput client){
+        return null;
+    }
+
     static Map<String, Command> createCommands(final ClientInput client, final Console console){
         Map<String, Command> commandMap = new HashMap<String, Command>();
 
