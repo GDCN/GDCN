@@ -1,6 +1,7 @@
 package ui.console;
 
 import command.communicationToUI.ClientInterface;
+import command.communicationToUI.CommandWord;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
@@ -27,7 +28,7 @@ public class ConsoleFactory {
     private static Map<String, Command> createCommands(final ClientInterface client){
         Map<String, Command> commandMap = new HashMap<String, Command>();
 
-        commandMap.put("start", new Command() {
+        commandMap.put(CommandWord.START.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
                 int port = 4001;
@@ -38,14 +39,14 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("stop", new Command() {
+        commandMap.put(CommandWord.STOP.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
                 client.stop();
             }
         });
 
-        commandMap.put("put", new Command() {
+        commandMap.put(CommandWord.PUT.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
                 String name = args.remove(0);
@@ -59,7 +60,7 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("get", new Command() {
+        commandMap.put(CommandWord.GET.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
                 client.get(args.remove(0));
@@ -87,7 +88,7 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("bootstrap", new Command() {
+        commandMap.put(CommandWord.BOOTSTRAP.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
 
@@ -108,6 +109,7 @@ public class ConsoleFactory {
             }
         });
 
+        //TODO use enum
         commandMap.put("neighbours", new Command() {
             @Override
             public void execute(List<String> args) {

@@ -33,7 +33,7 @@ public class Console implements PropertyChangeListener{
                 print("Bootstrap: " + evt.getNewValue());
                 break;
             default:
-                print("Console: Returned unimplemented name: " + evt.getPropertyName());
+                print("Console: Returned cmd with unimplemented output: " + event.getOldValue().getName());
                 break;
         }
     }
