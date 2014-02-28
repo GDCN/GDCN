@@ -11,13 +11,16 @@ import java.util.Properties;
  */
 public class PathManager {
 
+    private static final String JOB_PATH = "Hjobcode/";
+    private static final String INIT_DATA = "initdata/";
+    private static final String EXECUTABLE = "exec/bin/";
+    private static final String DUMP = "dump/";
+
     private static PathManager instance = null;
 
-    private String jobCodePath;
-    private String jobExecutablePath;
-    private String taskInitDataPath;
-    private String headerPath;
-    private String dumpPath;
+    private String resources;
+    private String temp;
+    private String header;
 
     private PathManager() {}
 
@@ -35,11 +38,9 @@ public class PathManager {
             input = new FileInputStream(file);
             prop.load(input);
 
-            jobCodePath = prop.getProperty("jobCodePath");
-            jobExecutablePath = prop.getProperty("jobExecutablePath");
-            taskInitDataPath = prop.getProperty("taskInitDataPath");
-            headerPath = prop.getProperty("headerPath");
-            dumpPath = prop.getProperty("dumpPath");
+            resources = prop.getProperty("resources");
+            temp = prop.getProperty("temp");
+            header = prop.getProperty("header");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -58,22 +59,22 @@ public class PathManager {
     }
 
     public String getJobCodePath() {
-        return jobCodePath;
+        return resources+JOB_PATH;
     }
 
     public String getJobExecutablePath() {
-        return jobExecutablePath;
+        return temp+EXECUTABLE;
     }
 
     public String getTaskInitDataPath() {
-        return taskInitDataPath;
+        return resources+INIT_DATA;
     }
 
     public String getHeaderPath() {
-        return headerPath;
+        return header;
     }
 
     public String getDumpPath() {
-        return dumpPath;
+        return temp+DUMP;
     }
 }
