@@ -58,6 +58,8 @@ public class Task {
             }
             else {
                 //TODO Possibly wrap pure result data in a class
+
+                outputStdErr(IOUtils.toString(proc.getErrorStream()));
                 return IOUtils.toByteArray(proc.getInputStream());
             }
         }
@@ -78,6 +80,10 @@ public class Task {
             compile();
         }
         return execute();
+    }
+     public static void outputStdErr(String output){
+        //TODO output in more general fashion
+        System.out.println(output);
     }
 
     public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
