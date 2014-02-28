@@ -23,7 +23,7 @@ public class Task {
     public void compile() throws IOException, InterruptedException, ExitFailureException {
 	    PathManager pathman = PathManager.getInstance();
         //TODO Manage trust in a non hardcoded way
-        String[] command = {pathman.getGhcPath(), "-o", pathman.getJobExecutablePath() + moduleName,
+        String[] command = {"ghc", "-o", pathman.getJobExecutablePath() + moduleName,
 		        "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
                 "-outputdir", pathman.getDumpPath(),
 		        "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
