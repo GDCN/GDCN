@@ -10,17 +10,19 @@ import Data.ByteString.Lazy (ByteString)
    )
 -}
 
-run :: [ByteString] -> ByteString
-run [] = encode $ prime 2 1000 [] []
+run :: [ByteString] -> (ByteString, String)
+run [] = let result = prime 2 1000 [] []
+         in (encode result, show result)
 run (h:rs) = let (start, end) = (decode h) :: (Integer, Integer) -- Reads input of task
                  primes = (concatMap decode rs) :: [Integer] -- Reads previous results
-             in encode $ prime start end primes []
+                 result = prime start end primes []
+             in (encode result, show result)
 
 prime :: Integer -> Integer -> [Integer] -> [Integer] -> [Integer]
 prime n end primes buffer
   | n >= end  = buffer
   | otherwise = if isPrime n (primes ++ buffer)
-                   then prime (n+1) end primes (reverse $ n:(reverse buffer))
+                   then prime (n+1) end primes (buffer ++ [n])
                    else prime (n+1) end primes buffer
 
 isPrime :: Integer -> [Integer] -> Bool
