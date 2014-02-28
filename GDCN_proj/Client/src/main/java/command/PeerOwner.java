@@ -15,6 +15,8 @@ import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import taskbuilder.TaskListener;
+import taskbuilder.TaskManager;
 
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -32,7 +34,21 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
     private List<PeerAddress> neighbours;
-    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
+    private final OperationFinishedSupport notifier = new OperationFinishedSupport(this);
+
+    private final TaskListener taskListener = new TaskListener() {
+        @Override
+        public void taskFinished(String taskName) {
+            //TODO
+        }
+
+        @Override
+        public void taskFailed(String taskName, String reason) {
+            //TODO
+        }
+    };
+
+    private final TaskManager taskManager = new TaskManager(taskListener);
 
     @Override
     public void addListener(PropertyChangeListener listener){
@@ -142,6 +158,11 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             }
         });
 
+    }
+
+    @Override
+    public void work(String taskName, String moduleName, String initData) {
+        taskManager.startTask(taskName, moduleName, initData);
     }
 
     @Override
