@@ -13,7 +13,6 @@ public class PathManager {
 
     private static PathManager instance = null;
 
-    private String ghcPath;
     private String jobCodePath;
     private String jobExecutablePath;
     private String taskInitDataPath;
@@ -36,7 +35,6 @@ public class PathManager {
             input = new FileInputStream(file);
             prop.load(input);
 
-            ghcPath = prop.getProperty("ghcPath");
             jobCodePath = prop.getProperty("jobCodePath");
             jobExecutablePath = prop.getProperty("jobExecutablePath");
             taskInitDataPath = prop.getProperty("taskInitDataPath");
@@ -57,10 +55,6 @@ public class PathManager {
                 }
             }
         }
-    }
-
-    public String getGhcPath() {
-        return ghcPath;
     }
 
     public String getJobCodePath() {
