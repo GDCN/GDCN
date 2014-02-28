@@ -11,6 +11,7 @@
     <modules>
         <module>Client</module>
         <module>UI</module>
+        <module>TaskBuilder</module>
     </modules>
 
     <build>
