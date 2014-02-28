@@ -2,3 +2,5 @@
 .idea/*
 
 Client/target/*
+Taskbuilder/target/*
+UI/target/*
