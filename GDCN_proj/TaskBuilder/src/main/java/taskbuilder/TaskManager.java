@@ -42,7 +42,7 @@ public class TaskManager{
     }
 
     public static void main(String[] args){
-        
+
         final Semaphore semaphore = new Semaphore(0);
 
         TaskManager manager = new TaskManager(new TaskListener() {

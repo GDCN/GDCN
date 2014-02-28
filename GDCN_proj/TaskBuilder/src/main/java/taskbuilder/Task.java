@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Class for tasks, compiling and executing Haskell code
  */
-public class Task implements Runnable{
+class Task implements Runnable{
 
     private final String taskName;
     private final String moduleName;
