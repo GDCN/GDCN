@@ -10,27 +10,33 @@ import java.util.concurrent.Semaphore;
  */
 public class TaskManager{
 
+    private final Map<String,Thread> runningTasks = new HashMap<>();
+
     private final TaskListener client;
     private final TaskListener listener = new TaskListener() {
         @Override
         public void taskFinished(String taskName) {
-            //TODO
+            runningTasks.remove(taskName);
+            //TODO more stuff?
 
             client.taskFinished(taskName);
         }
 
         @Override
         public void taskFailed(String taskName, String reason) {
-            //TODO
+            runningTasks.remove(taskName);
+            //TODO more stuff?
 
             client.taskFailed(taskName, reason);
         }
     };
 
-    private final Map<String,Thread> runningTasks = new HashMap<>();
-
     public TaskManager(TaskListener client) {
         this.client = client;
+    }
+
+    public int numberOfRunningTasks(){
+        return runningTasks.size();
     }
 
     public void startTask(String taskName, String moduleName, String initData){
