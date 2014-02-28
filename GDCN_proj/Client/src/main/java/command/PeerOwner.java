@@ -46,6 +46,11 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void start(int port){
+
+        if(peer !=null) {
+            stop();
+        }
+
         try {
 
             KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
@@ -64,7 +69,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void stop(){
-        if(peer == null){
+        if(peer == null || peer.isShutdown()){
             notifier.fireOperationFinished(CommandWord.STOP,
                     new OperationBuilder(false).setErrorCode(ErrorCode.NOT_CONNECTED).create());
             return;
