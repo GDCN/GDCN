@@ -138,6 +138,27 @@ public class Task {
         System.out.println(output);
     }
 
+    public static void toFile(byte[] results){
+        String path = PathManager.getInstance().getDumpPath();
+        BufferedOutputStream outputStream = null;
+        try {
+            outputStream = new BufferedOutputStream(new FileOutputStream(path));
+            outputStream.write(results);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
     public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
         //NOTE: This test only works for Unix with current GDCN.properties
         // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
@@ -145,6 +166,8 @@ public class Task {
                 File.separator + "TaskBuilder/resources/pathdata.prop");
         Task t = new Task("Prime", "2_2000.raw");
 	    byte[] res = t.run();
+
+
         System.out.println("-- Result:");
         System.out.println(res);
     }
