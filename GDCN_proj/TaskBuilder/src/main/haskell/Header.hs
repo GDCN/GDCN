@@ -7,6 +7,7 @@
 
 import System.Environment
 import System.Exit
+import System.IO
 import System.IO.Error
 import qualified Data.ByteString.Lazy as BS
 
@@ -14,10 +15,12 @@ import qualified Data.ByteString.Lazy as BS
 import safe MODULE (run)
 
 -- Force proper typecheck the module's run function
-typedRun :: [BS.ByteString] -> BS.ByteString
+typedRun :: [BS.ByteString] -> (BS.ByteString, String)
 typedRun = run
 
 main :: IO ()
 main = do args <- getArgs
           bss <- mapM BS.readFile args 
-          BS.putStr $ typedRun bss
+          let (result, debug) = typedRun bss
+          BS.putStr result
+          hPutStr stderr debug
