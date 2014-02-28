@@ -34,7 +34,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
     private List<PeerAddress> neighbours;
-    private final OperationFinishedSupport notifier = new OperationFinishedSupport(this);
 
     private final TaskListener taskListener = new TaskListener() {
         @Override
@@ -49,6 +48,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     };
 
     private final TaskManager taskManager = new TaskManager(taskListener);
+
+    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
+
 
     @Override
     public void addListener(PropertyChangeListener listener){
