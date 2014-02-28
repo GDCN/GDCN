@@ -1,6 +1,6 @@
 ghcPath = /usr/bin/ghc
-jobCodePath = TaskBuilder/src/main/resources/Hjobcode/
+jobCodePath = TaskBuilder/resources/Hjobcode/
 jobExecutablePath = /tmp/GDCN/
-taskInitDataPath = TaskBuilder/src/main/resources/initdata/
+taskInitDataPath = TaskBuilder/resources/initdata/
 headerPath = TaskBuilder/src/main/haskell/Header.hs
 dumpPath = /tmp/GDCNDump

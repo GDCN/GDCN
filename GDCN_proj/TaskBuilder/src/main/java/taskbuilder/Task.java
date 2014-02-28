@@ -85,7 +85,7 @@ public class Task {
         // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
 	    PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
 //                File.separator + "TaskBuilder/src/main/resources/GDCN.properties");
-                File.separator + "TaskBuilder/src/main/resources/pathdata.prop");
+                File.separator + "TaskBuilder/resources/pathdata.prop");
         Task t = new Task("Prime", "2_2000.raw");
 	    byte[] res = t.run();
         System.out.println(res);
