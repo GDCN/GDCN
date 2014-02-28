@@ -19,7 +19,13 @@ public class Task {
         this.initData = initData;
     }
 
-    // Compiles task code
+    /**
+     * Compiles task code
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExitFailureException
+     */
     public void compile() throws IOException, InterruptedException, ExitFailureException {
 	    PathManager pathman = PathManager.getInstance();
         //TODO Manage trust in a non hardcoded way
@@ -42,7 +48,14 @@ public class Task {
         }
     }
 
-    // Executes a task
+    /**
+     * Executes a task
+     *
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExitFailureException
+     */
     public byte[] execute() throws IOException, InterruptedException, ExitFailureException {
         PathManager pathman = PathManager.getInstance();
         String[] command = {pathman.getJobExecutablePath() + moduleName,
@@ -69,7 +82,14 @@ public class Task {
         }
     }
 
-    // Compiles and executes a task
+    /**
+     * Compiles and executes a task
+     *
+     * @return
+     * @throws IOException
+     * @throws InterruptedException
+     * @throws ExitFailureException
+     */
     public byte[] run() throws IOException, InterruptedException, ExitFailureException {
         String path = PathManager.getInstance().getJobExecutablePath() + moduleName;
         File executable = new File(path);
@@ -81,7 +101,8 @@ public class Task {
         }
         return execute();
     }
-     public static void outputStdErr(String output){
+
+    public static void outputStdErr(String output){
         //TODO output in more general fashion
         System.out.println(output);
     }
