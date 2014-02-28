@@ -1,6 +1,0 @@
-
-# Most simple test algorithm
-
-def run() {
-    return 0
-}
