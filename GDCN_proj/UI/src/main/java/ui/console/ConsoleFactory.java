@@ -109,6 +109,16 @@ public class ConsoleFactory {
             }
         });
 
+        commandMap.put(CommandWord.WORK.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                String moduleName = args.get(0);
+                String initData = args.get(1);
+                //TODO
+                client.work(moduleName+"_1", moduleName, initData);
+            }
+        });
+
         //TODO use enum
         commandMap.put("neighbours", new Command() {
             @Override

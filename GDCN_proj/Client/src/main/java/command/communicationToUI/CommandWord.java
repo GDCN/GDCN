@@ -8,7 +8,8 @@ public enum CommandWord implements WordInterface {
     STOP(0, "stop", "//help"),
     PUT(2, "put", "//help"),
     GET(1, "get", "//help"),
-    BOOTSTRAP(2, "bootstrap", "");
+    BOOTSTRAP(2, "bootstrap", ""),
+    WORK(2, "work", "//help");
 
     private final int arity;
     private final String name;
