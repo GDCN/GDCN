@@ -1,4 +1,3 @@
-ghcPath = /usr/bin/ghc
 jobCodePath = TaskBuilder/resources/Hjobcode/
 jobExecutablePath = tmpa/GDCN/
 taskInitDataPath = TaskBuilder/resources/initdata/
