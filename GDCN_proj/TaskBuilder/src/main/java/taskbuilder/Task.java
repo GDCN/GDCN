@@ -3,6 +3,8 @@ package taskbuilder;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for tasks, compiling and executing Haskell code
@@ -25,7 +27,21 @@ public class Task {
      * @throws ExitFailureException
      */
     public void compile() throws IOException, InterruptedException, ExitFailureException {
-	    PathManager pathman = PathManager.getInstance();
+
+        PathManager pathman = PathManager.getInstance();
+
+        List<File> dirs = new ArrayList<File>();
+        dirs.add(new File(pathman.getJobExecutablePath()));
+        dirs.add(new File(pathman.getDumpPath()));
+
+        for(File dir : dirs){
+            if(!dir.exists()){
+                dir.mkdirs();
+            }
+        }
+
+
+
         //TODO Manage trust in a non hardcoded way
         String[] command = {"ghc", "-o", pathman.getJobExecutablePath() + moduleName,
 		        "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
