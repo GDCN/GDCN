@@ -24,3 +24,4 @@ main = do args <- getArgs
           let (result, debug) = typedRun bss
           BS.putStr result
           hPutStr stderr debug
+          hFlush stderr

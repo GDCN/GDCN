@@ -2,9 +2,7 @@ package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.StringWriter;
+import java.io.*;
 
 /**
  * Class for tasks, compiling and executing Haskell code
@@ -72,7 +70,11 @@ public class Task {
             else {
                 //TODO Possibly wrap pure result data in a class
 
-                outputStdErr(IOUtils.toString(proc.getErrorStream()));
+//                outputStdErr(IOUtils.toString(proc.getErrorStream()));
+//                outputStdErr(fromInstream(proc.getErrorStream()));
+                StringWriter writer = new StringWriter();
+                IOUtils.copy(proc.getErrorStream(), writer, null);
+                outputStdErr(writer.toString());
                 return IOUtils.toByteArray(proc.getInputStream());
             }
         }
@@ -102,8 +104,37 @@ public class Task {
         return execute();
     }
 
+    public static String fromInstream(InputStream inputStream){
+
+        StringBuilder stringBuilder = new StringBuilder();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+
+        String line;
+
+        try {
+            while( (line = reader.readLine()) != null){
+                stringBuilder.append(line);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+
+        return stringBuilder.toString();
+    }
+
     public static void outputStdErr(String output){
         //TODO output in more general fashion
+        System.out.println("-- StdErr:");
         System.out.println(output);
     }
 
@@ -114,6 +145,7 @@ public class Task {
                 File.separator + "TaskBuilder/resources/pathdata.prop");
         Task t = new Task("Prime", "2_2000.raw");
 	    byte[] res = t.run();
+        System.out.println("-- Result:");
         System.out.println(res);
     }
 }
