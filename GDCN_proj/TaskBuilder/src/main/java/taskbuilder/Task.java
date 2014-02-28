@@ -11,12 +11,14 @@ import java.util.List;
  */
 public class Task implements Runnable{
 
+    private final String taskName;
     private final String moduleName;
     private final String initData;
 
     private final TaskListener listener;
 
-    public Task(String moduleName, String initData, TaskListener listener) {
+    public Task(String taskName, String moduleName, String initData, TaskListener listener) {
+        this.taskName = taskName;
         this.moduleName = moduleName;
         this.initData = initData;
         this.listener = listener;
@@ -24,12 +26,8 @@ public class Task implements Runnable{
 
     /**
      * Compiles task code
-     *
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws ExitFailureException
      */
-    public void compile() throws IOException, InterruptedException, ExitFailureException {
+    public void compile(){
 
         PathManager pathman = PathManager.getInstance();
 
@@ -43,44 +41,44 @@ public class Task implements Runnable{
             }
         }
 
-
-
         //TODO Manage trust in a non hardcoded way
         String[] command = {"ghc", "-o", pathman.getJobExecutablePath() + moduleName,
 		        "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
                 "-outputdir", pathman.getDumpPath(),
 		        "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
-        Process proc = new ProcessBuilder(command).start();
 
+        Process proc = null;
         try {
+            proc = new ProcessBuilder(command).start();
+
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
                 throw new ExitFailureException(writer.toString());
             }
         }
-        catch (InterruptedException e) {
-            proc.destroy();
-            throw e;
+        catch (Exception e) {
+            if (proc != null) {
+                proc.destroy();
+            }
+            e.printStackTrace();
+            listener.taskFailed(moduleName, e.getMessage());
         }
     }
 
     /**
      * Executes a task
-     *
-     * @return
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws ExitFailureException
      */
-    public byte[] execute() throws IOException, InterruptedException, ExitFailureException {
+    public void execute(){
         PathManager pathman = PathManager.getInstance();
         String[] command = {pathman.getJobExecutablePath() + moduleName,
                 pathman.getTaskInitDataPath() + initData};
 
-        Process proc = new ProcessBuilder(command).start();
+        Process proc = null;
 
         try {
+            proc = new ProcessBuilder(command).start();
+
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
@@ -94,19 +92,22 @@ public class Task implements Runnable{
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
                 outputStdErr(writer.toString());
-                return IOUtils.toByteArray(proc.getInputStream());
+
+                listener.taskFinished(taskName);
+//                return IOUtils.toByteArray(proc.getInputStream());
             }
         }
-        catch (InterruptedException e) {
-            proc.destroy();
-            throw e;
+        catch (Exception e) {
+            if (proc != null) {
+                proc.destroy();
+            }
+            e.printStackTrace();
+            listener.taskFailed(taskName, e.getMessage());
         }
     }
 
     /**
      * Compiles and executes a task
-     *
-     * @return
      */
     @Override
     public void run(){
@@ -120,12 +121,9 @@ public class Task implements Runnable{
                 compile();
             }
             execute();
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExitFailureException e) {
-            e.printStackTrace();
+            listener.taskFailed(taskName, e.getMessage());
         }
     }
 
@@ -189,7 +187,7 @@ public class Task implements Runnable{
         // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
 	    PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
                 File.separator + "TaskBuilder/resources/pathdata.prop");
-        Task t = new Task("Prime", "2_2000.raw", new TaskListener() {
+        Task t = new Task("TaskName_Prime_1", "Prime", "2_2000.raw", new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
                 //TODO

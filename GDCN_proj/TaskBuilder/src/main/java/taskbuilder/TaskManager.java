@@ -1,7 +1,9 @@
 package taskbuilder;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-02-28.
@@ -31,11 +33,37 @@ public class TaskManager{
         this.client = client;
     }
 
-    public void startTask(String taskName, String initData){
-        Thread thread = new Thread(new Task(taskName, initData, listener));
+    public void startTask(String taskName, String moduleName, String initData){
+        Thread thread = new Thread(new Task(taskName, moduleName, initData, listener));
         thread.setDaemon(true);
-        runningTasks.put(taskName, thread);
 
+        runningTasks.put(taskName, thread);
         thread.start();
+    }
+
+    public static void main(String[] args){
+        
+        final Semaphore semaphore = new Semaphore(0);
+
+        TaskManager manager = new TaskManager(new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task finished "+taskName);
+                semaphore.release();
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task failed "+taskName);
+                System.out.println("because of: "+reason);
+                semaphore.release();
+            }
+        });
+
+        PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+                File.separator + "TaskBuilder/resources/pathdata.prop");
+        manager.startTask("TaskName_Prime_1", "Prime", "2_2000.raw");
+
+        semaphore.acquireUninterruptibly();
     }
 }
