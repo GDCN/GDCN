@@ -9,14 +9,17 @@ import java.util.List;
 /**
  * Class for tasks, compiling and executing Haskell code
  */
-public class Task {
+public class Task implements Runnable{
 
     private final String moduleName;
     private final String initData;
 
-    public Task(String moduleName, String initData) {
+    private final TaskListener listener;
+
+    public Task(String moduleName, String initData, TaskListener listener) {
         this.moduleName = moduleName;
         this.initData = initData;
+        this.listener = listener;
     }
 
     /**
@@ -104,20 +107,26 @@ public class Task {
      * Compiles and executes a task
      *
      * @return
-     * @throws IOException
-     * @throws InterruptedException
-     * @throws ExitFailureException
      */
-    public byte[] run() throws IOException, InterruptedException, ExitFailureException {
+    @Override
+    public void run(){
         String path = PathManager.getInstance().getJobExecutablePath() + moduleName;
         File executable = new File(path);
-        if (executable.isDirectory()) {
-            throw new IOException(path + " is a directory.");
+        try {
+            if (executable.isDirectory()) {
+                throw new IOException(path + " is a directory.");
+            }
+            if (!executable.exists()) {
+                compile();
+            }
+            execute();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExitFailureException e) {
+            e.printStackTrace();
         }
-        if (!executable.exists()) {
-            compile();
-        }
-        return execute();
     }
 
     public static String fromInstream(InputStream inputStream){
@@ -180,11 +189,17 @@ public class Task {
         // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
 	    PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
                 File.separator + "TaskBuilder/resources/pathdata.prop");
-        Task t = new Task("Prime", "2_2000.raw");
-	    byte[] res = t.run();
+        Task t = new Task("Prime", "2_2000.raw", new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                //TODO
+            }
 
-
-        System.out.println("-- Result:");
-        System.out.println(res);
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                //TODO
+            }
+        });
+	    t.run();
     }
 }
