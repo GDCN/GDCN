@@ -20,8 +20,12 @@ typedRun = run
 
 main :: IO ()
 main = do args <- getArgs
-          bss <- mapM BS.readFile args 
-          let (result, debug) = typedRun bss
-          BS.putStr result
-          hPutStr stderr debug
-          hFlush stderr
+          case args of
+              (outfile:rest) -> do
+                  bss <- mapM BS.readFile args
+                  let (result, debug) = typedRun bss
+                  BS.writeFile outfile result
+                  putStr debug
+              _ -> do
+                  hPutStrLn stderr "Arguments missing"
+                  exitWith exitFailure
