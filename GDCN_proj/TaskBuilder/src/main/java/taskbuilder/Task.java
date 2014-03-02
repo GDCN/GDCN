@@ -72,6 +72,7 @@ class Task implements Runnable{
     public void execute(){
         PathManager pathman = PathManager.getInstance();
         String[] command = {pathman.getJobExecutablePath() + moduleName,
+                pathman.getDumpPath() + taskName + ".result",
                 pathman.getTaskInitDataPath() + initData};
 
         Process proc = null;
