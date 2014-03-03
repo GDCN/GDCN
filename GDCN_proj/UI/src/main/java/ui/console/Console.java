@@ -42,10 +42,11 @@ public class Console implements PropertyChangeListener{
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
 
-                print("-- commandname (arity): description --");
+                println("-- commandname (arity): description --");
                 for(WordInterface word : words){
-                    print(word.getName()+" ("+word.getArity()+"):\t"+word.getHelp());
+                    println(word.getName() + " (" + word.getArity() + "):\t" + word.getHelp());
                 }
+                println("");
             }
         });
 
@@ -55,17 +56,22 @@ public class Console implements PropertyChangeListener{
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         OperationFinishedEvent event = (OperationFinishedEvent) evt;
+        String success = event.getOperation().isSuccess()? "succeeded" : "failed";
+
         switch(event.getCommandWord()){
             case BOOTSTRAP:
-                print("Bootstrap successful? " + event.getOperation().isSuccess());
+                println("Bootstrap " + success);
+                break;
+            case WORK:
+                println("Work on" + event.getOperation().getKey() + " " + success);
                 break;
             default:
-                print("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
+                println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
                 break;
         }
     }
 
-    private void print(String message){
+    private void println(String message){
         System.out.println(message);
     }
 

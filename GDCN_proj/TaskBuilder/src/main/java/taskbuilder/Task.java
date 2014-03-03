@@ -90,6 +90,8 @@ class Task implements Runnable{
 
 //                outputStdErr(IOUtils.toString(proc.getErrorStream()));
 //                outputStdErr(fromInstream(proc.getErrorStream()));
+
+                // TODO Currently haskell doesn't print any to stderr...
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
                 outputStdErr(writer.toString());

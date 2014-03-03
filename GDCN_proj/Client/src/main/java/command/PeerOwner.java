@@ -38,12 +38,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     private final TaskListener taskListener = new TaskListener() {
         @Override
         public void taskFinished(String taskName) {
-            //TODO
+            notifier.fireOperationFinished(CommandWord.WORK, new OperationBuilder<String>(true).setKey(taskName).create());
         }
 
         @Override
         public void taskFailed(String taskName, String reason) {
-            //TODO
+            notifier.fireOperationFinished(CommandWord.WORK, new OperationBuilder<String>(false).setKey(taskName).create());
         }
     };
 
@@ -82,7 +82,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         }
 
         notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<Integer>(peer!=null).setResult(port).create());
+                new OperationBuilder<Integer>(peer != null).setResult(port).create());
     }
 
     @Override
