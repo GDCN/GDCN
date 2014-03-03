@@ -1,8 +1,13 @@
 GDCN
 ====
 
-distribute ALL the computations!
+Distribute ALL the computations!
 
-run command line with the following command:
+Build project (with tests):
+mvn install
 
-mvn -f GDCN_proj/UI/pom.xml exec:java
+Build projects but skip tests:
+mvn -Dmaven.test.skip=true install
+
+Run CLI with the following command (from directory GDCN_proj):
+mvn -f UI/pom.xml exec:java
