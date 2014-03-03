@@ -1,0 +1,28 @@
+
+<Task>
+    <id>Primes_01</id>
+
+    <project>
+        <name>Primes</name>
+    </project>
+
+    <dependencies>
+        <file>
+            <name>Prime.hs</name>
+            <location>jobcode</location>
+            <key>PrimeAlgorithm</key>
+        </file>
+
+        <file>
+            <name>Primes_2000.raw</name>
+            <location>initdata</location>
+            <key>Primes_result_2000</key>
+        </file>
+
+        <file>
+            <name>2001_4000.raw</name>
+            <location>initdata</location>
+            <key>Prime_2001_4000</key>
+        </file>
+    </dependencies>
+</Task>
