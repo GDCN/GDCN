@@ -54,7 +54,7 @@ public class Console implements PropertyChangeListener{
             @Override
             public void execute(List<String> args) {
                 //TODO use TreeSet instead?
-                List<WordInterface> words = new ArrayList<>();
+                List<WordInterface> words = new ArrayList<WordInterface>();
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
 

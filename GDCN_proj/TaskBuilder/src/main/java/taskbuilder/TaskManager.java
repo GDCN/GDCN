@@ -7,10 +7,12 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-02-28.
+ *
+ * Manager of running tasks. Can run multiple tasks concurrently.
  */
 public class TaskManager{
 
-    private final Map<String,Thread> runningTasks = new HashMap<>();
+    private final Map<String,Thread> runningTasks = new HashMap<String,Thread>();
 
     private final TaskListener client;
     private final TaskListener listener = new TaskListener() {
