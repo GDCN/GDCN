@@ -22,10 +22,10 @@ main :: IO ()
 main = do args <- getArgs
           case args of
               (outfile:rest) -> do
-                  bss <- mapM BS.readFile args
+                  bss <- mapM BS.readFile rest
                   let (result, debug) = typedRun bss
                   BS.writeFile outfile result
                   putStr debug
               _ -> do
                   hPutStrLn stderr "Arguments missing"
-                  exitWith exitFailure
+                  exitFailure
