@@ -2,6 +2,8 @@ package command.communicationToUI;
 
 /**
  * Created by HalfLeif on 2014-02-26.
+ *
+ * All supported commands by Client
  */
 public enum CommandWord implements WordInterface {
     START(1, "start", "//help"),
@@ -21,16 +23,28 @@ public enum CommandWord implements WordInterface {
         this.help = help;
     }
 
+    /**
+     * Number of arguments this command can take
+     * @return
+     */
     @Override
     public int getArity() {
         return arity;
     }
 
+    /**
+     * Name of this command
+     * @return
+     */
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * Help string for this command
+     * @return
+     */
     @Override
     public String getHelp() {
         return help;

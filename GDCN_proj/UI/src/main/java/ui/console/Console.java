@@ -21,10 +21,26 @@ import java.util.Map;
  */
 public class Console implements PropertyChangeListener{
 
+
+    /**
+     * Starts a client, adding a console to it and starts reading commands from CLI.
+     * @param args
+     */
+    public static void main(String[] args){
+        ClientInterface client = new PeerOwner();
+        Console console = ConsoleFactory.create(client);
+        console.read();
+    }
+
+
     private final Holder commandHolder;
 
     private boolean loop = true;
 
+    /**
+     * Package-private constructor used by {@link ui.console.ConsoleFactory#create(command.communicationToUI.ClientInterface)}.
+     * @param commandMap
+     */
     Console(Map<String, Command> commandMap) {
 
         commandMap.put(MetaCommand.EXIT.getName(), new Command() {
@@ -53,6 +69,10 @@ public class Console implements PropertyChangeListener{
         this.commandHolder = new Holder(commandMap);
     }
 
+    /**
+     * Receives results from the Client on various operations.
+     * @param evt
+     */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
         OperationFinishedEvent event = (OperationFinishedEvent) evt;
@@ -71,22 +91,31 @@ public class Console implements PropertyChangeListener{
         }
     }
 
+    /**
+     * Prints message + newline, exchangeable
+     * @param message
+     */
     private void println(String message){
         System.out.println(message);
     }
 
-    public static void main(String[] args){
-        ClientInterface client = new PeerOwner();
-        Console console = ConsoleFactory.create(client);
-        console.read();
+    /**
+     * Prints message, exchangeable
+     * @param message
+     */
+    private void print(String message){
+        System.out.print(message);
     }
 
+    /**
+     * Loop for reading commands from CLI
+     */
     public void read(){
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try {
 
             while(loop){
-                System.out.print(">> ");
+                print(">> ");
                 String line = bufferedReader.readLine();
                 String[] words = line.split("\\s");
                 List<String> wordList = new ArrayList<String>(Arrays.asList(words));
@@ -95,7 +124,8 @@ public class Console implements PropertyChangeListener{
                 try{
                     commandHolder.execute(cmd, wordList);
                 } catch (UnsupportedOperationException e){
-                    System.out.println("Unsupported operation ("+cmd+"). Type \"exit\" to stop");
+                    println("Unsupported operation (" + cmd + ").");
+                    println("Type \"help\" to see a list of commands. Type \"exit\" to stop");
                 }
             }
         } catch (IOException e) {

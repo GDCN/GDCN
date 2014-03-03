@@ -3,7 +3,8 @@ package command.communicationToUI;
 /**
  * Created by Leif on 2014-02-25.
  *
- * Currently unused. Perhaps replace all "boolean successful" in communication between layers
+ * Replaces all "boolean successful" in communication between layers.
+ * Not yet complete.
  */
 public enum ErrorCode {
 
@@ -15,5 +16,10 @@ public enum ErrorCode {
 
     private ErrorCode(String description) {
         this.description = description;
+    }
+
+    @Override
+    public String toString() {
+        return description;
     }
 }

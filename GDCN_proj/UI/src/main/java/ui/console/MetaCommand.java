@@ -4,6 +4,8 @@ import command.communicationToUI.WordInterface;
 
 /**
  * Created by HalfLeif on 2014-02-26.
+ *
+ * Commands that only exist in context of Console, not in Client
  */
 public enum MetaCommand implements WordInterface{
     HELP(0,"help","This is the help command"),
@@ -20,16 +22,25 @@ public enum MetaCommand implements WordInterface{
         this.help = help;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int getArity() {
         return arity;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getName() {
         return name;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String getHelp() {
         return help;

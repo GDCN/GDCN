@@ -10,13 +10,17 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by Leif on 2014-02-25.
  */
 public class ConsoleFactory {
 
+    /**
+     * Creates a console and makes it listen to the provided client.
+     * @param client
+     * @return
+     */
     public static Console create(final ClientInterface client){
         Map<String, Command> commandMap = ConsoleFactory.createCommands(client);
         Console console = new Console(commandMap);
@@ -25,6 +29,11 @@ public class ConsoleFactory {
         return console;
     }
 
+    /**
+     * Creates and encapsulates commands
+     * @param client Client to pass commands to
+     * @return
+     */
     private static Map<String, Command> createCommands(final ClientInterface client){
         Map<String, Command> commandMap = new HashMap<String, Command>();
 
@@ -67,6 +76,7 @@ public class ConsoleFactory {
             }
         });
 
+        //TODO remove command or make better (enum + good output)
         commandMap.put("connect", new Command() {
             @Override
             public void execute(List<String> args) {
@@ -127,6 +137,7 @@ public class ConsoleFactory {
             }
         });
 
+        //TODO use enum
         commandMap.put("rebootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
@@ -134,18 +145,6 @@ public class ConsoleFactory {
 //                client.reBootstrap();
             }
         });
-
-
-        //As long as the help command is done in this way it needs to be at the bottom
-        final Set<String> commands = commandMap.keySet();
-
-        commandMap.put("help", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                System.out.println(commands.toString());
-            }
-        });
-
 
         return commandMap;
     }
