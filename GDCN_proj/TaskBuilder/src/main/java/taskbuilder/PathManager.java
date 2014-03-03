@@ -30,8 +30,12 @@ public class PathManager {
     }
 
     private static void loadDefaultLocation(){
-        instance.loadFromFile(System.getProperty("user.dir") +
-                File.separator + "TaskBuilder/resources/pathdata.prop");
+        try {
+            instance.loadFromFile(System.getProperty("user.dir") +
+                    File.separator + "TaskBuilder/resources/pathdata.prop");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void loadFromFile(String file) {
