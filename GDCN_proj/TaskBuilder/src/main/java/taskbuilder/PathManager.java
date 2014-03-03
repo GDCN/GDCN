@@ -1,9 +1,6 @@
 package taskbuilder;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Properties;
 
 /**
@@ -27,8 +24,14 @@ public class PathManager {
     public static PathManager getInstance() {
         if (instance == null) {
             instance = new PathManager();
+            loadDefaultLocation();
         }
         return instance;
+    }
+
+    private static void loadDefaultLocation(){
+        instance.loadFromFile(System.getProperty("user.dir") +
+                File.separator + "TaskBuilder/resources/pathdata.prop");
     }
 
     public void loadFromFile(String file) {
