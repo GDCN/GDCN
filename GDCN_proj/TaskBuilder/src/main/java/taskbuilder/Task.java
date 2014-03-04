@@ -69,6 +69,7 @@ public class Task implements Runnable{
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
+
                 throw new ExitFailureException(writer.toString());
             }
         }
@@ -86,9 +87,15 @@ public class Task implements Runnable{
      */
     public void execute(){
         String[] command = {pathManager.taskBinaryDir() + moduleName,
-                pathManager.taskTempDir() + taskName + ".result",
+                pathManager.taskResourcesDir() + taskName + ".result",
                 initDataPaths};
-        //TODO fix bug, says cannot open binary file...
+
+
+        for(String c : command){
+            System.out.println(c);
+        }
+        //TODO fix bug, says cannot open binary file that actually exists...
+        //If run these commands in bash, they work... :P
 
         Process proc = null;
 
