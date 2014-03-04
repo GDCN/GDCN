@@ -12,6 +12,7 @@ public class Install {
 
     public static final String APPDATA = System.getProperty("user.home") + SEPARATOR + ".gdcn" + SEPARATOR;
     public static final String PATH_DATA = APPDATA + "pathdata.prop";
+    public static final String HEADER_NAME = "Header.js";
 
     /**
      * Simply runs {@link Install#install()}

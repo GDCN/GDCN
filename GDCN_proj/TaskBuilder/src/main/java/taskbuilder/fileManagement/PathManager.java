@@ -4,36 +4,88 @@ import java.io.*;
 import java.util.Properties;
 
 /**
- * Singleton class for storing and loading paths
+ * Created by HalfLeif on 2014-03-04.
  */
 public class PathManager {
 
-    private static final String JOB_PATH = "Hjobcode/";
-    private static final String INIT_DATA = "initdata/";
-    private static final String EXECUTABLE = "exec/bin/";
-    private static final String DUMP = "dump/";
+    private final String projectName;
 
-    private static PathManager instance = null;
+    private final static String RAW_FOLDER_NAME = "resources" + File.separator;
+    private final static String TASK_FOLDER_NAME = "tasks" + File.separator;
+    private final static String CODE_FOLDER_NAME = "code" + File.separator;
+    private final static String DUMP_FOLDER_NAME = "temp" + File.separator;
 
-    private String resources = "ResourcesUndefined/";
-    private String temp = "delete_me/";
-    private String header = "HeaderUndefined";
+    private static String headerLocation = null;
+    private static String dataPath = null;
 
-    private PathManager() {
+    public PathManager(String projectName) {
+        this.projectName = projectName;
+
         loadDefaultLocation();
     }
 
-    public static PathManager getInstance() {
-        if (instance == null) {
-            instance = new PathManager();
+    private void check(){
+        if(dataPath == null || headerLocation == null){
+            throw new AssertionError("Paths has not been read properly!");
         }
-        return instance;
     }
 
-    private static void loadDefaultLocation(){
+    /**
+     *
+     * @return Project name
+     */
+    public String getProjectName() {
+        return projectName;
+    }
+
+    /**
+     *
+     * @return Path to Header.js
+     */
+    public String header(){
+        check();
+        return headerLocation + Install.HEADER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory for input and output files of tasks, ie raw data files.
+     */
+    public String taskDataDir(){
+        check();
+        return dataPath + projectName + File.separator + RAW_FOLDER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory with meta information about tasks.
+     */
+    public String taskMetaDir(){
+        check();
+        return dataPath + projectName + File.separator + TASK_FOLDER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory with source code for task algorithm
+     */
+    public String taskCodeDir(){
+        check();
+        return dataPath + projectName + File.separator + CODE_FOLDER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory for temp files
+     */
+    public String taskDumpDir(){
+        check();
+        return dataPath + projectName + File.separator + DUMP_FOLDER_NAME;
+    }
+
+    public static void loadDefaultLocation(){
         try {
-            instance.loadFromFile(System.getProperty("user.dir") +
-                    File.separator + "TaskBuilder/resources/pathdata.prop");
+            loadFromFile(Install.PATH_DATA);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,16 +95,15 @@ public class PathManager {
      *
      * @param file Path of properties file containing the root paths for resources etc
      */
-    public void loadFromFile(String file) {
+    public static void loadFromFile(String file) {
         InputStream input = null;
         Properties prop = new Properties();
         try {
             input = new FileInputStream(file);
             prop.load(input);
 
-            resources = prop.getProperty("resources");
-            temp = prop.getProperty("temp");
-            header = prop.getProperty("header");
+            headerLocation = prop.getProperty("bin_path");
+            dataPath = prop.getProperty("data_path");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -70,43 +121,5 @@ public class PathManager {
         }
     }
 
-    /**
-     *
-     * @return Path to haskell source file to be executed
-     */
-    public String getJobCodePath() {
-        return resources+JOB_PATH;
-    }
 
-    /**
-     *
-     * @return Path to directory containing compiled tasks
-     */
-    public String getJobExecutablePath() {
-        return temp+EXECUTABLE;
-    }
-
-    /**
-     *
-     * @return Path to directory containing files with input data for a task.
-     */
-    public String getTaskInitDataPath() {
-        return resources+INIT_DATA;
-    }
-
-    /**
-     *
-     * @return Path to haskell Header file that is running the task in Haskell
-     */
-    public String getHeaderPath() {
-        return header;
-    }
-
-    /**
-     *
-     * @return Directory for temporary files such as object-files in compilation
-     */
-    public String getDumpPath() {
-        return temp+DUMP;
-    }
 }

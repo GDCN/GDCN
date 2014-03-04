@@ -1,6 +1,6 @@
 package taskbuilder;
 
-import taskbuilder.fileManagement.PathManager;
+import taskbuilder.fileManagement.OLD_PathManager;
 
 import java.io.File;
 import java.util.HashMap;
@@ -70,7 +70,7 @@ public class TaskManager{
             }
         });
 
-        PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+        OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
                 File.separator + "TaskBuilder/resources/pathdata.prop");
         manager.startTask("TaskName_Prime_1", "Prime", "2_2000.raw");
 

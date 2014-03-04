@@ -1,7 +1,7 @@
 package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
-import taskbuilder.fileManagement.PathManager;
+import taskbuilder.fileManagement.OLD_PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -30,7 +30,7 @@ class Task implements Runnable{
      */
     public void compile(){
 
-        PathManager pathman = PathManager.getInstance();
+        OLD_PathManager pathman = OLD_PathManager.getInstance();
 
         List<File> dirs = new ArrayList<File>();
         dirs.add(new File(pathman.getJobExecutablePath()));
@@ -71,7 +71,7 @@ class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        PathManager pathman = PathManager.getInstance();
+        OLD_PathManager pathman = OLD_PathManager.getInstance();
         String[] command = {pathman.getJobExecutablePath() + moduleName,
                 pathman.getDumpPath() + taskName + ".result",
                 pathman.getTaskInitDataPath() + initData};
@@ -115,7 +115,7 @@ class Task implements Runnable{
      */
     @Override
     public void run(){
-        String path = PathManager.getInstance().getJobExecutablePath() + moduleName;
+        String path = OLD_PathManager.getInstance().getJobExecutablePath() + moduleName;
         File executable = new File(path);
         try {
             if (executable.isDirectory()) {
@@ -166,7 +166,7 @@ class Task implements Runnable{
     }
 
     public static void toFile(byte[] results){
-        String path = PathManager.getInstance().getDumpPath();
+        String path = OLD_PathManager.getInstance().getDumpPath();
         BufferedOutputStream outputStream = null;
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(path));
@@ -189,7 +189,7 @@ class Task implements Runnable{
     public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
         //NOTE: This test only works for Unix with current GDCN.properties
         // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
-	    PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+	    OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
                 File.separator + "TaskBuilder/resources/pathdata.prop");
         Task t = new Task("TaskName_Prime_1", "Prime", "2_2000.raw", new TaskListener() {
             @Override
