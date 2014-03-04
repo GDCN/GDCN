@@ -42,6 +42,11 @@ public class Task implements Runnable{
         return result;
     }
 
+
+    private String compiledModule(){
+        return pathManager.taskBinaryDir() + moduleName;
+    }
+
     /**
      * Compiles task code
      */
@@ -57,7 +62,7 @@ public class Task implements Runnable{
         }
 
         //TODO Manage trust in a non hardcoded way
-        String[] command = {"ghc", "-o", pathManager.taskBinaryDir() + moduleName,
+        String[] command = {"ghc", "-o", compiledModule(),
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
                 "-outputdir", pathManager.taskTempDir(),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
@@ -86,14 +91,15 @@ public class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        String[] command = {pathManager.taskBinaryDir() + moduleName,
+        String[] command = {compiledModule(),
                 pathManager.taskResourcesDir() + taskName + ".result",
                 initDataPaths};
 
-
+        System.out.println("\nRun command:");
         for(String c : command){
-            System.out.println(c);
+            System.out.print(c + " ");
         }
+        System.out.println("\n");
         //TODO fix bug, says cannot open binary file that actually exists...
         //If run these commands in bash, they work... :P
 
@@ -136,7 +142,7 @@ public class Task implements Runnable{
      */
     @Override
     public void run(){
-        String execFilePath = pathManager.taskBinaryDir() + moduleName;
+        String execFilePath = compiledModule();
         File executable = new File(execFilePath);
         try {
             if (executable.isDirectory()) {
