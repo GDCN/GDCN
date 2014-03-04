@@ -54,6 +54,34 @@ public class Install {
         }
     }
 
+    /**
+     * Deletes entire directory for application data
+     */
+    public static boolean uninstall(){
+        File rootPath = new File(APPDATA);
+        return deleteContents(rootPath);
+    }
+
+    /**
+     * Deletes entire directory with contents. Use with care!
+     * http://stackoverflow.com/questions/7768071/how-to-delete-folder-content-in-java
+     * @param directory
+     * @return
+     */
+    private static boolean deleteContents(File directory){
+        File[] files = directory.listFiles();
+        if(files!=null) { //some JVMs return null for empty dirs
+            for(File f: files) {
+                if(f.isDirectory()) {
+                    deleteContents(f);
+                } else {
+                    f.delete();
+                }
+            }
+        }
+        return directory.delete();
+    }
+
     private static Properties paths(){
         Properties props = new Properties();
 
