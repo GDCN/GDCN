@@ -73,8 +73,6 @@ public class TaskManager{
         Install.install();
         PathManager pathManager = new PathManager("Primes");
 
-//        OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
-//                File.separator + "TaskBuilder/resources/pathdata.prop");
         manager.startTask("TaskName_Prime_1", "Prime", "2_2000.raw");
 
         semaphore.acquireUninterruptibly();

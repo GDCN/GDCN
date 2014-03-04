@@ -18,7 +18,7 @@ class Task implements Runnable{
     //TODO add constr parameter
     private final String projectName = "Primes";
 
-    private final PathManager npathMan;
+    private final PathManager pathManager;
 
 
     private final TaskListener listener;
@@ -29,7 +29,7 @@ class Task implements Runnable{
         this.initData = initData;
         this.listener = listener;
 
-        npathMan = new PathManager(projectName);
+        pathManager = new PathManager(projectName);
     }
 
     /**
@@ -37,8 +37,8 @@ class Task implements Runnable{
      */
     public void compile(){
         List<File> dirs = new ArrayList<File>();
-        dirs.add(new File(npathMan.taskBinaryDir()));
-        dirs.add(new File(npathMan.taskDumpDir()));
+        dirs.add(new File(pathManager.taskBinaryDir()));
+        dirs.add(new File(pathManager.taskDumpDir()));
 
         for(File dir : dirs){
             if(!dir.exists()){
@@ -47,9 +47,9 @@ class Task implements Runnable{
         }
 
         //TODO Manage trust in a non hardcoded way
-        String[] command = {"ghc", "-o", npathMan.taskBinaryDir() + moduleName,
-                "-DMODULE=" + moduleName, "-i" + npathMan.taskCodeDir(), npathMan.header(),
-                "-outputdir", npathMan.taskDumpDir(),
+        String[] command = {"ghc", "-o", pathManager.taskBinaryDir() + moduleName,
+                "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
+                "-outputdir", pathManager.taskDumpDir(),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
         Process proc = null;
@@ -75,9 +75,9 @@ class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        String[] command = {npathMan.taskBinaryDir() + moduleName,
-                npathMan.taskDumpDir() + taskName + ".result",
-                npathMan.taskDataDir() + initData};
+        String[] command = {pathManager.taskBinaryDir() + moduleName,
+                pathManager.taskDumpDir() + taskName + ".result",
+                pathManager.taskDataDir() + initData};
 
         Process proc = null;
 
@@ -118,7 +118,7 @@ class Task implements Runnable{
      */
     @Override
     public void run(){
-        String execFilePath = npathMan.taskBinaryDir() + moduleName;
+        String execFilePath = pathManager.taskBinaryDir() + moduleName;
         File executable = new File(execFilePath);
         try {
             if (executable.isDirectory()) {

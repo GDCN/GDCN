@@ -30,14 +30,14 @@ public class Install {
         File rootPath = new File(APPDATA);
         rootPath.mkdirs();
 
-        File pathprop = new File(PATH_DATA);
+        File pathDataFile = new File(PATH_DATA);
 
         OutputStream outputStream = null;
         try {
-            outputStream = new BufferedOutputStream(new FileOutputStream(pathprop));
+            outputStream = new BufferedOutputStream(new FileOutputStream(pathDataFile));
 
             Properties pathData = paths();
-            pathData.store(outputStream, "-- Paths for GDCN --");
+            pathData.store(outputStream, " -- Paths for GDCN --");
 
         } catch (FileNotFoundException e) {
             e.printStackTrace();
