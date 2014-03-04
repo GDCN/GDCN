@@ -26,6 +26,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * Class for resolving task file dependencies.
  * Checks if necessary files exist in file system, otherwise attempts to download them from DHT.
  *
+ * Can be run either asynchronously or synchronously.
+ *
  * Uses TaskListener to report error information.
  * Use {@link FileMaster#await()} to see when finished.
  */
@@ -43,6 +45,7 @@ public class FileMaster implements Runnable{
     private final Map<String, FileDep> unresolvedFiles = new HashMap<String, FileDep>();
 
     private boolean operationFailed = false;
+    private boolean stillStartingUp = true;
 
     private final PropertyChangeListener propertyListener = new PropertyChangeListener() {
         @Override
@@ -78,7 +81,7 @@ public class FileMaster implements Runnable{
      * @return true if file has been properly downloaded, false if one of the dependencies couldn't be resolved.
      */
     public boolean await(){
-        do{
+        while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
                 allDependenciesComplete.await();
@@ -92,7 +95,7 @@ public class FileMaster implements Runnable{
                 return false;
             }
             System.out.println("Test monitor condition before exit...");
-        } while(unresolvedFiles.size()>0);
+        }
 
         //Alternatively, ignore await() model and use TaskListener instead...
         return true;
@@ -195,9 +198,9 @@ public class FileMaster implements Runnable{
                 client.get(fileDep.key);
             }
         }
-        System.out.println("Exited dependency loop");
+
         lock.lock();
-        System.out.println("Acquired lock in order to signal...");
+        stillStartingUp = false;
         allDependenciesComplete.signalAll();
         lock.unlock();
     }

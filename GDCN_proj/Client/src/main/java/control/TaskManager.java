@@ -65,9 +65,11 @@ public class TaskManager{
         //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
         FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
 
-        Thread dependencyThread = new Thread(fileMaster);
-        dependencyThread.setDaemon(true);
-        dependencyThread.start();
+//        Thread dependencyThread = new Thread(fileMaster);
+//        dependencyThread.setDaemon(true);
+//        dependencyThread.start();
+
+        fileMaster.run();
 
         System.out.println("Await dependencies to be resolved");
         fileMaster.await();
