@@ -38,7 +38,7 @@ class Task implements Runnable{
     public void compile(){
         List<File> dirs = new ArrayList<File>();
         dirs.add(new File(pathManager.taskBinaryDir()));
-        dirs.add(new File(pathManager.taskDumpDir()));
+        dirs.add(new File(pathManager.taskTempDir()));
 
         for(File dir : dirs){
             if(!dir.exists()){
@@ -49,7 +49,7 @@ class Task implements Runnable{
         //TODO Manage trust in a non hardcoded way
         String[] command = {"ghc", "-o", pathManager.taskBinaryDir() + moduleName,
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
-                "-outputdir", pathManager.taskDumpDir(),
+                "-outputdir", pathManager.taskTempDir(),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
         Process proc = null;
@@ -76,7 +76,7 @@ class Task implements Runnable{
      */
     public void execute(){
         String[] command = {pathManager.taskBinaryDir() + moduleName,
-                pathManager.taskDumpDir() + taskName + ".result",
+                pathManager.taskTempDir() + taskName + ".result",
                 pathManager.taskDataDir() + initData};
 
         Process proc = null;

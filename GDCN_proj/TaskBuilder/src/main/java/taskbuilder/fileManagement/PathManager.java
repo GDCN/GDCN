@@ -16,7 +16,7 @@ public class PathManager {
     private final static String TASK_FOLDER_NAME = "tasks" + File.separator;
     private final static String CODE_FOLDER_NAME = "code" + File.separator;
     private final static String BIN_FOLDER_NAME = "bin" + File.separator;
-    private final static String DUMP_FOLDER_NAME = "temp" + File.separator;
+    private final static String TEMP_FOLDER_NAME = "temp" + File.separator;
 
     private static String headerLocation = null;
     private static String dataPath = null;
@@ -90,9 +90,9 @@ public class PathManager {
      *
      * @return Path to directory for temp files
      */
-    public String taskDumpDir(){
+    public String taskTempDir(){
         check();
-        return dataPath + projectName + File.separator + DUMP_FOLDER_NAME;
+        return dataPath + projectName + File.separator + TEMP_FOLDER_NAME;
     }
 
     /**
@@ -142,7 +142,7 @@ public class PathManager {
      * @return
      */
     public boolean deleteTemps(){
-        return Install.deleteContents(new File(this.taskDumpDir()));
+        return Install.deleteContents(new File(this.taskTempDir()));
     }
 
     /**

@@ -1,5 +1,7 @@
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import taskbuilder.fileManagement.Install;
+import taskbuilder.fileManagement.PathManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,6 +14,13 @@ import java.util.Properties;
  * Created by HalfLeif on 2014-03-04.
  */
 public class InstallTest {
+
+    private PathManager pathManager = new PathManager("Primes");
+
+    @BeforeMethod
+    public void setup(){
+        Install.install();
+    }
 
     @Test
     public void testInstall(){
@@ -28,6 +37,27 @@ public class InstallTest {
 //        assert !isInstalled();
     }
 
+    @Test
+    public void deleteTemps(){
+        File tempDir = new File(pathManager.taskTempDir());
+        if(!tempDir.exists()){
+            return;
+        }
+
+        pathManager.deleteTemps();
+        assert !tempDir.exists();
+    }
+
+    @Test
+    public void deleteBins(){
+        File binDir = new File(pathManager.taskBinaryDir());
+        if(!binDir.exists()){
+            return;
+        }
+
+        pathManager.deleteBinaries();
+        assert !binDir.exists();
+    }
 
     /**
      * Checks if the path data exist.
