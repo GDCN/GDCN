@@ -68,11 +68,16 @@ public class Install {
 
     /**
      * Deletes entire directory with contents. Use with care!
+     * Is currently used in {@link Install#uninstall()} and {@link PathManager#deleteBinaries()} etc.
+     *
      * http://stackoverflow.com/questions/7768071/how-to-delete-folder-content-in-java
      * @param directory Folder to delete
      * @return
      */
-    private static boolean deleteContents(File directory){
+    static boolean deleteContents(File directory){
+        if(!directory.exists()){
+            return false;
+        }
         File[] files = directory.listFiles();
         if(files!=null) { //some JVMs return null for empty dirs
             for(File f: files) {

@@ -137,4 +137,20 @@ public class PathManager {
     }
 
 
+    /**
+     * Delete all temp files for this project
+     * @return
+     */
+    public boolean deleteTemps(){
+        return Install.deleteContents(new File(this.taskDumpDir()));
+    }
+
+    /**
+     * Delete all binaries for this project
+     * @return
+     */
+    public boolean deleteBinaries(){
+        return Install.deleteContents(new File(this.taskBinaryDir()));
+    }
+
 }
