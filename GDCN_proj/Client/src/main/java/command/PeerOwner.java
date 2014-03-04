@@ -168,8 +168,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public void work(String taskName, String moduleName, String initData) {
-        taskManager.startTask(taskName, moduleName, initData);
+    public void work(String projectName, String taskName) {
+//        taskManager.startTask(projectName, taskName, initData);
+
     }
 
     @Override

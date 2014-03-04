@@ -43,6 +43,7 @@ public class TaskManager{
         return runningTasks.size();
     }
 
+    //TODO use worker pool instead of new Threads
     public void startTask(String taskName, String moduleName, String initData){
         Thread thread = new Thread(new Task(taskName, moduleName, initData, listener));
         thread.setDaemon(true);

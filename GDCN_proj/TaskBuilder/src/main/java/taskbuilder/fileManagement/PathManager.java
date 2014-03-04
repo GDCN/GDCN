@@ -35,14 +35,6 @@ public class PathManager {
 
     /**
      *
-     * @return Project name
-     */
-    public String getProjectName() {
-        return projectName;
-    }
-
-    /**
-     *
      * @return Path to Header.hs
      */
     public String header(){
@@ -52,11 +44,28 @@ public class PathManager {
 
     /**
      *
+     * @return Project name
+     */
+    public String getProjectName() {
+        return projectName;
+    }
+
+    /**
+     *
+     * @return Project directory path
+     */
+    public String projectDir(){
+        check();
+        return dataPath + projectName + File.separator;
+    }
+
+    /**
+     *
      * @return Path to directory for input and output files of tasks, ie raw data files.
      */
     public String taskDataDir(){
         check();
-        return dataPath + projectName + File.separator + RAW_FOLDER_NAME;
+        return projectDir() + RAW_FOLDER_NAME;
     }
 
     /**
@@ -65,7 +74,7 @@ public class PathManager {
      */
     public String taskMetaDir(){
         check();
-        return dataPath + projectName + File.separator + TASK_FOLDER_NAME;
+        return projectDir() + TASK_FOLDER_NAME;
     }
 
     /**
@@ -74,7 +83,7 @@ public class PathManager {
      */
     public String taskCodeDir(){
         check();
-        return dataPath + projectName + File.separator + CODE_FOLDER_NAME;
+        return projectDir() + CODE_FOLDER_NAME;
     }
 
     /**
@@ -83,7 +92,7 @@ public class PathManager {
      */
     public String taskBinaryDir(){
         check();
-        return dataPath + projectName + File.separator + BIN_FOLDER_NAME;
+        return projectDir() + BIN_FOLDER_NAME;
     }
 
     /**
@@ -92,7 +101,7 @@ public class PathManager {
      */
     public String taskTempDir(){
         check();
-        return dataPath + projectName + File.separator + TEMP_FOLDER_NAME;
+        return projectDir() + TEMP_FOLDER_NAME;
     }
 
     /**
