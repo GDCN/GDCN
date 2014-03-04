@@ -15,7 +15,7 @@ import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import taskbuilder.TaskListener;
+import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.TaskManager;
 
 import java.beans.PropertyChangeListener;
@@ -168,9 +168,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public void work(String projectName, String taskName) {
-//        taskManager.startTask(projectName, taskName, initData);
-
+    public void work(String projectName, String taskName, String initFile) {
+        taskManager.startTask(projectName, taskName, initFile);
+        //TODO use FileMaster in process somehow
     }
 
     @Override

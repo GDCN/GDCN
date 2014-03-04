@@ -1,5 +1,6 @@
 package taskbuilder;
 
+import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 

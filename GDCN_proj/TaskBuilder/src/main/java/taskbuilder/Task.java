@@ -1,6 +1,7 @@
 package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
+import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
@@ -165,27 +166,6 @@ class Task implements Runnable{
         System.out.println("-- StdErr:");
         System.out.println(output);
     }
-
-//    public static void toFile(byte[] results){
-//        String path = OLD_PathManager.getInstance().getDumpPath();
-//        BufferedOutputStream outputStream = null;
-//        try {
-//            outputStream = new BufferedOutputStream(new FileOutputStream(path));
-//            outputStream.write(results);
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            if (outputStream != null) {
-//                try {
-//                    outputStream.close();
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }
-//    }
 
 //    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
 //        //NOTE: This test only works for Unix with current GDCN.properties
