@@ -28,14 +28,14 @@ public class ClientTest {
 
     Data putValue;
 
-    ClientInterface bootStrapNode;
+    PeerOwner bootstrapNode;
 
-    ClientInterface peer;
+    PeerOwner peer;
 
     Boolean success = true;
 
 
-    //Listeners used by tests
+    //Listeners used by the tests
     PropertyChangeListener bootstrapListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
@@ -129,10 +129,10 @@ public class ClientTest {
         sem = new Semaphore(0);
 
         peer = new PeerOwner();
-        bootStrapNode = new PeerOwner();
+        bootstrapNode = new PeerOwner();
 
         peer.start(4001);
-        bootStrapNode.start(4002);
+        bootstrapNode.start(4002);
 
         putValue = new Data("value");
     }
@@ -141,7 +141,7 @@ public class ClientTest {
     @AfterMethod
     public void tearDown() {
         peer.stop();
-        bootStrapNode.stop();
+        bootstrapNode.stop();
 
         success = true;
     }
@@ -160,7 +160,7 @@ public class ClientTest {
         peer.bootstrap("localhost", 4002);
         sem.acquire();
 
-        assert (success && peer.getNeighbours().size() == 1);
+        Assert.assertTrue (success && peer.getNeighbours().size() == 1);
 
     }
 
@@ -172,7 +172,7 @@ public class ClientTest {
     @Test
     public void bootStrapTest2() throws InterruptedException {
 
-        bootStrapNode.stop();
+        bootstrapNode.stop();
 
         peer.addListener(bootstrapListener);
 
@@ -181,6 +181,22 @@ public class ClientTest {
 
         Assert.assertFalse (success);
         Assert.assertEquals(peer.getNeighbours().size(), 0);
+
+    }
+
+    @Test
+    public void bootStrapTest3() throws InterruptedException {
+
+        peer.addListener(bootstrapListener);
+
+        peer.bootstrap("localhost", 4002);
+        sem.acquire();
+
+        peer.bootstrap("localhost", 4002);
+        sem.acquire();
+
+        Assert.assertTrue(success);
+        Assert.assertEquals(peer.getNeighbours().size(), 1);
 
     }
 
@@ -200,15 +216,14 @@ public class ClientTest {
         for (int i = 0; i < numberOfPeers; i++) {
             peers[i].bootstrap("localhost", 4002);
             sem.acquire();
-            success = success && bootStrapNode.getNeighbours().size() == i+1;
+            success = success && bootstrapNode.getNeighbours().size() == i+1;
         }
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i].stop();
         }
 
-        assert (success);
-
+        Assert.assertTrue(success);
     }
 
 
@@ -226,7 +241,7 @@ public class ClientTest {
         peer.put(putKey, putValue);
         sem.acquire();
 
-        assert (success);
+        Assert.assertTrue(success);
     }
 
 
@@ -253,7 +268,7 @@ public class ClientTest {
         peer.get(putKey);
         sem.acquire();
 
-        assert (success);
+        Assert.assertTrue(success);
     }
 
 
@@ -283,7 +298,7 @@ public class ClientTest {
 
         peer2.stop();
 
-        assert (success);
+        Assert.assertTrue(success);
 
     }
 
@@ -321,7 +336,7 @@ public class ClientTest {
 
         peer2.stop();
 
-        assert(success);
+        Assert.assertTrue(success);
 
     }
 
@@ -338,7 +353,7 @@ public class ClientTest {
         peer.start(4001);
         sem.acquire();
 
-        assert(success);
+        Assert.assertTrue(success);
 
     }
 
@@ -350,7 +365,7 @@ public class ClientTest {
         peer.stop();
         sem.acquire();
 
-        assert (success);
+        Assert.assertTrue(success);
 
     }
 
@@ -362,7 +377,7 @@ public class ClientTest {
         peer.stop();
         sem.acquire();
 
-        if(success == false) {
+        if(!success) {
             Assert.fail("first stop failed");
         }
 
@@ -394,9 +409,9 @@ public class ClientTest {
 
         PeerOwner[] peers =  new PeerOwner[numberOfPeers];
 
-        bootStrapNode.addListener(stopListener);
-        bootStrapNode.addListener(startListener);
-        bootStrapNode.addListener(bootstrapListener);
+        bootstrapNode.addListener(stopListener);
+        bootstrapNode.addListener(startListener);
+        bootstrapNode.addListener(bootstrapListener);
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i] = new PeerOwner();
@@ -410,24 +425,28 @@ public class ClientTest {
 
         sem.acquire(numberOfPeers);
 
-        List<PeerAddress> peerA = bootStrapNode.getNeighbours();
+        List<PeerAddress> peerAddressesBefore = bootstrapNode.getNeighbours();
 
-        bootStrapNode.stop();
+        bootstrapNode.stop();
         sem.acquire();
 
-        bootStrapNode.start(4002);
+        bootstrapNode.start(4002);
         sem.acquire();
 
-        bootStrapNode.reBootstrap(peerA);
+        bootstrapNode.reBootstrap();
         sem.acquire(numberOfPeers);
 
-        int numNeighbours = bootStrapNode.getNeighbours().size();
+        List<PeerAddress> peerAddressesAfter = bootstrapNode.getNeighbours();
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i].stop();
         }
 
-        Assert.assertEquals(numNeighbours, numberOfPeers);
+        Assert.assertEquals(peerAddressesAfter.size(), numberOfPeers);
+        Assert.assertEquals(peerAddressesAfter.size(), peerAddressesBefore.size());
+        for(PeerAddress p : peerAddressesBefore) {
+            Assert.assertTrue(peerAddressesAfter.contains(p));
+        }
 
     }
 
@@ -440,9 +459,9 @@ public class ClientTest {
 
         PeerOwner[] peers =  new PeerOwner[numberOfPeers];
 
-        bootStrapNode.addListener(stopListener);
-        bootStrapNode.addListener(startListener);
-        bootStrapNode.addListener(bootstrapListener);
+        bootstrapNode.addListener(stopListener);
+        bootstrapNode.addListener(startListener);
+        bootstrapNode.addListener(bootstrapListener);
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i] = new PeerOwner();
@@ -460,10 +479,7 @@ public class ClientTest {
 
         sem.acquire(numberOfPeers);
 
-
-        List<PeerAddress> peerAddresses = bootStrapNode.getNeighbours();
-
-        bootStrapNode.stop();
+        bootstrapNode.stop();
 
         for(int i = 0; i < numberOfPeersToStop; i++) {
             peers[i].stop();
@@ -471,67 +487,20 @@ public class ClientTest {
 
         sem.acquire(numberOfPeersToStop+1);
 
-        bootStrapNode.start(4002);
+        bootstrapNode.start(4002);
         sem.acquire();
 
-        bootStrapNode.reBootstrap(peerAddresses);
+        bootstrapNode.reBootstrap();
         sem.acquire(numberOfPeers);
 
-        int numNeighbours = bootStrapNode.getNeighbours().size();
+        int numNeighbours = bootstrapNode.getNeighbours().size();
+        System.out.println("Number of oldNeighbours: " + bootstrapNode.getOldNeighbours().size());
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i].stop();
         }
 
         Assert.assertEquals(numNeighbours, numberOfPeers-numberOfPeersToStop);
-    }
-
-    @Test
-    public void rebootstrapTest3() throws InterruptedException {
-
-        int numberOfPeers = 5;
-
-        PeerOwner[] peers =  new PeerOwner[numberOfPeers];
-
-        bootStrapNode.addListener(stopListener);
-        bootStrapNode.addListener(startListener);
-        bootStrapNode.addListener(bootstrapListener);
-
-        for(int i = 0; i < numberOfPeers; i++) {
-            peers[i] = new PeerOwner();
-            peers[i].addListener(bootstrapListener);
-            peers[i].start(4003+i);
-        }
-
-        for (int i = 0; i < numberOfPeers; i++) {
-            peers[i].bootstrap("localhost", 4002);
-        }
-
-        sem.acquire(numberOfPeers);
-
-        List<PeerAddress> peerAddresses = bootStrapNode.getNeighbours();
-
-        bootStrapNode.stop();
-        sem.acquire();
-
-        bootStrapNode.start(4002);
-        sem.acquire();
-
-        bootStrapNode.reBootstrap(peerAddresses);
-        sem.acquire(numberOfPeers);
-
-        List<PeerAddress> peerAddressesAfter = bootStrapNode.getNeighbours();
-
-        for(int i = 0; i < numberOfPeers; i++) {
-            peers[i].stop();
-        }
-
-        for(PeerAddress p : peerAddresses) {
-            System.out.println(peerAddressesAfter.contains(p));
-        }
-
-        Assert.assertEquals(peerAddressesAfter.size(), numberOfPeers);
-        assert (peerAddresses.containsAll(peerAddressesAfter));
 
     }
 }
