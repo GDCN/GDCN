@@ -1,4 +1,4 @@
-package command;
+package control;
 
 import com.google.gson.Gson;
 import command.communicationToUI.ClientInterface;
@@ -11,6 +11,7 @@ import taskbuilder.fileManagement.PathManager;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +26,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Checks if necessary files exist in file system, otherwise attempts to download them from DHT.
  *
  * Uses TaskListener to report error information.
- * Use {@link command.FileMaster#await()} to see when finished.
+ * Use {@link FileMaster#await()} to see when finished.
  */
 public class FileMaster {
 
@@ -193,6 +194,12 @@ public class FileMaster {
         private String taskId;
 
         private List<FileDep> dependencies;
+
+        private TaskMeta(String projectName, String taskId, List<FileDep> dependencies) {
+            this.projectName = projectName;
+            this.taskId = taskId;
+            this.dependencies = dependencies;
+        }
     }
 
     private static class FileDep implements Serializable{
@@ -202,5 +209,25 @@ public class FileMaster {
 
         private boolean sticky = false;
         private int checkSum;
+
+        private FileDep(String fileName, String location, String key, boolean sticky, int checkSum) {
+            this.fileName = fileName;
+            this.location = location;
+            this.key = key;
+            this.sticky = sticky;
+            this.checkSum = checkSum;
+        }
+    }
+
+    public static void main(String[] args){
+        FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
+        FileDep algorithm = new FileDep("Prime.hs", "code", "Primes_algorithms", true, 500);
+
+        List<FileDep> deps = new ArrayList<FileDep>();
+        deps.add(rawIndata);
+        deps.add(algorithm);
+
+        TaskMeta taskMetaTest = new TaskMeta("Primes", "PrimeTask_01", deps);
+        System.out.println( new Gson().toJson(taskMetaTest));
     }
 }

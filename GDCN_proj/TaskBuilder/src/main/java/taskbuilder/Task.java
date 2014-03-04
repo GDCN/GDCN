@@ -11,26 +11,27 @@ import java.util.List;
 /**
  * Class for tasks, compiling and executing Haskell code
  */
-class Task implements Runnable{
+public class Task implements Runnable{
 
+    private final String projectName;
     private final String taskName;
     private final String moduleName;
     private final String initData;
-    //TODO add constr parameter
-    private final String projectName = "Primes";
+
 
     private final PathManager pathManager;
 
 
     private final TaskListener listener;
 
-    public Task(String taskName, String moduleName, String initData, TaskListener listener) {
+    public Task(String projectName, String taskName, String moduleName, String initData, TaskListener listener) {
+        this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
         this.initData = initData;
         this.listener = listener;
 
-        pathManager = new PathManager(projectName);
+        pathManager = new PathManager(this.projectName);
     }
 
     /**

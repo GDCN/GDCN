@@ -16,7 +16,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.TaskManager;
+import control.TaskManager;
 
 import java.beans.PropertyChangeListener;
 import java.io.IOException;

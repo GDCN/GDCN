@@ -1,5 +1,7 @@
-package taskbuilder;
+package control;
 
+import command.communicationToUI.ClientInterface;
+import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
@@ -45,8 +47,23 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
-    public void startTask(String taskName, String moduleName, String initData){
-        Thread thread = new Thread(new Task(taskName, moduleName, initData, listener));
+    @Deprecated
+    public void startTask(String projectName, String taskName, String initData){
+        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
+        thread.setDaemon(true);
+
+        runningTasks.put(taskName, thread);
+        thread.start();
+    }
+
+    public void startTask(String projectName, String taskName, ClientInterface networker){
+        //Delegates error passing to networjker (ie PeerOwner). Makes call to his listeners
+        FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
+
+        fileMaster.await();
+
+        //TODO real initdata
+        Thread thread = new Thread(new Task(projectName, taskName, "initData.file", projectName, listener));
         thread.setDaemon(true);
 
         runningTasks.put(taskName, thread);
@@ -75,7 +92,7 @@ public class TaskManager{
         Install.install();
         PathManager pathManager = new PathManager("Primes");
 
-        manager.startTask("TaskName_Prime_1", "Prime", "2_2000.raw");
+        manager.startTask("PrimeTask_01.json", "Prime", "2_2000.raw");
 
         semaphore.acquireUninterruptibly();
     }
