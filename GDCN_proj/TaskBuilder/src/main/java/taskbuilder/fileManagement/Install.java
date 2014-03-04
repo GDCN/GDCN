@@ -5,6 +5,8 @@ import java.util.Properties;
 
 /**
  * Created by HalfLeif on 2014-03-04.
+ *
+ * Creates directories and files for application data in ~/.gdcn
  */
 public class Install {
 
@@ -55,7 +57,9 @@ public class Install {
     }
 
     /**
-     * Deletes entire directory for application data
+     * Deletes entire directory for application data.
+     *
+     * @return true iff uninstalled correctly
      */
     public static boolean uninstall(){
         File rootPath = new File(APPDATA);
@@ -65,7 +69,7 @@ public class Install {
     /**
      * Deletes entire directory with contents. Use with care!
      * http://stackoverflow.com/questions/7768071/how-to-delete-folder-content-in-java
-     * @param directory
+     * @param directory Folder to delete
      * @return
      */
     private static boolean deleteContents(File directory){
@@ -82,6 +86,10 @@ public class Install {
         return directory.delete();
     }
 
+    /**
+     * Creates Property object containing paths critical for the program to work on tasks
+     * @return
+     */
     private static Properties paths(){
         Properties props = new Properties();
 

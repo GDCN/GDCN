@@ -5,6 +5,8 @@ import java.util.Properties;
 
 /**
  * Created by HalfLeif on 2014-03-04.
+ *
+ * Manages paths specific to a project
  */
 public class PathManager {
 
