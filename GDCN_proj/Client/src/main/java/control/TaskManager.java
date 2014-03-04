@@ -1,10 +1,9 @@
 package control;
 
+import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
-import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +23,7 @@ public class TaskManager{
         @Override
         public void taskFinished(String taskName) {
             runningTasks.remove(taskName);
-            //TODO more stuff?
+            //TODO do something other than pass along signal?
 
             client.taskFinished(taskName);
         }
@@ -32,7 +31,7 @@ public class TaskManager{
         @Override
         public void taskFailed(String taskName, String reason) {
             runningTasks.remove(taskName);
-            //TODO more stuff?
+            //TODO do something other than pass along signal?
 
             client.taskFailed(taskName, reason);
         }
@@ -46,24 +45,29 @@ public class TaskManager{
         return runningTasks.size();
     }
 
-    //TODO use worker pool instead of new Threads
+    /**
+     * Deleted function...
+     * @param projectName
+     * @param taskName
+     * @param initData
+     */
     @Deprecated
     public void startTask(String projectName, String taskName, String initData){
-        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
-        thread.setDaemon(true);
-
-        runningTasks.put(taskName, thread);
-        thread.start();
+//        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
+//        thread.setDaemon(true);
+//
+//        runningTasks.put(taskName, thread);
+//        thread.start();
     }
 
+    //TODO use worker pool instead of new Threads
     public void startTask(String projectName, String taskName, ClientInterface networker){
-        //Delegates error passing to networjker (ie PeerOwner). Makes call to his listeners
+        //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
         FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
 
         fileMaster.await();
 
-        //TODO real initdata
-        Thread thread = new Thread(new Task(projectName, taskName, "initData.file", projectName, listener));
+        Thread thread = new Thread(fileMaster.buildTask(listener));
         thread.setDaemon(true);
 
         runningTasks.put(taskName, thread);
@@ -73,8 +77,7 @@ public class TaskManager{
     public static void main(String[] args){
 
         final Semaphore semaphore = new Semaphore(0);
-
-        TaskManager manager = new TaskManager(new TaskListener() {
+        final TaskListener mainTaskListener = new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
                 System.out.println("Task finished "+taskName);
@@ -87,13 +90,17 @@ public class TaskManager{
                 System.out.println("because of: "+reason);
                 semaphore.release();
             }
-        });
+        };
 
         Install.install();
-        PathManager pathManager = new PathManager("Primes");
+//        PathManager pathManager = new PathManager("Primes");
+        ClientInterface client = new PeerOwner();
+        client.start(4098);
 
-        manager.startTask("PrimeTask_01.json", "Prime", "2_2000.raw");
+        TaskManager manager = new TaskManager(mainTaskListener);
+        manager.startTask("PrimeTask_01.json", "Prime", client);
 
         semaphore.acquireUninterruptibly();
+        client.stop();
     }
 }

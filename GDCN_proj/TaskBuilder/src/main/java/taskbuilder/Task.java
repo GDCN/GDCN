@@ -24,14 +24,22 @@ public class Task implements Runnable{
 
     private final TaskListener listener;
 
-    public Task(String projectName, String taskName, String moduleName, String initData, TaskListener listener) {
+    public Task(String projectName, String taskName, String moduleName, List<String> initDataFiles, TaskListener listener) {
         this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
-        this.initData = initData;
+        this.initData = buildInitData(initDataFiles);
         this.listener = listener;
 
         pathManager = new PathManager(this.projectName);
+    }
+
+    private String buildInitData(List<String> initDataFiles){
+        String result = "";
+        for(String path : initDataFiles){
+            result += path + " ";
+        }
+        return result;
     }
 
     /**
