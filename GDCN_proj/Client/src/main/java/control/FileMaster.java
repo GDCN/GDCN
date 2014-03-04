@@ -75,6 +75,11 @@ public class FileMaster implements Runnable{
         }
     }
 
+    public boolean runAndAwait(){
+        run();
+        return await();
+    }
+
     /**
      * Blocks current thread until all dependencies for the specified task are resolved.
      *

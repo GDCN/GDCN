@@ -62,24 +62,24 @@ public class TaskManager{
 
     //TODO use worker pool instead of new Threads
     public void startTask(String projectName, String taskName, ClientInterface networker){
-        //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
-        FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
+        new Thread(createTask(projectName, taskName, networker)).start();
+    }
 
-//        Thread dependencyThread = new Thread(fileMaster);
-//        dependencyThread.setDaemon(true);
-//        dependencyThread.start();
+    private Runnable createTask(final String projectName, final String taskName, final ClientInterface networker){
+        return new Runnable() {
+            @Override
+            public void run() {
+                //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
+                FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
+                fileMaster.runAndAwait();
 
-        fileMaster.run();
+                Thread thread = new Thread(fileMaster.buildTask(listener));
+                thread.setDaemon(true);
 
-        System.out.println("Await dependencies to be resolved");
-        fileMaster.await();
-        System.out.println("Dependencies resolved!");
-
-        Thread thread = new Thread(fileMaster.buildTask(listener));
-        thread.setDaemon(true);
-
-        runningTasks.put(taskName, thread);
-        thread.start();
+                runningTasks.put(taskName, thread);
+                thread.start();
+            }
+        };
     }
 
     public static void main(String[] args){
