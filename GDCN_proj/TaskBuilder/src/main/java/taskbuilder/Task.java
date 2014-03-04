@@ -1,7 +1,7 @@
 package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
-import taskbuilder.fileManagement.OLD_PathManager;
+import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,6 +15,11 @@ class Task implements Runnable{
     private final String taskName;
     private final String moduleName;
     private final String initData;
+    //TODO add constr parameter
+    private final String projectName = "Primes";
+
+    private final PathManager npathMan;
+
 
     private final TaskListener listener;
 
@@ -23,18 +28,17 @@ class Task implements Runnable{
         this.moduleName = moduleName;
         this.initData = initData;
         this.listener = listener;
+
+        npathMan = new PathManager(projectName);
     }
 
     /**
      * Compiles task code
      */
     public void compile(){
-
-        OLD_PathManager pathman = OLD_PathManager.getInstance();
-
         List<File> dirs = new ArrayList<File>();
-        dirs.add(new File(pathman.getJobExecutablePath()));
-        dirs.add(new File(pathman.getDumpPath()));
+        dirs.add(new File(npathMan.taskBinaryDir()));
+        dirs.add(new File(npathMan.taskDumpDir()));
 
         for(File dir : dirs){
             if(!dir.exists()){
@@ -43,10 +47,10 @@ class Task implements Runnable{
         }
 
         //TODO Manage trust in a non hardcoded way
-        String[] command = {"ghc", "-o", pathman.getJobExecutablePath() + moduleName,
-		        "-DMODULE=" + moduleName, "-i" + pathman.getJobCodePath(), pathman.getHeaderPath(),
-                "-outputdir", pathman.getDumpPath(),
-		        "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
+        String[] command = {"ghc", "-o", npathMan.taskBinaryDir() + moduleName,
+                "-DMODULE=" + moduleName, "-i" + npathMan.taskCodeDir(), npathMan.header(),
+                "-outputdir", npathMan.taskDumpDir(),
+                "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
         Process proc = null;
         try {
@@ -71,10 +75,9 @@ class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        OLD_PathManager pathman = OLD_PathManager.getInstance();
-        String[] command = {pathman.getJobExecutablePath() + moduleName,
-                pathman.getDumpPath() + taskName + ".result",
-                pathman.getTaskInitDataPath() + initData};
+        String[] command = {npathMan.taskBinaryDir() + moduleName,
+                npathMan.taskDumpDir() + taskName + ".result",
+                npathMan.taskDataDir() + initData};
 
         Process proc = null;
 
@@ -115,11 +118,11 @@ class Task implements Runnable{
      */
     @Override
     public void run(){
-        String path = OLD_PathManager.getInstance().getJobExecutablePath() + moduleName;
-        File executable = new File(path);
+        String execFilePath = npathMan.taskBinaryDir() + moduleName;
+        File executable = new File(execFilePath);
         try {
             if (executable.isDirectory()) {
-                throw new IOException(path + " is a directory.");
+                throw new IOException(execFilePath + " is a directory.");
             }
             if (!executable.exists()) {
                 compile();
@@ -132,10 +135,8 @@ class Task implements Runnable{
     }
 
     public static String fromInstream(InputStream inputStream){
-
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
 
         String line;
 
@@ -165,43 +166,43 @@ class Task implements Runnable{
         System.out.println(output);
     }
 
-    public static void toFile(byte[] results){
-        String path = OLD_PathManager.getInstance().getDumpPath();
-        BufferedOutputStream outputStream = null;
-        try {
-            outputStream = new BufferedOutputStream(new FileOutputStream(path));
-            outputStream.write(results);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
+//    public static void toFile(byte[] results){
+//        String path = OLD_PathManager.getInstance().getDumpPath();
+//        BufferedOutputStream outputStream = null;
+//        try {
+//            outputStream = new BufferedOutputStream(new FileOutputStream(path));
+//            outputStream.write(results);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            if (outputStream != null) {
+//                try {
+//                    outputStream.close();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//    }
 
-    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
-        //NOTE: This test only works for Unix with current GDCN.properties
-        // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
-	    OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
-                File.separator + "TaskBuilder/resources/pathdata.prop");
-        Task t = new Task("TaskName_Prime_1", "Prime", "2_2000.raw", new TaskListener() {
-            @Override
-            public void taskFinished(String taskName) {
-                //TODO
-            }
-
-            @Override
-            public void taskFailed(String taskName, String reason) {
-                //TODO
-            }
-        });
-	    t.run();
-    }
+//    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
+//        //NOTE: This test only works for Unix with current GDCN.properties
+//        // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
+//	    OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+//                File.separator + "TaskBuilder/resources/pathdata.prop");
+//        Task t = new Task("TaskName_Prime_1", "Prime", "2_2000.raw", new TaskListener() {
+//            @Override
+//            public void taskFinished(String taskName) {
+//                //TODO
+//            }
+//
+//            @Override
+//            public void taskFailed(String taskName, String reason) {
+//                //TODO
+//            }
+//        });
+//	    t.run();
+//    }
 }

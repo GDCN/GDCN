@@ -1,0 +1,4 @@
+#-- Paths for GDCN --
+#Tue Mar 04 14:16:23 CET 2014
+data_path=/Users/HalfLeif/.gdcn/data/
+bin_path=/Users/HalfLeif/Documents/Chalmers/GDBN/GDCN_proj/TaskBuilder/src/main/haskell/

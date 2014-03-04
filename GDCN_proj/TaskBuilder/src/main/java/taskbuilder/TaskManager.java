@@ -1,8 +1,8 @@
 package taskbuilder;
 
-import taskbuilder.fileManagement.OLD_PathManager;
+import taskbuilder.fileManagement.Install;
+import taskbuilder.fileManagement.PathManager;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -70,8 +70,11 @@ public class TaskManager{
             }
         });
 
-        OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
-                File.separator + "TaskBuilder/resources/pathdata.prop");
+        Install.install();
+        PathManager pathManager = new PathManager("Primes");
+
+//        OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
+//                File.separator + "TaskBuilder/resources/pathdata.prop");
         manager.startTask("TaskName_Prime_1", "Prime", "2_2000.raw");
 
         semaphore.acquireUninterruptibly();
