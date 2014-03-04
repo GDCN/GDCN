@@ -21,6 +21,12 @@ public class PathManager {
     private static String headerLocation = null;
     private static String dataPath = null;
 
+    public static void main(String[] args){
+        PathManager manager = new PathManager("Primes");
+        System.out.println(manager.taskCodeDir());
+        System.out.println(manager.taskResourcesDir());
+    }
+
     public PathManager(String projectName) {
         this.projectName = projectName;
 
@@ -63,7 +69,7 @@ public class PathManager {
      *
      * @return Path to directory for input and output files of tasks, ie raw data files.
      */
-    public String taskDataDir(){
+    public String taskResourcesDir(){
         check();
         return projectDir() + RAW_FOLDER_NAME;
     }

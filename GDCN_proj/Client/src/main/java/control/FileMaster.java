@@ -29,7 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * Uses TaskListener to report error information.
  * Use {@link FileMaster#await()} to see when finished.
  */
-public class FileMaster {
+public class FileMaster implements Runnable{
 
     private final TaskMeta taskMeta;
     private final PathManager pathManager;
@@ -53,7 +53,6 @@ public class FileMaster {
         }
     };
 
-    //TODO resolveDependencies in new thread?
     public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) {
         this.client = client;
         this.taskListener = taskListener;
@@ -64,6 +63,10 @@ public class FileMaster {
         File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
 
         taskMeta = readMetaFile(metaTaskFile);
+    }
+
+    @Override
+    public void run(){
         if(taskMeta != null){
             resolveDependencies();
         }
@@ -77,14 +80,18 @@ public class FileMaster {
     public boolean await(){
         do{
             try {
+                lock.lock();
                 allDependenciesComplete.await();
+                System.out.println("Got signal dependencies complete");
+                lock.unlock();
             } catch (InterruptedException e) {
+                System.out.println("Caught interruption: "+e.getMessage());
                 continue;
             }
             if(operationFailed){
                 return false;
             }
-
+            System.out.println("Test monitor condition before exit...");
         } while(unresolvedFiles.size()>0);
 
         //Alternatively, ignore await() model and use TaskListener instead...
@@ -160,7 +167,7 @@ public class FileMaster {
     }
 
     private File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.location + fileDep.fileName);
+        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
     }
 
     private void resolveDependencies(){
@@ -175,8 +182,12 @@ public class FileMaster {
                 if(file.isDirectory()){
                     throw new AssertionError("Files in dependencies should not be directories!");
                 }
+                System.out.println("Found file :D - " + file.toString());
                 //TODO checksum?
             } else {
+                //TODO remove print
+                System.out.println("Didn't find file " + file.toString());
+
                 lock.lock();
                 unresolvedFiles.put(fileDep.key, fileDep);
                 lock.unlock();
@@ -184,6 +195,11 @@ public class FileMaster {
                 client.get(fileDep.key);
             }
         }
+        System.out.println("Exited dependency loop");
+        lock.lock();
+        System.out.println("Acquired lock in order to signal...");
+        allDependenciesComplete.signalAll();
+        lock.unlock();
     }
 
     private void operationReturned(OperationFinishedEvent event) {
@@ -197,7 +213,7 @@ public class FileMaster {
             FileDep fileDep = unresolvedFiles.remove(key);
 
             if(fileDep == null) {
-
+                throw new AssertionError("FileDep wasn't found in Map: "+fileDep.fileName);
             }
 
             Data result = (Data) event.getOperation().getResult();
@@ -216,7 +232,8 @@ public class FileMaster {
     }
 
     private String getMetaFileName(String taskName){
-        return taskName+".prop";
+        //TODO Do less hardcoded?
+        return taskName+".json";
     }
 
     private static class TaskMeta implements Serializable{

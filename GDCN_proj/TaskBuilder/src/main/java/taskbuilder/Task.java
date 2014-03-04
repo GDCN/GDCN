@@ -16,7 +16,7 @@ public class Task implements Runnable{
     private final String projectName;
     private final String taskName;
     private final String moduleName;
-    private final String initData;
+    private final String initDataPaths;
 
 
     private final PathManager pathManager;
@@ -28,7 +28,7 @@ public class Task implements Runnable{
         this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
-        this.initData = buildInitData(initDataFiles);
+        this.initDataPaths = buildInitData(initDataFiles);
         this.listener = listener;
 
         pathManager = new PathManager(this.projectName);
@@ -87,7 +87,8 @@ public class Task implements Runnable{
     public void execute(){
         String[] command = {pathManager.taskBinaryDir() + moduleName,
                 pathManager.taskTempDir() + taskName + ".result",
-                pathManager.taskDataDir() + initData};
+                initDataPaths};
+        //TODO fix bug, says cannot open binary file...
 
         Process proc = null;
 

@@ -65,7 +65,13 @@ public class TaskManager{
         //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
         FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
 
+        Thread dependencyThread = new Thread(fileMaster);
+        dependencyThread.setDaemon(true);
+        dependencyThread.start();
+
+        System.out.println("Await dependencies to be resolved");
         fileMaster.await();
+        System.out.println("Dependencies resolved!");
 
         Thread thread = new Thread(fileMaster.buildTask(listener));
         thread.setDaemon(true);
@@ -95,12 +101,18 @@ public class TaskManager{
         Install.install();
 //        PathManager pathManager = new PathManager("Primes");
         ClientInterface client = new PeerOwner();
-        client.start(4098);
+        client.start(8056);
 
-        TaskManager manager = new TaskManager(mainTaskListener);
-        manager.startTask("PrimeTask_01.json", "Prime", client);
+        try {
+            TaskManager manager = new TaskManager(mainTaskListener);
+            manager.startTask("Primes", "PrimeTask_01", client);
 
-        semaphore.acquireUninterruptibly();
-        client.stop();
+            System.out.println("Await task response");
+            semaphore.acquireUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            client.stop();
+        }
     }
 }
