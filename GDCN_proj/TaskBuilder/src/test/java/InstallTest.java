@@ -39,7 +39,7 @@ public class InstallTest {
 
     @Test
     public void deleteTemps(){
-        File tempDir = new File(pathManager.taskTempDir());
+        File tempDir = new File(pathManager.projectTempDir());
         if(!tempDir.exists()){
             return;
         }

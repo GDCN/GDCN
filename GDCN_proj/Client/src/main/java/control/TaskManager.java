@@ -24,7 +24,7 @@ public class TaskManager{
         @Override
         public void taskFinished(String taskName) {
             runningTasks.remove(taskName);
-            //TODO do something other than pass along signal?
+            //TODO delete temps ...
 
             client.taskFinished(taskName);
         }
@@ -54,6 +54,8 @@ public class TaskManager{
      */
     @Deprecated
     public void startTask(String projectName, String taskName, String initData){
+        //TODO remove this method and replace uses
+        throw new UnsupportedOperationException("This method is deprecated!");
 //        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
 //        thread.setDaemon(true);
 //
@@ -63,7 +65,9 @@ public class TaskManager{
 
     //TODO use worker pool instead of new Threads
     public void startTask(String projectName, String taskName, ClientInterface networker){
-        new Thread(createTask(projectName, taskName, networker)).start();
+        Thread thread = new Thread(createTask(projectName, taskName, networker));
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private Runnable createTask(final String projectName, final String taskName, final ClientInterface networker){
@@ -102,6 +106,8 @@ public class TaskManager{
         };
 
         Install.install();
+
+        //Might want to copy "dGDCN/" to "~/.gdcn/"
 
         PathManager pathManager = new PathManager("Primes");
         pathManager.deleteBinaries();
