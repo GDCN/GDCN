@@ -7,7 +7,7 @@ main :: IO ()
 main = do args <- getArgs
           case args of
               [prefix, pkgdb] -> do
-                  defaultMainArgs ["configure", "--user", "--prefix=" ++ prefix,
+                  defaultMainArgs ["configure", "--user", "--libdir=" ++ prefix,
                                    "--package-db=" ++ pkgdb]
                   defaultMainArgs ["build"]
                   defaultMainArgs ["install"]
