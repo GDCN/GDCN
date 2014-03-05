@@ -4,6 +4,8 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
 import java.beans.PropertyChangeListener;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -28,5 +30,7 @@ public interface ClientInterface {
 
     List<PeerAddress> getNeighbours();
 
-    void reBootstrap(List<PeerAddress> peers);
+    List<PeerAddress> getOldNeighbours();
+
+    void reBootstrap();
 }
