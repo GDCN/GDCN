@@ -26,12 +26,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * Class for resolving task file dependencies.
  * Checks if necessary files exist in file system, otherwise attempts to download them from DHT.
  *
- * Can be run either asynchronously or synchronously.
- *
  * Uses TaskListener to report error information.
  * Use {@link FileMaster#await()} to see when finished.
  */
-public class FileMaster implements Runnable{
+public class FileMaster{
 
     private final TaskMeta taskMeta;
     private final PathManager pathManager;
@@ -56,7 +54,17 @@ public class FileMaster implements Runnable{
         }
     };
 
-    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) {
+    /**
+     * Creates FileMaster object that reads meta-file for a task. Run {@link control.FileMaster#runAndAwait()} for
+     * solving the dependencies.
+     *
+     * @param projectName Name of project
+     * @param taskName Name of task
+     * @param client Client for downloading files from network (DHT)
+     * @param taskListener Listener to learn about failures such as unresolved dependencies.
+     * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
+     */
+    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
         this.client = client;
         this.taskListener = taskListener;
         client.addListener(propertyListener);
@@ -66,16 +74,28 @@ public class FileMaster implements Runnable{
         File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
 
         taskMeta = readMetaFile(metaTaskFile);
-    }
 
-    @Override
-    public void run(){
-        if(taskMeta != null){
-            resolveDependencies();
+        if(! taskName.equals(taskMeta.taskName)){
+            throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
         }
     }
 
-    public boolean runAndAwait(){
+    /**
+     * Attempts to resolve the dependencies found in meta-file.
+     */
+    public void run() throws TaskMetaDataException {
+        if(taskMeta != null){
+            resolveDependencies();
+        } else {
+            throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
+        }
+    }
+
+    /**
+     * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
+     * @return result of {@link control.FileMaster#await()}
+     */
+    public boolean runAndAwait() throws TaskMetaDataException {
         run();
         return await();
     }
@@ -106,6 +126,11 @@ public class FileMaster implements Runnable{
         return true;
     }
 
+    /**
+     * Build new Task specified by the meta-file that was parsed earlier.
+     * @param listener Listener for success on task
+     * @return
+     */
     public Task buildTask(TaskListener listener){
         return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
     }
@@ -126,7 +151,7 @@ public class FileMaster implements Runnable{
     }
 
     /**
-     * Outputs data to file
+     * Outputs some arbitrary data to file
      * @param file
      * @param data
      */
@@ -151,7 +176,14 @@ public class FileMaster implements Runnable{
     }
 
 
-    private TaskMeta readMetaFile(File file) {
+    /**
+     * Parses file for MetaData of Task
+     *
+     * @param file Path to meta data file
+     * @return Representation of meta data content
+     * @throws FileNotFoundException if file isn't found
+     */
+    private TaskMeta readMetaFile(File file) throws FileNotFoundException {
 
         Reader reader = null;
         try {
@@ -160,8 +192,6 @@ public class FileMaster implements Runnable{
             Gson gson = new Gson();
             return gson.fromJson(reader, TaskMeta.class);
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } finally {
             if (reader != null) {
                 try {
@@ -171,14 +201,13 @@ public class FileMaster implements Runnable{
                 }
             }
         }
-        return null;
     }
 
     private File pathTo(FileDep fileDep){
         return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
     }
 
-    private void resolveDependencies(){
+    private void resolveDependencies() throws TaskMetaDataException {
         unresolvedFiles.clear();
 
         List<FileDep> deps = new ArrayList<FileDep>(taskMeta.dependencies);
@@ -188,7 +217,8 @@ public class FileMaster implements Runnable{
             File file = pathTo(fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
-                    throw new AssertionError("Files in dependencies should not be directories!");
+                    throw new TaskMetaDataException("Files in dependencies should not be directories! File: "
+                            +file+" for task "+taskMeta.taskName);
                 }
                 System.out.println("Found file :D - " + file.toString());
                 //TODO checksum?
@@ -210,6 +240,10 @@ public class FileMaster implements Runnable{
         lock.unlock();
     }
 
+    /**
+     * Handles returns of Get operation requested earlier.
+     * @param event
+     */
     private void operationReturned(OperationFinishedEvent event) {
         if(event.getCommandWord() != CommandWord.GET){
             return;
@@ -218,11 +252,15 @@ public class FileMaster implements Runnable{
         lock.lock();
         if(event.getOperation().isSuccess()){
             String key = event.getOperation().getKey();
-            FileDep fileDep = unresolvedFiles.remove(key);
 
-            if(fileDep == null) {
-                throw new AssertionError("FileDep wasn't found in Map: "+fileDep.fileName);
+            if(!unresolvedFiles.containsKey(key)){
+                //TODO redirect output?
+                System.out.println("FileDep with key ("+key+") wasn't found in Map for task with id "+taskMeta.taskName);
+                //Might be from other request unrelated with this FileMaster
+                return;
             }
+
+            FileDep fileDep = unresolvedFiles.remove(key);
 
             Data result = (Data) event.getOperation().getResult();
             toFile(pathTo(fileDep), result.getData());
@@ -244,21 +282,31 @@ public class FileMaster implements Runnable{
         return taskName+".json";
     }
 
+    /**
+     * Serialized data-class to Json
+     *
+     * Represents contents in one MetaTask file
+     */
     private static class TaskMeta implements Serializable{
         private String projectName;
-        private String taskId;
+        private String taskName;
 
         private FileDep module;
         private List<FileDep> dependencies;
 
-        private TaskMeta(String projectName, String taskId, FileDep module, List<FileDep> dependencies) {
+        private TaskMeta(String projectName, String taskName, FileDep module, List<FileDep> dependencies) {
             this.projectName = projectName;
-            this.taskId = taskId;
+            this.taskName = taskName;
             this.module = module;
             this.dependencies = dependencies;
         }
     }
 
+    /**
+     * Serialized data-class to Json
+     *
+     * Represent one file that has to be resolved for Task to compile or run
+     */
     private static class FileDep implements Serializable{
         private String fileName;
         private String location;
@@ -276,6 +324,10 @@ public class FileMaster implements Runnable{
         }
     }
 
+    /**
+     * Generates a suitable json-String to put in a file, used for debugging
+     * @param args
+     */
     public static void main(String[] args){
         FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
         List<FileDep> deps = new ArrayList<FileDep>();

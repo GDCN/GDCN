@@ -6,6 +6,7 @@ import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -46,41 +47,39 @@ public class TaskManager{
         return runningTasks.size();
     }
 
-    /**
-     * Deleted function...
-     * @param projectName
-     * @param taskName
-     * @param initData
-     */
-    @Deprecated
-    public void startTask(String projectName, String taskName, String initData){
-//        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
-//        thread.setDaemon(true);
-//
-//        runningTasks.put(taskName, thread);
-//        thread.start();
-    }
-
     //TODO use worker pool instead of new Threads
-    public void startTask(String projectName, String taskName, ClientInterface networker){
-        new Thread(createTask(projectName, taskName, networker)).start();
-    }
-
-    private Runnable createTask(final String projectName, final String taskName, final ClientInterface networker){
-        return new Runnable() {
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
-                FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
-                fileMaster.runAndAwait();
+                FileMaster fileMaster = null;
+                try {
+                    fileMaster = new FileMaster(projectName, taskName, networker, client);
+                    boolean success = fileMaster.runAndAwait();
 
-                Thread thread = new Thread(fileMaster.buildTask(listener));
-                thread.setDaemon(true);
+                    if(!success){
+                        client.taskFailed(taskName, "Unresolved dependencies");
+                        return;
+                    }
 
-                runningTasks.put(taskName, thread);
-                thread.start();
+                    Thread thread = new Thread(fileMaster.buildTask(listener));
+                    thread.setDaemon(true);
+
+                    runningTasks.put(taskName, thread);
+                    thread.start();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    //TODO handle file not found
+                } catch (TaskMetaDataException e) {
+                    e.printStackTrace();
+                    //TODO handle job owner error
+                }
+
             }
-        };
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public static void main(String[] args){
@@ -103,6 +102,8 @@ public class TaskManager{
 
         Install.install();
 
+        //Might want to copy "dGDCN/" to "~/.gdcn/"
+
         PathManager pathManager = new PathManager("Primes");
         pathManager.deleteBinaries();
 
@@ -111,7 +112,7 @@ public class TaskManager{
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01_TEST", client);
+            manager.startTask("Primes", "PrimeTask_01", client);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();

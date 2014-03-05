@@ -44,7 +44,7 @@ public class Task implements Runnable{
     public void compile(){
         List<File> dirs = new ArrayList<File>();
         dirs.add(new File(pathManager.taskBinaryDir()));
-        dirs.add(new File(pathManager.taskTempDir()));
+        dirs.add(new File(pathManager.projectTempDir()));
 
         for(File dir : dirs){
             if(!dir.exists()){
@@ -55,7 +55,7 @@ public class Task implements Runnable{
         //TODO Manage trust in a non hardcoded way
         String[] command = {"ghc", "-o", compiledModule(),
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
-                "-outputdir", pathManager.taskTempDir(),
+                "-outputdir", pathManager.taskTempDir(taskName),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
         System.out.println("\nCompile command:");
@@ -81,6 +81,8 @@ public class Task implements Runnable{
             }
             e.printStackTrace();
             listener.taskFailed(moduleName, e.getMessage());
+        } finally {
+            pathManager.deleteTaskTemp(taskName);
         }
     }
 

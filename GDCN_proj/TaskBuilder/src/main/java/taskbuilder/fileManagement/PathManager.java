@@ -103,11 +103,20 @@ public class PathManager {
 
     /**
      *
-     * @return Path to directory for temp files
+     * @return Path to directory for all temp files in project
      */
-    public String taskTempDir(){
+    public String projectTempDir(){
         check();
         return projectDir() + TEMP_FOLDER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory for all temp files in task
+     */
+    public String taskTempDir(String taskName){
+        check();
+        return projectDir() + TEMP_FOLDER_NAME + taskName;
     }
 
     /**
@@ -157,7 +166,15 @@ public class PathManager {
      * @return
      */
     public boolean deleteTemps(){
-        return Install.deleteContents(new File(this.taskTempDir()));
+        return Install.deleteContents(new File(this.projectTempDir()));
+    }
+
+    /**
+     * Delete all temp files for this task
+     * @return
+     */
+    public boolean deleteTaskTemp(String taskName){
+        return Install.deleteContents(new File(this.taskTempDir(taskName)));
     }
 
     /**

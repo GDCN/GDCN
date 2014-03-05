@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by HalfLeif on 2014-02-19.
+ * Created by HalfLeif on 2014-02-19
  */
 public class Console implements PropertyChangeListener{
 
