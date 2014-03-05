@@ -6,6 +6,7 @@ import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
+import java.io.FileNotFoundException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -75,14 +76,21 @@ public class TaskManager{
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
-                FileMaster fileMaster = new FileMaster(projectName, taskName, networker, client);
-                fileMaster.runAndAwait();
+                FileMaster fileMaster = null;
+                try {
+                    fileMaster = new FileMaster(projectName, taskName, networker, client);
+                    fileMaster.runAndAwait();
 
-                Thread thread = new Thread(fileMaster.buildTask(listener));
-                thread.setDaemon(true);
+                    Thread thread = new Thread(fileMaster.buildTask(listener));
+                    thread.setDaemon(true);
 
-                runningTasks.put(taskName, thread);
-                thread.start();
+                    runningTasks.put(taskName, thread);
+                    thread.start();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                    //TODO handle file not found
+                }
+
             }
         };
     }
