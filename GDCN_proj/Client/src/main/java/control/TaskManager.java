@@ -65,21 +65,20 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
-    public void startTask(String projectName, String taskName, ClientInterface networker){
-        Thread thread = new Thread(createTask(projectName, taskName, networker));
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    private Runnable createTask(final String projectName, final String taskName, final ClientInterface networker){
-        return new Runnable() {
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
                 FileMaster fileMaster = null;
                 try {
                     fileMaster = new FileMaster(projectName, taskName, networker, client);
-                    fileMaster.runAndAwait();
+                    boolean success = fileMaster.runAndAwait();
+
+                    if(!success){
+                        client.taskFailed(taskName, "Unresolved dependencies");
+                        return;
+                    }
 
                     Thread thread = new Thread(fileMaster.buildTask(listener));
                     thread.setDaemon(true);
@@ -92,7 +91,9 @@ public class TaskManager{
                 }
 
             }
-        };
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public static void main(String[] args){
@@ -125,7 +126,7 @@ public class TaskManager{
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01_TEST", client);
+            manager.startTask("Primes", "PrimeTask_01", client);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();

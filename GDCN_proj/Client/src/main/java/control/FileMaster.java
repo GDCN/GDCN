@@ -26,12 +26,10 @@ import java.util.concurrent.locks.ReentrantLock;
  * Class for resolving task file dependencies.
  * Checks if necessary files exist in file system, otherwise attempts to download them from DHT.
  *
- * Can be run either asynchronously or synchronously.
- *
  * Uses TaskListener to report error information.
  * Use {@link FileMaster#await()} to see when finished.
  */
-public class FileMaster implements Runnable{
+public class FileMaster{
 
     private final TaskMeta taskMeta;
     private final PathManager pathManager;
@@ -81,10 +79,11 @@ public class FileMaster implements Runnable{
     /**
      * Attempts to resolve the dependencies found in meta-file.
      */
-    @Override
-    public void run(){
+    public void run() throws FileNotFoundException {
         if(taskMeta != null){
             resolveDependencies();
+        } else {
+            throw new FileNotFoundException("Meta data file wasn't found (or parsed correctly)!");
         }
     }
 
@@ -92,7 +91,7 @@ public class FileMaster implements Runnable{
      * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
      * @return result of {@link control.FileMaster#await()}
      */
-    public boolean runAndAwait(){
+    public boolean runAndAwait() throws FileNotFoundException {
         run();
         return await();
     }
@@ -317,6 +316,10 @@ public class FileMaster implements Runnable{
         }
     }
 
+    /**
+     * Generates a suitable json-String to put in a file, used for debugging
+     * @param args
+     */
     public static void main(String[] args){
         FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
         List<FileDep> deps = new ArrayList<FileDep>();

@@ -26,7 +26,7 @@ public interface ClientInterface {
 
     void get(String name);
 
-    void work(String projectName, String taskName, String initFile);
+    void work(String projectName, String taskName);
 
     List<PeerAddress> getNeighbours();
 

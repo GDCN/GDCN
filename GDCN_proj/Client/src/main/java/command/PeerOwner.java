@@ -208,9 +208,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public void work(String projectName, String taskName, String initFile) {
-        taskManager.startTask(projectName, taskName, initFile);
-        //TODO use FileMaster in process somehow
+    public void work(String projectName, String taskName) {
+        taskManager.startTask(projectName, taskName, this);
     }
 
     @Override
