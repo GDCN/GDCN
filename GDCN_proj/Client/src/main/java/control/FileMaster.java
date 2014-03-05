@@ -56,7 +56,17 @@ public class FileMaster implements Runnable{
         }
     };
 
-    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) {
+    /**
+     * Creates FileMaster object that reads meta-file for a task. Run {@link control.FileMaster#runAndAwait()} for
+     * solving the dependencies.
+     *
+     * @param projectName Name of project
+     * @param taskName Name of task
+     * @param client Client for downloading files from network (DHT)
+     * @param taskListener Listener to learn about failures such as unresolved dependencies.
+     * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
+     */
+    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException {
         this.client = client;
         this.taskListener = taskListener;
         client.addListener(propertyListener);
@@ -68,6 +78,9 @@ public class FileMaster implements Runnable{
         taskMeta = readMetaFile(metaTaskFile);
     }
 
+    /**
+     * Attempts to resolve the dependencies found in meta-file.
+     */
     @Override
     public void run(){
         if(taskMeta != null){
@@ -75,6 +88,10 @@ public class FileMaster implements Runnable{
         }
     }
 
+    /**
+     * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
+     * @return result of {@link control.FileMaster#await()}
+     */
     public boolean runAndAwait(){
         run();
         return await();
@@ -106,6 +123,11 @@ public class FileMaster implements Runnable{
         return true;
     }
 
+    /**
+     * Build new Task specified by the meta-file that was parsed earlier.
+     * @param listener Listener for success on task
+     * @return
+     */
     public Task buildTask(TaskListener listener){
         return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
     }
@@ -126,7 +148,7 @@ public class FileMaster implements Runnable{
     }
 
     /**
-     * Outputs data to file
+     * Outputs some arbitrary data to file
      * @param file
      * @param data
      */
@@ -151,7 +173,14 @@ public class FileMaster implements Runnable{
     }
 
 
-    private TaskMeta readMetaFile(File file) {
+    /**
+     * Parses file for MetaData of Task
+     *
+     * @param file Path to meta data file
+     * @return Representation of meta data content
+     * @throws FileNotFoundException if file isn't found
+     */
+    private TaskMeta readMetaFile(File file) throws FileNotFoundException {
 
         Reader reader = null;
         try {
@@ -160,8 +189,6 @@ public class FileMaster implements Runnable{
             Gson gson = new Gson();
             return gson.fromJson(reader, TaskMeta.class);
 
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } finally {
             if (reader != null) {
                 try {
@@ -171,7 +198,6 @@ public class FileMaster implements Runnable{
                 }
             }
         }
-        return null;
     }
 
     private File pathTo(FileDep fileDep){
@@ -210,6 +236,10 @@ public class FileMaster implements Runnable{
         lock.unlock();
     }
 
+    /**
+     * Handles returns of Get operation requested earlier.
+     * @param event
+     */
     private void operationReturned(OperationFinishedEvent event) {
         if(event.getCommandWord() != CommandWord.GET){
             return;
@@ -221,6 +251,7 @@ public class FileMaster implements Runnable{
             FileDep fileDep = unresolvedFiles.remove(key);
 
             if(fileDep == null) {
+                //TODO this might occur if multiple Tasks are built concurrently, ie receive GET from other request
                 throw new AssertionError("FileDep wasn't found in Map: "+fileDep.fileName);
             }
 
@@ -244,6 +275,11 @@ public class FileMaster implements Runnable{
         return taskName+".json";
     }
 
+    /**
+     * Serialized data-class to Json
+     *
+     * Represents contents in one MetaTask file
+     */
     private static class TaskMeta implements Serializable{
         private String projectName;
         private String taskId;
@@ -259,6 +295,11 @@ public class FileMaster implements Runnable{
         }
     }
 
+    /**
+     * Serialized data-class to Json
+     *
+     * Represent one file that has to be resolved for Task to compile or run
+     */
     private static class FileDep implements Serializable{
         private String fileName;
         private String location;

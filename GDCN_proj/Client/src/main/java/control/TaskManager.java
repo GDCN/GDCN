@@ -24,7 +24,7 @@ public class TaskManager{
         @Override
         public void taskFinished(String taskName) {
             runningTasks.remove(taskName);
-            //TODO delete temps ...
+            //TODO do something other than pass along signal?
 
             client.taskFinished(taskName);
         }
