@@ -64,7 +64,7 @@ public class FileMaster{
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException {
+    public FileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
         this.client = client;
         this.taskListener = taskListener;
         client.addListener(propertyListener);
@@ -74,16 +74,20 @@ public class FileMaster{
         File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
 
         taskMeta = readMetaFile(metaTaskFile);
+
+        if(! taskName.equals(taskMeta.taskName)){
+            throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
+        }
     }
 
     /**
      * Attempts to resolve the dependencies found in meta-file.
      */
-    public void run() throws FileNotFoundException {
+    public void run() throws TaskMetaDataException {
         if(taskMeta != null){
             resolveDependencies();
         } else {
-            throw new FileNotFoundException("Meta data file wasn't found (or parsed correctly)!");
+            throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
         }
     }
 
@@ -91,7 +95,7 @@ public class FileMaster{
      * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
      * @return result of {@link control.FileMaster#await()}
      */
-    public boolean runAndAwait() throws FileNotFoundException {
+    public boolean runAndAwait() throws TaskMetaDataException {
         run();
         return await();
     }
@@ -203,7 +207,7 @@ public class FileMaster{
         return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
     }
 
-    private void resolveDependencies(){
+    private void resolveDependencies() throws TaskMetaDataException {
         unresolvedFiles.clear();
 
         List<FileDep> deps = new ArrayList<FileDep>(taskMeta.dependencies);
@@ -213,7 +217,8 @@ public class FileMaster{
             File file = pathTo(fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
-                    throw new AssertionError("Files in dependencies should not be directories!");
+                    throw new TaskMetaDataException("Files in dependencies should not be directories! File: "
+                            +file+" for task "+taskMeta.taskName);
                 }
                 System.out.println("Found file :D - " + file.toString());
                 //TODO checksum?
@@ -247,12 +252,15 @@ public class FileMaster{
         lock.lock();
         if(event.getOperation().isSuccess()){
             String key = event.getOperation().getKey();
-            FileDep fileDep = unresolvedFiles.remove(key);
 
-            if(fileDep == null) {
-                //TODO this might occur if multiple Tasks are built concurrently, ie receive GET from other request
-                throw new AssertionError("FileDep wasn't found in Map: "+fileDep.fileName);
+            if(!unresolvedFiles.containsKey(key)){
+                //TODO redirect output?
+                System.out.println("FileDep with key ("+key+") wasn't found in Map for task with id "+taskMeta.taskName);
+                //Might be from other request unrelated with this FileMaster
+                return;
             }
+
+            FileDep fileDep = unresolvedFiles.remove(key);
 
             Data result = (Data) event.getOperation().getResult();
             toFile(pathTo(fileDep), result.getData());
@@ -281,14 +289,14 @@ public class FileMaster{
      */
     private static class TaskMeta implements Serializable{
         private String projectName;
-        private String taskId;
+        private String taskName;
 
         private FileDep module;
         private List<FileDep> dependencies;
 
-        private TaskMeta(String projectName, String taskId, FileDep module, List<FileDep> dependencies) {
+        private TaskMeta(String projectName, String taskName, FileDep module, List<FileDep> dependencies) {
             this.projectName = projectName;
-            this.taskId = taskId;
+            this.taskName = taskName;
             this.module = module;
             this.dependencies = dependencies;
         }
