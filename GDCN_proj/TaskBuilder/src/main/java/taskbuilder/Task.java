@@ -67,6 +67,12 @@ public class Task implements Runnable{
                 "-outputdir", pathManager.taskTempDir(),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
+        System.out.println("\nCompile command:");
+        for(String c : command){
+            System.out.print(c + " ");
+        }
+        System.out.println("\n");
+
         Process proc = null;
         try {
             proc = new ProcessBuilder(command).start();

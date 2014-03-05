@@ -4,6 +4,7 @@ import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
+import taskbuilder.fileManagement.PathManager;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -101,13 +102,16 @@ public class TaskManager{
         };
 
         Install.install();
-//        PathManager pathManager = new PathManager("Primes");
+
+        PathManager pathManager = new PathManager("Primes");
+        pathManager.deleteBinaries();
+
         ClientInterface client = new PeerOwner();
         client.start(8056);
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01", client);
+            manager.startTask("Primes", "PrimeTask_01_TEST", client);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
