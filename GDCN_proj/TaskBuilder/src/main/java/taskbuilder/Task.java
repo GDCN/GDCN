@@ -11,26 +11,31 @@ import java.util.List;
 /**
  * Class for tasks, compiling and executing Haskell code
  */
-class Task implements Runnable{
+public class Task implements Runnable{
 
+    private final String projectName;
     private final String taskName;
     private final String moduleName;
-    private final String initData;
-    //TODO add constr parameter
-    private final String projectName = "Primes";
+    private final List<String> initDataPaths;
+
 
     private final PathManager pathManager;
 
 
     private final TaskListener listener;
 
-    public Task(String taskName, String moduleName, String initData, TaskListener listener) {
+    public Task(String projectName, String taskName, String moduleName, List<String> initDataFiles, TaskListener listener) {
+        this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
-        this.initData = initData;
+        this.initDataPaths = new ArrayList<String>(initDataFiles);
         this.listener = listener;
 
-        pathManager = new PathManager(projectName);
+        pathManager = new PathManager(this.projectName);
+    }
+
+    private String compiledModule(){
+        return pathManager.taskBinaryDir() + moduleName;
     }
 
     /**
@@ -48,18 +53,25 @@ class Task implements Runnable{
         }
 
         //TODO Manage trust in a non hardcoded way
-        String[] command = {"ghc", "-o", pathManager.taskBinaryDir() + moduleName,
+        String[] command = {"ghc", "-o", compiledModule(),
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
                 "-outputdir", pathManager.taskTempDir(),
                 "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
 
+        System.out.println("\nCompile command:");
+        for(String c : command){
+            System.out.print(c + " ");
+        }
+        System.out.println("\n");
+
         Process proc = null;
         try {
-            proc = new ProcessBuilder(command).start();
+            proc = new ProcessBuilder(command).inheritIO().start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
+
                 throw new ExitFailureException(writer.toString());
             }
         }
@@ -76,14 +88,23 @@ class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        String[] command = {pathManager.taskBinaryDir() + moduleName,
-                pathManager.taskTempDir() + taskName + ".result",
-                pathManager.taskDataDir() + initData};
+        List<String> command = new ArrayList<String>();
+        command.add(compiledModule());
+        command.add(pathManager.taskResourcesDir() + taskName + ".result");
+        command.addAll(initDataPaths);
+
+        System.out.println("\nRun command:");
+        for(String c : command){
+            System.out.print(c + " ");
+        }
+        System.out.println("\n");
+        //TODO fix bug, says cannot open binary file that actually exists...
+        //If run these commands in bash, they work... :P
 
         Process proc = null;
 
         try {
-            proc = new ProcessBuilder(command).start();
+            proc = new ProcessBuilder(command).inheritIO().start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
@@ -119,7 +140,7 @@ class Task implements Runnable{
      */
     @Override
     public void run(){
-        String execFilePath = pathManager.taskBinaryDir() + moduleName;
+        String execFilePath = compiledModule();
         File executable = new File(execFilePath);
         try {
             if (executable.isDirectory()) {

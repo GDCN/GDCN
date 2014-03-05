@@ -14,7 +14,7 @@ import qualified Data.ByteString.Lazy as BS
 -- Imports the module X when compiling with "-DMODULE=X" flag
 import safe MODULE (run)
 
--- Force proper typecheck the module's run function
+-- Force proper typecheck the module:s run function
 typedRun :: [BS.ByteString] -> (BS.ByteString, String)
 typedRun = run
 

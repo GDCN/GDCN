@@ -1,0 +1,9 @@
+{
+    "projectName":"Primes",
+    "taskId":"PrimeTask_01_TEST",
+    "module":{"fileName":"Prime.hs","location":"code","key":"Primes_algorithms","sticky":true,"checkSum":500},
+    "dependencies":
+    [
+        {"fileName":"in_2_2000.dat","location":"resources","key":"Primes_2_2000","sticky":false,"checkSum":25}
+    ]
+}
