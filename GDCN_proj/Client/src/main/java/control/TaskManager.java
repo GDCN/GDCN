@@ -47,23 +47,6 @@ public class TaskManager{
         return runningTasks.size();
     }
 
-    /**
-     * Deleted function...
-     * @param projectName
-     * @param taskName
-     * @param initData
-     */
-    @Deprecated
-    public void startTask(String projectName, String taskName, String initData){
-        //TODO remove this method and replace uses
-        throw new UnsupportedOperationException("This method is deprecated!");
-//        Thread thread = new Thread(new Task(projectName, taskName, initData, projectName, listener));
-//        thread.setDaemon(true);
-//
-//        runningTasks.put(taskName, thread);
-//        thread.start();
-    }
-
     //TODO use worker pool instead of new Threads
     public void startTask(final String projectName, final String taskName, final ClientInterface networker){
         Thread thread = new Thread(new Runnable() {
@@ -88,6 +71,9 @@ public class TaskManager{
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     //TODO handle file not found
+                } catch (TaskMetaDataException e) {
+                    e.printStackTrace();
+                    //TODO handle job owner error
                 }
 
             }
