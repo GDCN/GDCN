@@ -16,7 +16,7 @@ public class Task implements Runnable{
     private final String projectName;
     private final String taskName;
     private final String moduleName;
-    private final String initDataPaths;
+    private final List<String> initDataPaths;
 
 
     private final PathManager pathManager;
@@ -28,20 +28,11 @@ public class Task implements Runnable{
         this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
-        this.initDataPaths = buildInitData(initDataFiles);
+        this.initDataPaths = new ArrayList<String>(initDataFiles);
         this.listener = listener;
 
         pathManager = new PathManager(this.projectName);
     }
-
-    private String buildInitData(List<String> initDataFiles){
-        String result = "";
-        for(String path : initDataFiles){
-            result += path + " ";
-        }
-        return result;
-    }
-
 
     private String compiledModule(){
         return pathManager.taskBinaryDir() + moduleName;
@@ -75,7 +66,7 @@ public class Task implements Runnable{
 
         Process proc = null;
         try {
-            proc = new ProcessBuilder(command).start();
+            proc = new ProcessBuilder(command).inheritIO().start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
@@ -97,9 +88,10 @@ public class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        String[] command = {compiledModule(),
-                pathManager.taskResourcesDir() + taskName + ".result",
-                initDataPaths};
+        List<String> command = new ArrayList<String>();
+        command.add(compiledModule());
+        command.add(pathManager.taskResourcesDir() + taskName + ".result");
+        command.addAll(initDataPaths);
 
         System.out.println("\nRun command:");
         for(String c : command){
@@ -112,7 +104,7 @@ public class Task implements Runnable{
         Process proc = null;
 
         try {
-            proc = new ProcessBuilder(command).start();
+            proc = new ProcessBuilder(command).inheritIO().start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
