@@ -21,30 +21,53 @@ import java.util.concurrent.Semaphore;
 
 public class ClientTest {
 
-    //Variables used by most tests
+    /**
+     * Variables used by the tests
+     */
+
+    //Semaphoore used to make sure that everything is finished when doing things over
+    //the netwok before proceeding.
     Semaphore sem;
 
-    String putKey = "Key";
+    //Key used when getting and putting to the DHT
+    String dhtKey = "Key";
 
+    //The standard value used when putting to the DHT
     Data putValue;
 
+    //The standard value which is saved to in getResultListener
+    Data getValue;
+
+    //The standard node used to rendevouz to.
     PeerOwner bootstrapNode;
 
+    //The standard peer used by the tests
     PeerOwner peer;
 
-    Boolean success = true;
+    //The boolean used to see if the tests are successful.
+    Boolean success;
 
+    //Information about the bootstraping node to make it easier to bootstrap
     String bootstrapAdress = "localhost";
     int bootstrapPort = 4002;
 
 
-    //Listeners used by the tests
+    /**
+     * Listeners used by the tests so that new ones do not have to be made for each test.
+     * Each comand got its own listener. So if a test is doing multiple commands, multiple listeners is needed.
+     */
+
+    //only listens to the bootstrap command. releases the semaphore and sets success to true. Vital that
+    //the semaphore is acquired after this and if the test is not about bootstraping that the
+    //success of the test if checked some other way
     PropertyChangeListener bootstrapListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
             OperationFinishedEvent event = (OperationFinishedEvent) evt;
+
             if(event.getCommandWord() == CommandWord.BOOTSTRAP) {
+
                 success = event.getOperation().isSuccess();
                 sem.release();
             }
@@ -52,25 +75,31 @@ public class ClientTest {
         }
     };
 
+    //See bootstraplistener
     PropertyChangeListener startListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
             OperationFinishedEvent event = (OperationFinishedEvent) evt;
+
             if(event.getCommandWord() == CommandWord.START) {
-                success = success && event.getOperation().isSuccess();
+
+                success = event.getOperation().isSuccess();
                 sem.release();
 
             }
         }
     };
 
+    //See bootstrapListener
     PropertyChangeListener putListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
             OperationFinishedEvent event = (OperationFinishedEvent) evt;
+
             if(event.getCommandWord() == CommandWord.PUT) {
+
                 success = event.getOperation().isSuccess();
                 sem.release();
             }
@@ -78,34 +107,33 @@ public class ClientTest {
         }
     };
 
-    PropertyChangeListener getResultListener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-
-            OperationFinishedEvent event = (OperationFinishedEvent) evt;
-
-            if(event.getCommandWord() == CommandWord.GET) {
-                System.out.println(event.getOperation().isSuccess());
-                Data result = (Data) event.getOperation().getResult();
-
-                try {
-                    success = success && event.getOperation().isSuccess()
-                            && putValue.getObject().equals(result.getObject());
-                } catch (ClassNotFoundException | IOException e) {
-                    e.printStackTrace();
-                }
-                sem.release();
-            }
-
-        }
-    };
-
+    //Sets the success and the getValue so it can be confirmed in the test.
+    //It also releases the semaphore
     PropertyChangeListener getListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
             OperationFinishedEvent event = (OperationFinishedEvent) evt;
+
             if(event.getCommandWord() == CommandWord.GET) {
+
+                success =  event.getOperation().isSuccess();
+                getValue = (Data) event.getOperation().getResult();
+                sem.release();
+            }
+
+        }
+    };
+
+    //See bootstrapListener
+    PropertyChangeListener stopListener = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+
+            OperationFinishedEvent event = (OperationFinishedEvent) evt;
+
+            if(event.getCommandWord() == CommandWord.STOP) {
+
                 success = event.getOperation().isSuccess();
                 sem.release();
 
@@ -113,20 +141,12 @@ public class ClientTest {
         }
     };
 
-    PropertyChangeListener stopListener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-
-            OperationFinishedEvent event = (OperationFinishedEvent) evt;
-            if(event.getCommandWord() == CommandWord.STOP) {
-                success = success && event.getOperation().isSuccess();
-                sem.release();
-
-            }
-        }
-    };
-
-
+    /**
+     * Is run before each test.
+     * resets the semaphore variable, the success variable and the standard nodes.
+     * also sets the getValue to null and the putValue to the correct value.
+     * @throws IOException
+     */
     @BeforeMethod
     public void setUp() throws IOException {
 
@@ -141,10 +161,11 @@ public class ClientTest {
         bootstrapNode.start(bootstrapPort);
 
         putValue = new Data("value");
-
     }
 
-
+    /**
+     * Is run after each test and makes sure that the standard nodes is stopped.
+     */
     @AfterMethod
     public void tearDown() {
 
@@ -155,7 +176,7 @@ public class ClientTest {
 
 
     /**
-     * Tests if the bootstrap commands works by checking that the number of neighbours is greater than one
+     * Tests if the bootstrap commands works by checking that the number of neighbours is equal to 1
      * and that the operation is a success.
      *
      */
@@ -167,14 +188,14 @@ public class ClientTest {
         peer.bootstrap(bootstrapAdress, bootstrapPort);
         sem.acquire();
 
-        Assert.assertTrue (success && peer.getNeighbours().size() == 1);
+        Assert.assertEquals(peer.getNeighbours().size(), 1);
+        Assert.assertTrue(success);
 
     }
 
     /**
      * Tests to make sure that the bootstrap command is not a success when the bootstrapNode is offline
      * and that the number of neighbours is zero.
-     *
      */
     @Test
     public void bootStrapTest2() throws InterruptedException {
@@ -191,6 +212,8 @@ public class ClientTest {
 
     }
 
+    //Makes sure that a peer can bootstrap to a node twice without crashing
+    //also makes sure that the number of neighbours is one.
     @Test
     public void bootStrapTest3() throws InterruptedException {
 
@@ -198,6 +221,8 @@ public class ClientTest {
 
         peer.bootstrap(bootstrapAdress, bootstrapPort);
         sem.acquire();
+
+        Assert.assertTrue(success);
 
         peer.bootstrap(bootstrapAdress, bootstrapPort);
         sem.acquire();
@@ -207,8 +232,9 @@ public class ClientTest {
 
     }
 
+    //Makes sure that the number of neighbours is in the getNeighbours method.
     @Test
-    public void getNeighbourTest() throws InterruptedException {
+    public void getNeighbourTest1() throws InterruptedException {
 
         int numberOfPeers = 5;
 
@@ -223,14 +249,20 @@ public class ClientTest {
         for (int i = 0; i < numberOfPeers; i++) {
             peers[i].bootstrap(bootstrapAdress, bootstrapPort);
             sem.acquire();
+
             success = success && bootstrapNode.getNeighbours().size() == i+1;
+            Assert.assertTrue(success);
         }
+
+        List<PeerAddress> peerAddresses = bootstrapNode.getNeighbours();
 
         for(int i = 0; i < numberOfPeers; i++) {
             peers[i].stop();
         }
 
         Assert.assertTrue(success);
+        Assert.assertEquals(numberOfPeers, peerAddresses.size());
+
     }
 
 
@@ -245,7 +277,7 @@ public class ClientTest {
 
         putValue = new Data("Value");
 
-        peer.put(putKey, putValue);
+        peer.put(dhtKey, putValue);
         sem.acquire();
 
         Assert.assertTrue(success);
@@ -257,32 +289,37 @@ public class ClientTest {
      *
      */
     @Test
-    public void putTest2() throws IOException, InterruptedException {
+    public void putTest2() throws IOException, InterruptedException, ClassNotFoundException {
 
         final Data putValue2 = new Data("secondValue");
 
-        peer.addListener(getResultListener);
+        peer.addListener(getListener);
         peer.addListener(putListener);
 
-        peer.put(putKey, putValue2);
+        peer.put(dhtKey, putValue2);
         sem.acquire();
 
-        peer.put(putKey, putValue);
+        Assert.assertTrue(success);
+
+        peer.put(dhtKey, putValue);
         sem.acquire();
 
-        peer.get(putKey);
+        Assert.assertTrue(success);
+
+        peer.get(dhtKey);
         sem.acquire();
 
+        Assert.assertEquals(getValue.getObject(), putValue.getObject());
         Assert.assertTrue(success);
     }
 
 
     /**
      * Tests get by bootstraping to peers to a bootstrap node, then one peer puts a value and the other one gets it
-     *
+     * Is succesfull if the correct vailue is found.
      */
     @Test
-    public void getTest1() throws IOException, InterruptedException {
+    public void getTest1() throws IOException, InterruptedException, ClassNotFoundException {
 
         ClientInterface peer2 = new PeerOwner();
         putValue = new Data("Value");
@@ -295,41 +332,44 @@ public class ClientTest {
         peer2.bootstrap(bootstrapAdress, bootstrapPort);
         peer.bootstrap(bootstrapAdress, bootstrapPort);
 
-        peer2.put(putKey, putValue);
+        peer2.put(dhtKey, putValue);
         sem.acquire();
 
-        peer.get(putKey);
+        Assert.assertTrue(success);
+
+        peer.get(dhtKey);
         sem.acquire();
 
         peer2.stop();
 
+        Assert.assertEquals(getValue.getObject(), putValue.getObject());
         Assert.assertTrue(success);
 
     }
 
 
-    /**
-     * Tests the get method by getting a value which not exists
-     *
-     */
+    //Makes sure that the getValue is null when trying to get a nonexisting value.
+    //Also makes sure that the success from the get method is false.
     @Test
     public void getTest2() throws InterruptedException {
 
         peer.addListener(getListener);
+        peer.addListener(bootstrapListener);
 
         peer.bootstrap(bootstrapAdress, bootstrapPort);
+        sem.acquire();
+
+        Assert.assertTrue(success);
 
         peer.get("none-existing");
         sem.acquire();
 
+        Assert.assertTrue(getValue == null);
         Assert.assertFalse(success);
 
     }
 
-    /**
-     * Tests start by starting the
-     *
-     */
+    //Makes sure that the start method works.
     @Test
     public void startTest1() throws InterruptedException {
 
@@ -346,6 +386,7 @@ public class ClientTest {
 
     }
 
+    //Makes sure that the start method can be called when already running.
     @Test
     public void startTest2() throws InterruptedException {
 
@@ -353,6 +394,7 @@ public class ClientTest {
 
         peer.start(4003);
         sem.acquire();
+        Assert.assertTrue(success);
 
         peer.start(4001);
         sem.acquire();
@@ -361,6 +403,7 @@ public class ClientTest {
 
     }
 
+    //Makes sure that the stop method works.
     @Test
     public void stopTest1 () throws InterruptedException {
 
@@ -373,6 +416,7 @@ public class ClientTest {
 
     }
 
+    //Makes sure that the stop method doesn't crash when called twice.
     @Test
     public void stopTest2 () throws InterruptedException {
 
@@ -381,9 +425,7 @@ public class ClientTest {
         peer.stop();
         sem.acquire();
 
-        if(!success) {
-            Assert.fail("first stop failed");
-        }
+        Assert.assertTrue(success);
 
         peer.stop();
         sem.acquire();
@@ -392,6 +434,7 @@ public class ClientTest {
 
     }
 
+    //Makes sure that a nonrunning node can be stopped without crashing and that the success returned is false.
     @Test
     public void stopTest3 () throws InterruptedException {
 
@@ -406,6 +449,8 @@ public class ClientTest {
 
     }
 
+    //Checks the rebootstrap method so that the number of reconnected nodes is correct and that
+    //it is the same nodes.
     @Test
     public void rebootstrapTest1() throws InterruptedException {
 
@@ -448,12 +493,15 @@ public class ClientTest {
 
         Assert.assertEquals(peerAddressesAfter.size(), numberOfPeers);
         Assert.assertEquals(peerAddressesAfter.size(), peerAddressesBefore.size());
+
         for(PeerAddress p : peerAddressesBefore) {
             Assert.assertTrue(peerAddressesAfter.contains(p));
         }
 
     }
 
+    //Checks the rebootstrap method so that a node can reconect to nodes even
+    //if not everyone is online.
     @Test
     public void rebootstrapTest2() throws InterruptedException {
 
@@ -507,7 +555,7 @@ public class ClientTest {
 
     }
 
-
+    //Makes sure that the oldNeighbour list is updated
     @Test
     public void getOldNeighboursTest() throws InterruptedException {
         int numberOfPeers = 5;
