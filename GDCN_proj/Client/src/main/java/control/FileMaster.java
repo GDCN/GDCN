@@ -106,6 +106,12 @@ public class FileMaster{
      * @return true if file has been properly downloaded, false if one of the dependencies couldn't be resolved.
      */
     public boolean await(){
+        if(operationFailed){
+            // This code is necessary to avoid deadlock if await() is called after a GET operation has failed
+            // since there is no guarantee for another signal (it might have been the last file to be resolved)
+            return false;
+        }
+
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
