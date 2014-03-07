@@ -2,7 +2,7 @@ package control;
 
 import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
-import files.FileMaster;
+import files.Downloader;
 import files.TaskMetaDataException;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
@@ -55,9 +55,9 @@ public class TaskManager{
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
-                FileMaster fileMaster = null;
+                Downloader fileMaster = null;
                 try {
-                    fileMaster = new FileMaster(projectName, taskName, networker, client);
+                    fileMaster = new Downloader(projectName, taskName, networker, client);
                     boolean success = fileMaster.runAndAwait();
 
                     if(!success){
