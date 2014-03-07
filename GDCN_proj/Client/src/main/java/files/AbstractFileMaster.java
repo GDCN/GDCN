@@ -76,6 +76,10 @@ abstract class AbstractFileMaster{
         if(! taskName.equals(taskMeta.taskName)){
             throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
         }
+
+        for(FileDep fileDep : taskMeta.dependencies){
+            unresolvedFiles.put(fileDep.key, fileDep);
+        }
     }
 
 
@@ -195,22 +199,6 @@ abstract class AbstractFileMaster{
     protected abstract void ifFileDoNotExist(FileDep fileDep);
 
     /**
-     * Put file in waiting for dependency to be solved
-     * @param fileDep
-     */
-    protected final void putDependentFile(FileDep fileDep){
-        lock.lock();
-        unresolvedFiles.put(fileDep.key, fileDep);
-        lock.unlock();
-    }
-
-    protected final void removeDependentFile(FileDep fileDep){
-        lock.lock();
-        //TODO
-        //when is this used?
-    }
-
-    /**
      * Attempt to solve dependecies that was found
      * @throws TaskMetaDataException if dependent File exist locally but is a directory
      */
@@ -239,12 +227,18 @@ abstract class AbstractFileMaster{
         lock.unlock();
     }
 
+    protected final void fileDependencyResolved(FileDep fileDep){
+        lock.lock();
+        unresolvedFiles.remove(fileDep.key);
+        lock.unlock();
+    }
+
     /**
      * Operation successful with respect to this file
      * @param fileDep
      * @param result
      */
-    protected abstract void operationForDependentFileCompleted(FileDep fileDep, Object result);
+    protected abstract void operationForDependentFileSuccess(FileDep fileDep, Object result);
 
     /**
      * Handles returns of Get operation requested earlier.
@@ -271,7 +265,7 @@ abstract class AbstractFileMaster{
 
 //            Data result = (Data) event.getOperation().getResult();
 //            toFile(pathTo(fileDep), result.getData());
-            operationForDependentFileCompleted(fileDep, event.getOperation().getResult());
+            operationForDependentFileSuccess(fileDep, event.getOperation().getResult());
 
         } else {
             operationFailed = true;

@@ -2,6 +2,7 @@ package files;
 
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import net.tomp2p.storage.Data;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 
@@ -28,16 +29,21 @@ public class Downloader extends AbstractFileMaster {
     @Override
     protected void ifFileExist(FileDep fileDep) {
         System.out.println("Found file :D - " + pathTo(fileDep));
+        super.fileDependencyResolved(fileDep);
     }
 
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
-
+        System.out.println("Didn't find file " + pathTo(fileDep));
+        client.get(fileDep.getKey());
     }
 
     @Override
-    protected void operationForDependentFileCompleted(FileDep fileDep, Object result) {
-
+    protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
+        //TODO do checksum?
+        File file = pathTo(fileDep);
+        Data data = (Data) result;
+        toFile(file, ((Data) result).getData());
     }
 
     /**
@@ -63,7 +69,7 @@ public class Downloader extends AbstractFileMaster {
      * @param file
      * @param data
      */
-    public static void toFile(File file, byte[] data){
+    private static void toFile(File file, byte[] data){
         BufferedOutputStream outputStream = null;
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(file));
