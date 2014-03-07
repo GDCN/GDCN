@@ -254,17 +254,19 @@ public abstract class AbstractFileMaster{
         }
 
         lock.lock();
+
+        String key = event.getOperation().getKey();
+
+        if(!unresolvedFiles.containsKey(key)){
+            //TODO redirect output?
+            System.out.println("FileDep with key ("+key+") wasn't found in Map for task with id "+taskMeta.taskName);
+            //Might be from other request unrelated with this FileMaster
+            return;
+        }
+
+        FileDep fileDep = unresolvedFiles.remove(key);
+
         if(event.getOperation().isSuccess()){
-            String key = event.getOperation().getKey();
-
-            if(!unresolvedFiles.containsKey(key)){
-                //TODO redirect output?
-                System.out.println("FileDep with key ("+key+") wasn't found in Map for task with id "+taskMeta.taskName);
-                //Might be from other request unrelated with this FileMaster
-                return;
-            }
-
-            FileDep fileDep = unresolvedFiles.remove(key);
 
             Data result = (Data) event.getOperation().getResult();
 //            toFile(pathTo(fileDep), result.getData());
@@ -272,7 +274,7 @@ public abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            taskListener.taskFailed(taskName, "Failed to resolve file stored under key "+event.getOperation().getKey());
+            taskListener.taskFailed(taskName, "Failed to resolve file with name " +  fileDep.fileName);
             allDependenciesComplete.signalAll();
         }
 
