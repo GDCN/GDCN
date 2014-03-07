@@ -1,4 +1,4 @@
-package control;
+package files;
 
 import command.communicationToUI.ClientInterface;
 import taskbuilder.communicationToClient.TaskListener;
@@ -10,7 +10,7 @@ import java.io.FileNotFoundException;
  */
 public class Uploader extends FileMaster{
     /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link control.FileMaster#runAndAwait()} for
+     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
      * @param projectName  Name of project

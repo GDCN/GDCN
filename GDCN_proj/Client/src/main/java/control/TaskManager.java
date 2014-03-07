@@ -2,6 +2,8 @@ package control;
 
 import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
+import files.FileMaster;
+import files.TaskMetaDataException;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;

@@ -1,11 +1,10 @@
-package control;
+package files;
 
 import com.google.gson.Gson;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.storage.Data;
-import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
@@ -29,11 +28,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public abstract class AbstractFileMaster{
 
     private final TaskMeta taskMeta;
-    private final PathManager pathManager;
+    protected final PathManager pathManager;
     private final ClientInterface client;
     private final TaskListener taskListener;
 
-    private final String taskName;
+    protected final String taskName;
 
     private final Lock lock = new ReentrantLock();
     private final Condition allDependenciesComplete = lock.newCondition();
@@ -52,7 +51,7 @@ public abstract class AbstractFileMaster{
     };
 
     /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link control.FileMaster#runAndAwait()} for
+     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
      * @param projectName Name of project
@@ -89,8 +88,8 @@ public abstract class AbstractFileMaster{
     }
 
     /**
-     * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
-     * @return result of {@link control.FileMaster#await()}
+     * Just runs {@link FileMaster#run()} and {@link FileMaster#await()}
+     * @return result of {@link FileMaster#await()}
      */
     public boolean runAndAwait() throws TaskMetaDataException {
         run();
@@ -129,16 +128,8 @@ public abstract class AbstractFileMaster{
         return true;
     }
 
-    /**
-     * Build new Task specified by the meta-file that was parsed earlier.
-     * @param listener Listener for success on task
-     * @return
-     */
-    public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
-    }
 
-    private List<String> getResourceFiles() {
+    protected List<String> getResourceFiles() {
         List<String> resources = new ArrayList<String>();
 
         for(FileDep fileDep : taskMeta.dependencies){
@@ -149,7 +140,7 @@ public abstract class AbstractFileMaster{
     }
 
     //TODO make this more safe/general
-    private String getModuleName(){
+    protected String getModuleName(){
         return taskMeta.module.fileName.replace(".hs","");
     }
 
@@ -301,7 +292,7 @@ public abstract class AbstractFileMaster{
      *
      * Represents contents in one MetaTask file
      */
-    private static class TaskMeta implements Serializable{
+    protected static class TaskMeta implements Serializable{
         private String projectName;
         private String taskName;
 
@@ -321,7 +312,7 @@ public abstract class AbstractFileMaster{
      *
      * Represent one file that has to be resolved for Task to compile or run
      */
-    private static class FileDep implements Serializable{
+    protected static class FileDep implements Serializable{
         private String fileName;
         private String location;
         private String key;

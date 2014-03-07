@@ -1,4 +1,4 @@
-package control;
+package files;
 
 import com.google.gson.Gson;
 import command.communicationToUI.ClientInterface;
@@ -55,7 +55,7 @@ public class FileMaster{
     };
 
     /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link control.FileMaster#runAndAwait()} for
+     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
      * @param projectName Name of project
@@ -92,8 +92,8 @@ public class FileMaster{
     }
 
     /**
-     * Just runs {@link control.FileMaster#run()} and {@link control.FileMaster#await()}
-     * @return result of {@link control.FileMaster#await()}
+     * Just runs {@link FileMaster#run()} and {@link FileMaster#await()}
+     * @return result of {@link FileMaster#await()}
      */
     public boolean runAndAwait() throws TaskMetaDataException {
         run();
