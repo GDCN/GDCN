@@ -1,11 +1,11 @@
 package files;
 
 import command.communicationToUI.ClientInterface;
-import net.tomp2p.storage.Data;
+import command.communicationToUI.CommandWord;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 
-import java.io.FileNotFoundException;
+import java.io.*;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -22,24 +22,31 @@ public class Downloader extends AbstractFileMaster {
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
     public Downloader(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskName, client, taskListener);
+        super(projectName, taskName, client, taskListener, CommandWord.GET);
     }
 
     @Override
-    protected void ifFileExist(AbstractFileMaster.FileDep fileDep) {
+    protected void ifFileExist(FileDep fileDep) {
+        System.out.println("Found file :D - " + pathTo(fileDep));
+    }
+
+    @Override
+    protected void ifFileDoNotExist(FileDep fileDep) {
 
     }
 
     @Override
-    protected void ifFileDoNotExist(AbstractFileMaster.FileDep fileDep) {
+    protected void operationForDependentFileCompleted(FileDep fileDep, Object result) {
 
     }
 
-    @Override
-    protected void operationForDependentFileCompleted(AbstractFileMaster.FileDep fileDep, Data result) {
-
+    /**
+     *
+     * @return Name of haskell module this taskmeta uses
+     */
+    private String getModuleName(){
+        return taskMeta.getModule().getFileName().replace(".hs", "");
     }
-
 
     /**
      * Build new Task specified by the meta-file that was parsed earlier.
@@ -48,5 +55,31 @@ public class Downloader extends AbstractFileMaster {
      */
     public Task buildTask(TaskListener listener){
         return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
+    }
+
+
+    /**
+     * Outputs some arbitrary data to file
+     * @param file
+     * @param data
+     */
+    public static void toFile(File file, byte[] data){
+        BufferedOutputStream outputStream = null;
+        try {
+            outputStream = new BufferedOutputStream(new FileOutputStream(file));
+            outputStream.write(data);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (outputStream != null) {
+                try {
+                    outputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 }

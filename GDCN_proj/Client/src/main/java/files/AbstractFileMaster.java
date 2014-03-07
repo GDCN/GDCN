@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;
-import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
@@ -19,18 +18,18 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * Created by HalfLeif on 2014-03-04.
  *
- * Class for resolving task file dependencies.
- * Checks if necessary files exist in file system, otherwise attempts to download them from DHT.
+ * Abstract class for resolving task file dependencies.
  *
  * Uses TaskListener to report error information.
- * Use {@link FileMaster#await()} to see when finished.
  */
-public abstract class AbstractFileMaster{
+abstract class AbstractFileMaster{
 
-    private final TaskMeta taskMeta;
+    protected final TaskMeta taskMeta;
     protected final PathManager pathManager;
-    private final ClientInterface client;
+    protected final ClientInterface client;
+
     private final TaskListener taskListener;
+    private final CommandWord expectedOperation;
 
     protected final String taskName;
 
@@ -54,15 +53,18 @@ public abstract class AbstractFileMaster{
      * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
+     *
      * @param projectName Name of project
      * @param taskName Name of task
      * @param client Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
+     * @param expectedOperation
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    public AbstractFileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation) throws FileNotFoundException, TaskMetaDataException {
         this.client = client;
         this.taskListener = taskListener;
+        this.expectedOperation = expectedOperation;
         client.addListener(propertyListener);
 
         this.taskName = taskName;
@@ -76,16 +78,6 @@ public abstract class AbstractFileMaster{
         }
     }
 
-    /**
-     * Attempts to resolve the dependencies found in meta-file.
-     */
-    public void run() throws TaskMetaDataException {
-        if(taskMeta != null){
-            resolveDependencies();
-        } else {
-            throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
-        }
-    }
 
     /**
      * Just runs {@link FileMaster#run()} and {@link FileMaster#await()}
@@ -97,11 +89,22 @@ public abstract class AbstractFileMaster{
     }
 
     /**
+     * Attempts to resolve the dependencies found in meta-file.
+     */
+    private void run() throws TaskMetaDataException {
+        if(taskMeta != null){
+            resolveDependencies();
+        } else {
+            throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
+        }
+    }
+
+    /**
      * Blocks current thread until all dependencies for the specified task are resolved.
      *
      * @return true if file has been properly downloaded, false if one of the dependencies couldn't be resolved.
      */
-    public boolean await(){
+    private boolean await(){
         if(operationFailed){
             // This code is necessary to avoid deadlock if await() is called after a GET operation has failed
             // since there is no guarantee for another signal (it might have been the last file to be resolved)
@@ -128,7 +131,10 @@ public abstract class AbstractFileMaster{
         return true;
     }
 
-
+    /**
+     *
+     * @return List of paths to all resource files mentioned in taskmetas
+     */
     protected List<String> getResourceFiles() {
         List<String> resources = new ArrayList<String>();
 
@@ -138,37 +144,6 @@ public abstract class AbstractFileMaster{
 
         return resources;
     }
-
-    //TODO make this more safe/general
-    protected String getModuleName(){
-        return taskMeta.module.fileName.replace(".hs","");
-    }
-
-    /**
-     * Outputs some arbitrary data to file
-     * @param file
-     * @param data
-     */
-    public static void toFile(File file, byte[] data){
-        BufferedOutputStream outputStream = null;
-        try {
-            outputStream = new BufferedOutputStream(new FileOutputStream(file));
-            outputStream.write(data);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (outputStream != null) {
-                try {
-                    outputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
 
     /**
      * Parses file for MetaData of Task
@@ -197,14 +172,32 @@ public abstract class AbstractFileMaster{
         }
     }
 
-    private File pathTo(FileDep fileDep){
+    protected File pathTo(FileDep fileDep){
         return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
     }
 
+    /**
+     * This file dependency was found locally. What to do?
+     *
+     * Called in resolve dependencies
+     *
+     * @param fileDep
+     */
     protected abstract void ifFileExist(FileDep fileDep);
 
+    /**
+     * This file dependency wasn't found locally. What to do?
+     *
+     * Called in resolve dependencies
+     *
+     * @param fileDep
+     */
     protected abstract void ifFileDoNotExist(FileDep fileDep);
 
+    /**
+     * Put file in waiting for dependency to be solved
+     * @param fileDep
+     */
     protected final void putDependentFile(FileDep fileDep){
         lock.lock();
         unresolvedFiles.put(fileDep.key, fileDep);
@@ -214,8 +207,13 @@ public abstract class AbstractFileMaster{
     protected final void removeDependentFile(FileDep fileDep){
         lock.lock();
         //TODO
+        //when is this used?
     }
 
+    /**
+     * Attempt to solve dependecies that was found
+     * @throws TaskMetaDataException if dependent File exist locally but is a directory
+     */
     private void resolveDependencies() throws TaskMetaDataException {
         unresolvedFiles.clear();
 
@@ -241,19 +239,21 @@ public abstract class AbstractFileMaster{
         lock.unlock();
     }
 
-    protected abstract void operationForDependentFileCompleted(FileDep fileDep, Data result);
+    /**
+     * Operation successful with respect to this file
+     * @param fileDep
+     * @param result
+     */
+    protected abstract void operationForDependentFileCompleted(FileDep fileDep, Object result);
 
     /**
      * Handles returns of Get operation requested earlier.
      * @param event
      */
     private void operationReturned(OperationFinishedEvent event) {
-        //TODO work
-        if(event.getCommandWord() != CommandWord.GET){
+        if(event.getCommandWord() != expectedOperation){
             return;
         }
-
-        lock.lock();
 
         String key = event.getOperation().getKey();
 
@@ -264,13 +264,14 @@ public abstract class AbstractFileMaster{
             return;
         }
 
+        lock.lock();
         FileDep fileDep = unresolvedFiles.remove(key);
 
         if(event.getOperation().isSuccess()){
 
-            Data result = (Data) event.getOperation().getResult();
+//            Data result = (Data) event.getOperation().getResult();
 //            toFile(pathTo(fileDep), result.getData());
-            operationForDependentFileCompleted(fileDep, result);
+            operationForDependentFileCompleted(fileDep, event.getOperation().getResult());
 
         } else {
             operationFailed = true;
@@ -307,6 +308,22 @@ public abstract class AbstractFileMaster{
             this.module = module;
             this.dependencies = dependencies;
         }
+
+        public String getProjectName() {
+            return projectName;
+        }
+
+        public String getTaskName() {
+            return taskName;
+        }
+
+        public FileDep getModule() {
+            return module;
+        }
+
+        public List<FileDep> getDependencies() {
+            return dependencies;
+        }
     }
 
     /**
@@ -328,6 +345,26 @@ public abstract class AbstractFileMaster{
             this.key = key;
             this.sticky = sticky;
             this.checkSum = checkSum;
+        }
+
+        public String getFileName() {
+            return fileName;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public String getKey() {
+            return key;
+        }
+
+        public boolean isSticky() {
+            return sticky;
+        }
+
+        public int getCheckSum() {
+            return checkSum;
         }
     }
 
