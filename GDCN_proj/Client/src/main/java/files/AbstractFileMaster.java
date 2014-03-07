@@ -24,6 +24,8 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 abstract class AbstractFileMaster{
 
+    protected final String taskName;
+
     protected final TaskMeta taskMeta;
     protected final PathManager pathManager;
     protected final ClientInterface client;
@@ -31,23 +33,12 @@ abstract class AbstractFileMaster{
     private final TaskListener taskListener;
     private final CommandWord expectedOperation;
 
-    protected final String taskName;
-
     private final Lock lock = new ReentrantLock();
     private final Condition allDependenciesComplete = lock.newCondition();
     private final Map<String, FileDep> unresolvedFiles = new HashMap<String, FileDep>();
 
     private volatile boolean operationFailed = false;
     private volatile boolean stillStartingUp = true;
-
-    private final PropertyChangeListener propertyListener = new PropertyChangeListener() {
-        @Override
-        public void propertyChange(PropertyChangeEvent evt) {
-            if (evt instanceof OperationFinishedEvent){
-                operationReturned((OperationFinishedEvent) evt);
-            }
-        }
-    };
 
     /**
      * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
@@ -65,6 +56,15 @@ abstract class AbstractFileMaster{
         this.client = client;
         this.taskListener = taskListener;
         this.expectedOperation = expectedOperation;
+
+        PropertyChangeListener propertyListener = new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if (evt instanceof OperationFinishedEvent) {
+                    operationReturned((OperationFinishedEvent) evt);
+                }
+            }
+        };
         client.addListener(propertyListener);
 
         this.taskName = taskName;
@@ -81,6 +81,33 @@ abstract class AbstractFileMaster{
             unresolvedFiles.put(fileDep.key, fileDep);
         }
         unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
+    }
+
+    /**
+     * Parses file for MetaData of Task
+     *
+     * @param file Path to meta data file
+     * @return Representation of meta data content
+     * @throws FileNotFoundException if file isn't found
+     */
+    private TaskMeta readMetaFile(File file) throws FileNotFoundException {
+
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)));
+
+            Gson gson = new Gson();
+            return gson.fromJson(reader, TaskMeta.class);
+
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 
@@ -118,94 +145,24 @@ abstract class AbstractFileMaster{
             return false;
         }
 
-        System.out.println("Enter LOOP? "+unresolvedFiles.size());
-
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
-                System.out.println("Start await...");
                 allDependenciesComplete.await();
-                System.out.println("Got signal dependencies complete");
                 lock.unlock();
             } catch (InterruptedException e) {
                 System.out.println("Caught interruption: "+e.getMessage());
                 continue;
             }
             if(operationFailed){
-                System.out.println("Operation failed: return FALSE");
                 return false;
             }
-            System.out.println("Test monitor condition before exit...");
+            System.out.println("Test monitor condition before exit loop...");
         }
-
-        System.out.println("Operation succeeded? return TRUE");
 
         //Alternatively, ignore await() model and use TaskListener instead...
         return true;
     }
-
-    /**
-     *
-     * @return List of paths to all resource files mentioned in taskmetas
-     */
-    protected List<String> getResourceFiles() {
-        List<String> resources = new ArrayList<String>();
-
-        for(FileDep fileDep : taskMeta.dependencies){
-            resources.add(pathTo(fileDep).getAbsolutePath());
-        }
-
-        return resources;
-    }
-
-    /**
-     * Parses file for MetaData of Task
-     *
-     * @param file Path to meta data file
-     * @return Representation of meta data content
-     * @throws FileNotFoundException if file isn't found
-     */
-    private TaskMeta readMetaFile(File file) throws FileNotFoundException {
-
-        Reader reader = null;
-        try {
-            reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)));
-
-            Gson gson = new Gson();
-            return gson.fromJson(reader, TaskMeta.class);
-
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    protected File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
-    }
-
-    /**
-     * This file dependency was found locally. What to do?
-     *
-     * Called in resolve dependencies
-     *
-     * @param fileDep
-     */
-    protected abstract void ifFileExist(FileDep fileDep);
-
-    /**
-     * This file dependency wasn't found locally. What to do?
-     *
-     * Called in resolve dependencies
-     *
-     * @param fileDep
-     */
-    protected abstract void ifFileDoNotExist(FileDep fileDep);
 
     /**
      * Attempt to solve dependecies that was found
@@ -234,22 +191,45 @@ abstract class AbstractFileMaster{
         lock.unlock();
     }
 
+    /**
+     * This file dependency was found locally. What to do?
+     *
+     * Called in resolve dependencies
+     *
+     * @param fileDep file
+     */
+    protected abstract void ifFileExist(FileDep fileDep);
+
+    /**
+     * This file dependency wasn't found locally. What to do?
+     *
+     * Called in resolve dependencies
+     *
+     * @param fileDep file
+     */
+    protected abstract void ifFileDoNotExist(FileDep fileDep);
+
+    /**
+     * Call to set a file dependency as resolved.
+     * @param fileDep file
+     */
     protected final void fileDependencyResolved(FileDep fileDep){
         lock.lock();
         unresolvedFiles.remove(fileDep.key);
+        allDependenciesComplete.signalAll();
         lock.unlock();
     }
 
     /**
      * Operation successful with respect to this file
-     * @param fileDep
-     * @param result
+     * @param fileDep file
+     * @param result Result of OperationEvent, may be null
      */
     protected abstract void operationForDependentFileSuccess(FileDep fileDep, Object result);
 
     /**
      * Handles returns of Get operation requested earlier.
-     * @param event
+     * @param event OperationFinishedEvent
      */
     private void operationReturned(OperationFinishedEvent event) {
         if(event.getCommandWord() != expectedOperation){
@@ -269,9 +249,6 @@ abstract class AbstractFileMaster{
         FileDep fileDep = unresolvedFiles.remove(key);
 
         if(event.getOperation().isSuccess()){
-
-//            Data result = (Data) event.getOperation().getResult();
-//            toFile(pathTo(fileDep), result.getData());
             operationForDependentFileSuccess(fileDep, event.getOperation().getResult());
 
         } else {
@@ -284,6 +261,30 @@ abstract class AbstractFileMaster{
             allDependenciesComplete.signalAll();
         }
         lock.unlock();
+    }
+
+
+    /**
+     *
+     * @param fileDep file
+     * @return Absolute path to file
+     */
+    protected File pathTo(FileDep fileDep){
+        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
+    }
+
+    /**
+     *
+     * @return List of paths to all resource files mentioned in taskmetas
+     */
+    protected List<String> getResourceFiles() {
+        List<String> resources = new ArrayList<String>();
+
+        for(FileDep fileDep : taskMeta.dependencies){
+            resources.add(pathTo(fileDep).getAbsolutePath());
+        }
+
+        return resources;
     }
 
     private String getMetaFileName(String taskName){
