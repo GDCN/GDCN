@@ -37,8 +37,8 @@ abstract class AbstractFileMaster{
     private final Condition allDependenciesComplete = lock.newCondition();
     private final Map<String, FileDep> unresolvedFiles = new HashMap<String, FileDep>();
 
-    private boolean operationFailed = false;
-    private boolean stillStartingUp = true;
+    private volatile boolean operationFailed = false;
+    private volatile boolean stillStartingUp = true;
 
     private final PropertyChangeListener propertyListener = new PropertyChangeListener() {
         @Override
@@ -80,6 +80,7 @@ abstract class AbstractFileMaster{
         for(FileDep fileDep : taskMeta.dependencies){
             unresolvedFiles.put(fileDep.key, fileDep);
         }
+        unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
     }
 
 
@@ -112,12 +113,17 @@ abstract class AbstractFileMaster{
         if(operationFailed){
             // This code is necessary to avoid deadlock if await() is called after a GET operation has failed
             // since there is no guarantee for another signal (it might have been the last file to be resolved)
+
+            System.out.println("Operation failed before enter loop, return FALSE");
             return false;
         }
+
+        System.out.println("Enter LOOP? "+unresolvedFiles.size());
 
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
+                System.out.println("Start await...");
                 allDependenciesComplete.await();
                 System.out.println("Got signal dependencies complete");
                 lock.unlock();
@@ -126,10 +132,13 @@ abstract class AbstractFileMaster{
                 continue;
             }
             if(operationFailed){
+                System.out.println("Operation failed: return FALSE");
                 return false;
             }
             System.out.println("Test monitor condition before exit...");
         }
+
+        System.out.println("Operation succeeded? return TRUE");
 
         //Alternatively, ignore await() model and use TaskListener instead...
         return true;
@@ -203,10 +212,8 @@ abstract class AbstractFileMaster{
      * @throws TaskMetaDataException if dependent File exist locally but is a directory
      */
     private void resolveDependencies() throws TaskMetaDataException {
-        unresolvedFiles.clear();
-
-        Set<FileDep> deps = new HashSet<FileDep>(taskMeta.dependencies);
-        deps.add(taskMeta.module);
+        //get ConcurrentModificationException if reads directly from unresolvedFiles.
+        Set<FileDep> deps = new HashSet<FileDep>(unresolvedFiles.values());
 
         for(FileDep fileDep : deps){
             File file = pathTo(fileDep);
