@@ -1,0 +1,25 @@
+
+clear all
+
+N = 20;
+B = 10;
+k = 1;
+d = 0.1;
+R = 2;
+
+b = B/N;
+p = d/k;
+
+mceil = @(x) ceil
+
+TimeForRFalse = d*ceil(R/B);
+Lr = (N-B)/(d+k);
+
+%LogAllFalse1 = - Lr * TimeForRFalse
+%AllFalse1 = exp(LogAllFalse1)
+
+Freq = N*(1-b)*p/(p+1);
+C = ceil(R/(N*b));
+
+LogAllFalse2 = - Freq * C
+AllFalse2 = exp(LogAllFalse2)
