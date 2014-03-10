@@ -43,7 +43,7 @@ public class Downloader extends AbstractFileMaster {
         //TODO do checksum?
         File file = pathTo(fileDep);
         Data data = (Data) result;
-        toFile(file, ((Data) result).getData());
+        toFile(file, data.getData());
     }
 
     /**
@@ -57,7 +57,7 @@ public class Downloader extends AbstractFileMaster {
     /**
      * Build new Task specified by the meta-file that was parsed earlier.
      * @param listener Listener for success on task
-     * @return
+     * @return Task object
      */
     public Task buildTask(TaskListener listener){
         return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
@@ -66,10 +66,11 @@ public class Downloader extends AbstractFileMaster {
 
     /**
      * Outputs some arbitrary data to file
-     * @param file
-     * @param data
+     * @param file File to turn into byte[]
+     * @param data contents of file
      */
     private static void toFile(File file, byte[] data){
+        //TODO use Box class and do checksum
         BufferedOutputStream outputStream = null;
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(file));
