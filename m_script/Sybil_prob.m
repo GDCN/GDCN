@@ -14,10 +14,11 @@
 
 clear all
 
-N = 2000;   % Total number of nodes
-B = 1990;   % Total number of Sybil nodes on ONE machine
+N = 996;   % Total number of nodes
+B = 4;     % Total number of cooperative Sybil nodes on different cores;
+            % Assumes all B run in parallel
 k = 1;      % Avgerage time to truthfully complete one task
-d = 0.15;   % Exact time for going through identification process
+d = 0.01;   % Exact time for going through identification process
 R = 3;      % Number of replicas
 
 b = B/N;    % Ratio of Sybil nodes
@@ -54,6 +55,8 @@ LogAllFalse2 = - Freq * C;
 ProbAllFalse = exp(LogAllFalse2)
 
 % Time wasted doing authentication
-ComputerWasteTimePerTask = R*d;
+ComputerWasteTimePerTask = R*d + (R-1)*k;
+ComputerWasteTimeComparedToBOINC = R*d;
 % Actual efficiency
 ComputationalEfficiency = k / (k + ComputerWasteTimePerTask)
+ComputationalEfficiencyvsBOINC = k / (k + ComputerWasteTimeComparedToBOINC)
