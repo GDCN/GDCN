@@ -8,35 +8,31 @@ import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by HalfLeif on 2014-03-05.
  */
 public class Downloader extends AbstractFileMaster {
 
-    private final String taskName;
-
     /**
      * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
-     * @param projectName  Name of project
-     * @param taskNames     Name of task
      * @param client       Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    private Downloader(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskNames, client, taskListener, CommandWord.GET, PathManager.worker(projectName));
-        this.taskName = taskNames.get(0);
+    private Downloader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+        super(taskMeta, client, taskListener, CommandWord.GET, pathManager);
     }
 
     public static Downloader create(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        List<String> taskNames = new ArrayList<>();
-        taskNames.add(taskName);
-        return new Downloader(projectName, taskNames, client, taskListener);
+
+        PathManager manager = PathManager.worker(projectName);
+        File file = new File(manager.taskMetaDir() + taskName + ".json");
+        TaskMeta taskMeta = AbstractFileMaster.readMetaFile(file);
+
+        return new Downloader(manager, taskMeta, client, taskListener);
     }
 
     @Override
@@ -64,7 +60,7 @@ public class Downloader extends AbstractFileMaster {
      * @return Name of haskell module this taskmeta uses
      */
     private String getModuleName(){
-        return taskMetas.get(taskName).getModule().getFileName().replace(".hs", "");
+        return taskMeta.getModule().getFileName().replace(".hs", "");
     }
 
     /**
@@ -73,7 +69,7 @@ public class Downloader extends AbstractFileMaster {
      * @return Task object
      */
     public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(taskName), listener);
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
     }
 
 

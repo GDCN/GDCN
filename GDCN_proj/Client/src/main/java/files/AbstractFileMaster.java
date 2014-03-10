@@ -24,9 +24,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 abstract class AbstractFileMaster{
 
-    protected final List<String> taskNames = new ArrayList<>();
-
-    protected final Map<String, TaskMeta> taskMetas = new HashMap<>();
+    protected final TaskMeta taskMeta;
     protected final PathManager pathManager;
     protected final ClientInterface client;
 
@@ -45,17 +43,20 @@ abstract class AbstractFileMaster{
      * solving the dependencies.
      *
      *
-     * @param projectName Name of project
-     * @param taskNames Name of tasks
+     * @param taskMeta Dependencies to be solved
      * @param client Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @param expectedOperation
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation, PathManager pathManager) throws FileNotFoundException, TaskMetaDataException {
+    public AbstractFileMaster(TaskMeta taskMeta, ClientInterface client, TaskListener taskListener,
+                              CommandWord expectedOperation, PathManager pathManager) throws FileNotFoundException, TaskMetaDataException {
+
+        this.taskMeta = taskMeta;
         this.client = client;
         this.taskListener = taskListener;
         this.expectedOperation = expectedOperation;
+        this.pathManager = pathManager;
 
         client.addListener(new PropertyChangeListener() {
             @Override
@@ -66,26 +67,24 @@ abstract class AbstractFileMaster{
             }
         });
 
-        //TODO must be different for worker
-        this.pathManager = pathManager;
-        this.taskNames.addAll(taskNames);
 
-        for(String taskName : taskNames){
-            //TODO OBS! must be taskName + ".json" for Downloader!!! Fix somehow
-            File metaTaskFile = new File(pathManager.taskMetaDir()+taskName);
 
-            TaskMeta taskMeta = readMetaFile(metaTaskFile);
-            taskMetas.put(taskName, taskMeta);
+
+            //TODO OBS! must be taskName + ".json" for Downloader!!! Fix locally instead
+//        File metaTaskFile = new File(pathManager.taskMetaDir()+taskName);
+
+        //TODO do locally
+//        TaskMeta taskMeta = readMetaFile(metaTaskFile);
+//        this.taskMeta.put(taskName, taskMeta);
 
 //            if(! taskName.equals(taskMeta.taskName)){
 //                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
 //            }
 
-            for(FileDep fileDep : taskMeta.dependencies){
-                unresolvedFiles.put(fileDep.key, fileDep);
-            }
-            unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
+        for(FileDep fileDep : taskMeta.dependencies){
+            unresolvedFiles.put(fileDep.key, fileDep);
         }
+        unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
 
     }
 
@@ -96,7 +95,7 @@ abstract class AbstractFileMaster{
      * @return Representation of meta data content
      * @throws FileNotFoundException if file isn't found
      */
-    private TaskMeta readMetaFile(File file) throws FileNotFoundException {
+    protected static TaskMeta readMetaFile(File file) throws FileNotFoundException {
 
         Reader reader = null;
         try {
@@ -130,7 +129,7 @@ abstract class AbstractFileMaster{
      * Attempts to resolve the dependencies found in meta-file.
      */
     private void run() throws TaskMetaDataException {
-        if(taskMetas != null){
+        if(taskMeta != null){
             resolveDependencies();
         } else {
             throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
@@ -258,8 +257,7 @@ abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            //TODO cannot just return any taskname...
-            taskListener.taskFailed(taskNames.remove(0), "Failed to resolve file with name " +  fileDep.fileName);
+            taskListener.taskFailed(taskMeta.taskName, "Failed to resolve file with name " +  fileDep.fileName);
             allDependenciesComplete.signalAll();
         }
 
@@ -283,11 +281,10 @@ abstract class AbstractFileMaster{
      *
      * @return List of paths to all resource files mentioned in taskmetas
      */
-    protected List<String> getResourceFiles(String taskName) {
-        List<String> resources = new ArrayList<String>();
+    protected List<String> getResourceFiles() {
+        List<String> resources = new ArrayList<>();
 
-
-        for(FileDep fileDep : taskMetas.get(taskName).dependencies){
+        for(FileDep fileDep : taskMeta.dependencies){
             resources.add(pathTo(fileDep).getAbsolutePath());
         }
 

@@ -12,9 +12,6 @@ import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -24,15 +21,32 @@ public class Uploader extends AbstractFileMaster{
     /**
      * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
-     *
-     * @param projectName  Name of project
-     * @param taskName     Name of task
+     *TODO params
      * @param client       Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public Uploader(String projectName, List<String> taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskName, client, taskListener, CommandWord.PUT, PathManager.jobOwner(projectName));
+    private Uploader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+        super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
+    }
+
+    public static Uploader create(String jobName, ClientInterface client, TaskListener taskListener){
+
+        PathManager manager = PathManager.jobOwner(jobName);
+        File file = new File(manager.taskMetaDir());
+
+        System.out.println("MetaDir: "+file.getAbsolutePath());
+
+        String[] tasks = file.list();
+
+        for(String task:tasks){
+            System.out.println("\t"+task);
+        }
+
+
+//        TaskMeta taskMeta = AbstractFileMaster.readMetaFile(file);
+        //TODO
+        return null;
     }
 
     @Override
@@ -57,6 +71,7 @@ public class Uploader extends AbstractFileMaster{
 
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
+        System.out.println("Successfully put " + fileDep.getFileName());
         super.fileDependencyResolved(fileDep);
     }
 
@@ -116,10 +131,9 @@ public class Uploader extends AbstractFileMaster{
         client.start(8056);
 
         try {
-            File tasksDir = new File(pathManager.taskMetaDir());
-            List<String> tasks = new ArrayList<>(Arrays.asList(tasksDir.list()));
-            Uploader uploader = new Uploader("Job1", tasks, client, mainTaskListener);
-            uploader.runAndAwait();
+            //TODO
+            Uploader uploader = Uploader.create("Job1", client, mainTaskListener);
+//            uploader.runAndAwait();
 
             System.out.println("Await task response");
             semaphore.acquire();
