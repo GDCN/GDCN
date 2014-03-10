@@ -9,6 +9,7 @@ import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -24,7 +25,7 @@ public class Uploader extends AbstractFileMaster{
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public Uploader(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    public Uploader(String projectName, List<String> taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
         super(projectName, taskName, client, taskListener, CommandWord.PUT);
     }
 
@@ -33,20 +34,24 @@ public class Uploader extends AbstractFileMaster{
         File file = super.pathTo(fileDep);
 
         if(!file.exists() || file.isDirectory()){
-            //TODO report error
+            //TODO better output?
+            System.out.println("Didn't find file " + pathTo(fileDep));
+            return;
         }
 
         try {
             client.put(fileDep.getKey(), new Data(fromFile(file)));
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO report error
+            //TODO better output?
+            System.out.println("Failed to put " + pathTo(fileDep) + "\n"+e.getMessage());
         }
     }
 
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
-        //TODO report error
+        //TODO better output?
+        System.out.println("Didn't find file " + pathTo(fileDep));
     }
 
     @Override

@@ -7,23 +7,35 @@ import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by HalfLeif on 2014-03-05.
  */
 public class Downloader extends AbstractFileMaster {
+
+    private final String taskName;
+
     /**
      * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
      * solving the dependencies.
      *
      * @param projectName  Name of project
-     * @param taskName     Name of task
+     * @param taskNames     Name of task
      * @param client       Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public Downloader(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskName, client, taskListener, CommandWord.GET);
+    private Downloader(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+        super(projectName, taskNames, client, taskListener, CommandWord.GET);
+        this.taskName = taskNames.get(0);
+    }
+
+    public static Downloader create(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+        List<String> taskNames = new ArrayList<>();
+        taskNames.add(taskName);
+        return new Downloader(projectName, taskNames, client, taskListener);
     }
 
     @Override
@@ -34,13 +46,13 @@ public class Downloader extends AbstractFileMaster {
 
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
+        //TODO better output?
         System.out.println("Didn't find file " + pathTo(fileDep));
         client.get(fileDep.getKey());
     }
 
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
-        //TODO do checksum?
         File file = pathTo(fileDep);
         Data data = (Data) result;
         toFile(file, data.getData());
@@ -51,7 +63,7 @@ public class Downloader extends AbstractFileMaster {
      * @return Name of haskell module this taskmeta uses
      */
     private String getModuleName(){
-        return taskMeta.getModule().getFileName().replace(".hs", "");
+        return taskMetas.get(taskName).getModule().getFileName().replace(".hs", "");
     }
 
     /**
@@ -60,7 +72,7 @@ public class Downloader extends AbstractFileMaster {
      * @return Task object
      */
     public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(), listener);
+        return new Task(pathManager.getProjectName(), taskName, getModuleName(), getResourceFiles(taskName), listener);
     }
 
 

@@ -24,9 +24,9 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 abstract class AbstractFileMaster{
 
-    protected final String taskName;
+    protected final List<String> taskNames = new ArrayList<>();
 
-    protected final TaskMeta taskMeta;
+    protected final Map<String, TaskMeta> taskMetas = new HashMap<>();
     protected final PathManager pathManager;
     protected final ClientInterface client;
 
@@ -46,41 +46,45 @@ abstract class AbstractFileMaster{
      *
      *
      * @param projectName Name of project
-     * @param taskName Name of task
+     * @param taskNames Name of tasks
      * @param client Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @param expectedOperation
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(String projectName, String taskName, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation) throws FileNotFoundException, TaskMetaDataException {
+    public AbstractFileMaster(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation) throws FileNotFoundException, TaskMetaDataException {
         this.client = client;
         this.taskListener = taskListener;
         this.expectedOperation = expectedOperation;
 
-        PropertyChangeListener propertyListener = new PropertyChangeListener() {
+        client.addListener(new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 if (evt instanceof OperationFinishedEvent) {
                     operationReturned((OperationFinishedEvent) evt);
                 }
             }
-        };
-        client.addListener(propertyListener);
+        });
 
-        this.taskName = taskName;
         pathManager = new PathManager(projectName);
-        File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
+        this.taskNames.addAll(taskNames);
 
-        taskMeta = readMetaFile(metaTaskFile);
+        for(String taskName : taskNames){
+            File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
 
-        if(! taskName.equals(taskMeta.taskName)){
-            throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
+            TaskMeta taskMeta = readMetaFile(metaTaskFile);
+            taskMetas.put(taskName, taskMeta);
+
+            if(! taskName.equals(taskMeta.taskName)){
+                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
+            }
+
+            for(FileDep fileDep : taskMeta.dependencies){
+                unresolvedFiles.put(fileDep.key, fileDep);
+            }
+            unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
         }
 
-        for(FileDep fileDep : taskMeta.dependencies){
-            unresolvedFiles.put(fileDep.key, fileDep);
-        }
-        unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
     }
 
     /**
@@ -124,7 +128,7 @@ abstract class AbstractFileMaster{
      * Attempts to resolve the dependencies found in meta-file.
      */
     private void run() throws TaskMetaDataException {
-        if(taskMeta != null){
+        if(taskMetas != null){
             resolveDependencies();
         } else {
             throw new TaskMetaDataException("Meta data file wasn't found (or parsed correctly)!");
@@ -176,8 +180,7 @@ abstract class AbstractFileMaster{
             File file = pathTo(fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
-                    throw new TaskMetaDataException("Files in dependencies should not be directories! File: "
-                            +file+" for task "+taskMeta.taskName);
+                    throw new TaskMetaDataException("Files in dependencies should not be directories! File: "+file);
                 }
                 ifFileExist(fileDep);
             } else {
@@ -240,7 +243,7 @@ abstract class AbstractFileMaster{
 
         if(!unresolvedFiles.containsKey(key)){
             //TODO redirect output?
-            System.out.println("FileDep with key ("+key+") wasn't found in Map for task with id "+taskMeta.taskName);
+            System.out.println("FileDep with key ("+key+") wasn't found in Map for task");
             //Might be from other request unrelated with this FileMaster
             return;
         }
@@ -253,7 +256,8 @@ abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            taskListener.taskFailed(taskName, "Failed to resolve file with name " +  fileDep.fileName);
+            //TODO cannot just return any taskname...
+            taskListener.taskFailed(taskNames.remove(0), "Failed to resolve file with name " +  fileDep.fileName);
             allDependenciesComplete.signalAll();
         }
 
@@ -277,10 +281,11 @@ abstract class AbstractFileMaster{
      *
      * @return List of paths to all resource files mentioned in taskmetas
      */
-    protected List<String> getResourceFiles() {
+    protected List<String> getResourceFiles(String taskName) {
         List<String> resources = new ArrayList<String>();
 
-        for(FileDep fileDep : taskMeta.dependencies){
+
+        for(FileDep fileDep : taskMetas.get(taskName).dependencies){
             resources.add(pathTo(fileDep).getAbsolutePath());
         }
 

@@ -56,7 +56,7 @@ public class TaskManager{
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
                 Downloader fileMaster = null;
                 try {
-                    fileMaster = new Downloader(projectName, taskName, networker, client);
+                    fileMaster = Downloader.create(projectName, taskName, networker, client);
                     boolean success = fileMaster.runAndAwait();
 
                     if(!success){
