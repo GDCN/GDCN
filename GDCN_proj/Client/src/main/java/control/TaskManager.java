@@ -54,9 +54,8 @@ public class TaskManager{
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
-                Downloader fileMaster = null;
                 try {
-                    fileMaster = Downloader.create(projectName, taskName, networker, client);
+                    Downloader fileMaster = Downloader.create(projectName, taskName, networker, client);
                     boolean success = fileMaster.runAndAwait();
 
                     if(!success){
@@ -105,7 +104,7 @@ public class TaskManager{
 
         //Might want to copy "dGDCN/" to "~/.gdcn/"
 
-        PathManager pathManager = new PathManager("Primes");
+        PathManager pathManager = PathManager.worker("Primes");
         pathManager.deleteBinaries();
 
         ClientInterface client = new PeerOwner();

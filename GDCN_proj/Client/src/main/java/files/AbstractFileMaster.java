@@ -66,7 +66,7 @@ abstract class AbstractFileMaster{
             }
         });
 
-        pathManager = new PathManager(projectName);
+        pathManager = PathManager.worker(projectName);
         this.taskNames.addAll(taskNames);
 
         for(String taskName : taskNames){

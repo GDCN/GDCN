@@ -31,7 +31,7 @@ public class Task implements Runnable{
         this.initDataPaths = new ArrayList<String>(initDataFiles);
         this.listener = listener;
 
-        pathManager = new PathManager(this.projectName);
+        pathManager = PathManager.worker(this.projectName);
     }
 
     private String compiledModule(){

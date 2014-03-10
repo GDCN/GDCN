@@ -15,7 +15,7 @@ import java.util.Properties;
  */
 public class InstallTest {
 
-    private PathManager pathManager = new PathManager("Primes");
+    private PathManager pathManager = PathManager.worker("Primes");
 
     @BeforeMethod
     public void setup(){

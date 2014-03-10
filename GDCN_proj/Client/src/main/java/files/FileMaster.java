@@ -70,7 +70,7 @@ public class FileMaster{
         client.addListener(propertyListener);
 
         this.taskName = taskName;
-        pathManager = new PathManager(projectName);
+        pathManager = PathManager.worker(projectName);
         File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
 
         taskMeta = readMetaFile(metaTaskFile);

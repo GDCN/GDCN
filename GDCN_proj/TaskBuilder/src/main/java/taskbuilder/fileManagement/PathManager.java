@@ -20,17 +20,41 @@ public class PathManager {
 
     private static String headerLocation = null;
     private static String dataPath = null;
+    private static String jobPath = null;
+
+    private final boolean isWorker;
 
     public static void main(String[] args){
-        PathManager manager = new PathManager("Primes");
-        System.out.println(manager.taskCodeDir());
-        System.out.println(manager.taskResourcesDir());
+//        PathManager manager = new PathManager("Primes");
+//        System.out.println(manager.taskCodeDir());
+//        System.out.println(manager.taskResourcesDir());
     }
 
-    public PathManager(String projectName) {
+    /**
+     * Points to data folder
+     * @param projectName
+     * @return
+     */
+    public static PathManager worker(String projectName){
+        return new PathManager(projectName, true);
+    }
+
+    /**
+     * Points to job folder
+     * @param projectName
+     * @return
+     */
+    public static PathManager jobOwner(String projectName){
+        return new PathManager(projectName, false);
+    }
+
+    private PathManager(String projectName, boolean isWorker) {
         this.projectName = projectName;
 
-        loadDefaultLocation();
+        if(dataPath == null || headerLocation == null){
+            loadDefaultLocation();
+        }
+        this.isWorker = isWorker;
     }
 
     private void check(){
@@ -62,7 +86,8 @@ public class PathManager {
      */
     public String projectDir(){
         check();
-        return dataPath + projectName + File.separator;
+        String location = isWorker? dataPath : jobPath;
+        return location + projectName + File.separator;
     }
 
     /**
@@ -143,6 +168,7 @@ public class PathManager {
 
             headerLocation = prop.getProperty("bin_path");
             dataPath = prop.getProperty("data_path");
+            jobPath = prop.getProperty("job_path");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();

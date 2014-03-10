@@ -2,14 +2,19 @@ package files;
 
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import control.PeerOwner;
+import control.TaskManager;
 import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.fileManagement.Install;
+import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -86,6 +91,47 @@ public class Uploader extends AbstractFileMaster{
             }
         }
         return null;
+    }
+
+    public static void main(String[] args){
+
+        final Semaphore semaphore = new Semaphore(0);
+        final TaskListener mainTaskListener = new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task finished "+taskName);
+                semaphore.release();
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task failed "+taskName);
+                System.out.println("because of: "+reason);
+                semaphore.release();
+            }
+        };
+
+        Install.install();
+
+        //Might want to copy "dGDCN/" to "~/.gdcn/"
+
+        PathManager pathManager = PathManager.jobOwner("Primes");
+        pathManager.deleteBinaries();
+
+        ClientInterface client = new PeerOwner();
+        client.start(8056);
+
+        try {
+            TaskManager manager = new TaskManager(mainTaskListener);
+            manager.startTask("Primes", "PrimeTask_01", client);
+
+            System.out.println("Await task response");
+            semaphore.acquireUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            client.stop();
+        }
     }
 
 }
