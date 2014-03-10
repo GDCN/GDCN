@@ -3,6 +3,7 @@ package control;
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
 import files.TaskMetaDataException;
+import files.Uploader;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
@@ -21,14 +22,14 @@ public class TaskManager{
 
     private final Map<String,Thread> runningTasks = new HashMap<String,Thread>();
 
-    private final TaskListener client;
-    private final TaskListener listener = new TaskListener() {
+    private final TaskListener taskListener;
+    private final TaskListener localListener = new TaskListener() {
         @Override
         public void taskFinished(String taskName) {
             runningTasks.remove(taskName);
             //TODO do something other than pass along signal?
 
-            client.taskFinished(taskName);
+            taskListener.taskFinished(taskName);
         }
 
         @Override
@@ -36,12 +37,12 @@ public class TaskManager{
             runningTasks.remove(taskName);
             //TODO do something other than pass along signal?
 
-            client.taskFailed(taskName, reason);
+            taskListener.taskFailed(taskName, reason);
         }
     };
 
-    public TaskManager(TaskListener client) {
-        this.client = client;
+    public TaskManager(TaskListener taskListener) {
+        this.taskListener = taskListener;
     }
 
     public int numberOfRunningTasks(){
@@ -55,15 +56,15 @@ public class TaskManager{
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
                 try {
-                    Downloader fileMaster = Downloader.create(projectName, taskName, networker, client);
-                    boolean success = fileMaster.runAndAwait();
+                    Downloader downloader = Downloader.create(projectName, taskName, networker, taskListener);
+                    boolean success = downloader.runAndAwait();
 
                     if(!success){
-                        client.taskFailed(taskName, "Unresolved dependencies");
+                        taskListener.taskFailed(taskName, "Unresolved dependencies");
                         return;
                     }
 
-                    Thread thread = new Thread(fileMaster.buildTask(listener));
+                    Thread thread = new Thread(downloader.buildTask(localListener));
                     thread.setDaemon(true);
 
                     runningTasks.put(taskName, thread);
@@ -80,6 +81,29 @@ public class TaskManager{
         });
         thread.setDaemon(true);
         thread.start();
+    }
+
+    public void uploadJob(final String jobName, final ClientInterface networker){
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Uploader uploader = Uploader.create(jobName, networker, taskListener);
+                    boolean success = uploader.runAndAwait();
+
+                    if(!success){
+                        taskListener.taskFailed(jobName, "Unresolved dependencies");
+                    } else {
+                        taskListener.taskFinished(jobName);
+                    }
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (TaskMetaDataException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     public static void main(String[] args){

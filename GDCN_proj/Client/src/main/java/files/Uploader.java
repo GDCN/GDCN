@@ -12,7 +12,10 @@ import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.Semaphore;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -30,7 +33,7 @@ public class Uploader extends AbstractFileMaster{
         super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
     }
 
-    public static Uploader create(String jobName, ClientInterface client, TaskListener taskListener){
+    public static Uploader create(String jobName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());
@@ -39,14 +42,23 @@ public class Uploader extends AbstractFileMaster{
 
         String[] tasks = file.list();
 
+        Set<FileDep> allFileDependencies = new HashSet<>();
+        List<FileDep> dependencyTasks = new ArrayList<>();
         for(String task:tasks){
             System.out.println("\t"+task);
+            FileDep fileDep = new FileDep(task, "tasks", task, true, 0);
+            dependencyTasks.add(fileDep);
+            allFileDependencies.add(fileDep);
+        }
+        for(FileDep fileDep : dependencyTasks){
+            TaskMeta taskMeta = AbstractFileMaster.readMetaFile( AbstractFileMaster.pathTo(manager, fileDep));
+            allFileDependencies.add(taskMeta.getModule());
+            allFileDependencies.addAll(taskMeta.getDependencies());
         }
 
+        TaskMeta totalMeta = new TaskMeta(jobName, "Upload"+jobName, null, new ArrayList<>(allFileDependencies));
 
-//        TaskMeta taskMeta = AbstractFileMaster.readMetaFile(file);
-        //TODO
-        return null;
+        return new Uploader(manager, totalMeta, client, taskListener);
     }
 
     @Override
@@ -67,6 +79,7 @@ public class Uploader extends AbstractFileMaster{
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
         System.out.println("Didn't find file " + pathTo(fileDep));
+        //TODO fail task and abort
     }
 
     @Override
@@ -106,19 +119,19 @@ public class Uploader extends AbstractFileMaster{
 
     public static void main(String[] args){
 
-        final Semaphore semaphore = new Semaphore(0);
+//        final Semaphore semaphore = new Semaphore(0);
         final TaskListener mainTaskListener = new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
                 System.out.println("Task finished "+taskName);
-                semaphore.release();
+//                semaphore.release();
             }
 
             @Override
             public void taskFailed(String taskName, String reason) {
                 System.out.println("Task failed "+taskName);
                 System.out.println("because of: "+reason);
-                semaphore.release();
+//                semaphore.release();
             }
         };
 
@@ -131,12 +144,16 @@ public class Uploader extends AbstractFileMaster{
         client.start(8056);
 
         try {
-            //TODO
             Uploader uploader = Uploader.create("Job1", client, mainTaskListener);
-//            uploader.runAndAwait();
+            boolean success = uploader.runAndAwait();
 
-            System.out.println("Await task response");
-            semaphore.acquire();
+            if(success){
+                System.out.println("Seems to work :D");
+            } else {
+                System.out.println("Something whent wrong...");
+            }
+            //OBS doesn't need the semaphore since runs in the same thread
+//            semaphore.acquire();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

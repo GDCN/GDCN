@@ -33,7 +33,7 @@ abstract class AbstractFileMaster{
 
     private final Lock lock = new ReentrantLock();
     private final Condition allDependenciesComplete = lock.newCondition();
-    private final Map<String, FileDep> unresolvedFiles = new HashMap<String, FileDep>();
+    private final Map<String, FileDep> unresolvedFiles = new HashMap<>();
 
     private volatile boolean operationFailed = false;
     private volatile boolean stillStartingUp = true;
@@ -67,16 +67,7 @@ abstract class AbstractFileMaster{
             }
         });
 
-
-
-
-            //TODO OBS! must be taskName + ".json" for Downloader!!! Fix locally instead
-//        File metaTaskFile = new File(pathManager.taskMetaDir()+taskName);
-
         //TODO do locally
-//        TaskMeta taskMeta = readMetaFile(metaTaskFile);
-//        this.taskMeta.put(taskName, taskMeta);
-
 //            if(! taskName.equals(taskMeta.taskName)){
 //                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
 //            }
@@ -84,8 +75,10 @@ abstract class AbstractFileMaster{
         for(FileDep fileDep : taskMeta.dependencies){
             unresolvedFiles.put(fileDep.key, fileDep);
         }
-        unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
-
+        if(taskMeta.module != null){
+            //is currently null when coming from Uploader class
+            unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
+        }
     }
 
     /**
@@ -165,6 +158,9 @@ abstract class AbstractFileMaster{
             System.out.println("Test monitor condition before exit loop...");
         }
 
+        //TODO this is currently the only place to report success in this class... Do somewhere else?
+        taskListener.taskFinished(taskMeta.taskName);
+
         //Alternatively, ignore await() model and use TaskListener instead...
         return true;
     }
@@ -174,8 +170,8 @@ abstract class AbstractFileMaster{
      * @throws TaskMetaDataException if dependent File exist locally but is a directory
      */
     private void resolveDependencies() throws TaskMetaDataException {
-        //get ConcurrentModificationException if reads directly from unresolvedFiles.
-        Set<FileDep> deps = new HashSet<FileDep>(unresolvedFiles.values());
+        //gets ConcurrentModificationException if reads directly from unresolvedFiles.
+        Set<FileDep> deps = new HashSet<>(unresolvedFiles.values());
 
         for(FileDep fileDep : deps){
             File file = pathTo(fileDep);
@@ -279,6 +275,15 @@ abstract class AbstractFileMaster{
 
     /**
      *
+     * @param fileDep file
+     * @return Absolute path to file
+     */
+    protected static File pathTo(PathManager pathManager, FileDep fileDep){
+        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
+    }
+
+    /**
+     *
      * @return List of paths to all resource files mentioned in taskmetas
      */
     protected List<String> getResourceFiles() {
@@ -303,7 +308,7 @@ abstract class AbstractFileMaster{
         private FileDep module;
         private List<FileDep> dependencies;
 
-        private TaskMeta(String projectName, String taskName, FileDep module, List<FileDep> dependencies) {
+        protected TaskMeta(String projectName, String taskName, FileDep module, List<FileDep> dependencies) {
             this.projectName = projectName;
             this.taskName = taskName;
             this.module = module;
@@ -338,14 +343,31 @@ abstract class AbstractFileMaster{
         private String key;
 
         private boolean sticky = false;
+        //TODO put checksum elsewhere
         private int checkSum;
 
-        private FileDep(String fileName, String location, String key, boolean sticky, int checkSum) {
+        protected FileDep(String fileName, String location, String key, boolean sticky, int checkSum) {
             this.fileName = fileName;
             this.location = location;
             this.key = key;
             this.sticky = sticky;
             this.checkSum = checkSum;
+        }
+
+        @Override
+        public int hashCode(){
+            return key.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object o){
+            if(o == null){
+                return false;
+            }
+            if(!(o instanceof FileDep)){
+                return false;
+            }
+            return key.equals(((FileDep) o).key);
         }
 
         public String getFileName() {
@@ -375,7 +397,7 @@ abstract class AbstractFileMaster{
      */
     public static void main(String[] args){
         FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
-        List<FileDep> deps = new ArrayList<FileDep>();
+        List<FileDep> deps = new ArrayList<>();
         deps.add(rawIndata);
 
         FileDep algorithm = new FileDep("Prime.hs", "code", "Primes_algorithms", true, 500);
