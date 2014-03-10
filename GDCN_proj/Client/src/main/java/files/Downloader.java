@@ -5,6 +5,7 @@ import command.communicationToUI.CommandWord;
 import net.tomp2p.storage.Data;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class Downloader extends AbstractFileMaster {
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
     private Downloader(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskNames, client, taskListener, CommandWord.GET);
+        super(projectName, taskNames, client, taskListener, CommandWord.GET, PathManager.worker(projectName));
         this.taskName = taskNames.get(0);
     }
 

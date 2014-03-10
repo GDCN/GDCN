@@ -52,7 +52,7 @@ abstract class AbstractFileMaster{
      * @param expectedOperation
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation) throws FileNotFoundException, TaskMetaDataException {
+    public AbstractFileMaster(String projectName, List<String> taskNames, ClientInterface client, TaskListener taskListener, CommandWord expectedOperation, PathManager pathManager) throws FileNotFoundException, TaskMetaDataException {
         this.client = client;
         this.taskListener = taskListener;
         this.expectedOperation = expectedOperation;
@@ -66,18 +66,20 @@ abstract class AbstractFileMaster{
             }
         });
 
-        pathManager = PathManager.worker(projectName);
+        //TODO must be different for worker
+        this.pathManager = pathManager;
         this.taskNames.addAll(taskNames);
 
         for(String taskName : taskNames){
-            File metaTaskFile = new File(pathManager.taskMetaDir()+getMetaFileName(taskName));
+            //TODO OBS! must be taskName + ".json" for Downloader!!! Fix somehow
+            File metaTaskFile = new File(pathManager.taskMetaDir()+taskName);
 
             TaskMeta taskMeta = readMetaFile(metaTaskFile);
             taskMetas.put(taskName, taskMeta);
 
-            if(! taskName.equals(taskMeta.taskName)){
-                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
-            }
+//            if(! taskName.equals(taskMeta.taskName)){
+//                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
+//            }
 
             for(FileDep fileDep : taskMeta.dependencies){
                 unresolvedFiles.put(fileDep.key, fileDep);
@@ -290,11 +292,6 @@ abstract class AbstractFileMaster{
         }
 
         return resources;
-    }
-
-    private String getMetaFileName(String taskName){
-        //TODO Do less hardcoded?
-        return taskName+".json";
     }
 
     /**

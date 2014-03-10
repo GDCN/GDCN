@@ -3,7 +3,6 @@ package files;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import control.PeerOwner;
-import control.TaskManager;
 import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
@@ -13,6 +12,8 @@ import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -31,20 +32,15 @@ public class Uploader extends AbstractFileMaster{
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
     public Uploader(String projectName, List<String> taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
-        super(projectName, taskName, client, taskListener, CommandWord.PUT);
+        super(projectName, taskName, client, taskListener, CommandWord.PUT, PathManager.jobOwner(projectName));
     }
 
     @Override
     protected void ifFileExist(FileDep fileDep) {
         File file = super.pathTo(fileDep);
 
-        if(!file.exists() || file.isDirectory()){
-            //TODO better output?
-            System.out.println("Didn't find file " + pathTo(fileDep));
-            return;
-        }
-
         try {
+            System.out.println("Put " + pathTo(fileDep));
             client.put(fileDep.getKey(), new Data(fromFile(file)));
         } catch (IOException e) {
             e.printStackTrace();
@@ -115,18 +111,18 @@ public class Uploader extends AbstractFileMaster{
 
         //Might want to copy "dGDCN/" to "~/.gdcn/"
 
-        PathManager pathManager = PathManager.jobOwner("Primes");
-        pathManager.deleteBinaries();
-
+        PathManager pathManager = PathManager.jobOwner("Job1");
         ClientInterface client = new PeerOwner();
         client.start(8056);
 
         try {
-            TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01", client);
+            File tasksDir = new File(pathManager.taskMetaDir());
+            List<String> tasks = new ArrayList<>(Arrays.asList(tasksDir.list()));
+            Uploader uploader = new Uploader("Job1", tasks, client, mainTaskListener);
+            uploader.runAndAwait();
 
             System.out.println("Await task response");
-            semaphore.acquireUninterruptibly();
+            semaphore.acquire();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

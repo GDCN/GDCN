@@ -32,8 +32,8 @@ public class PathManager {
 
     /**
      * Points to data folder
-     * @param projectName
-     * @return
+     * @param projectName Name of project to work on
+     * @return PathManager instance
      */
     public static PathManager worker(String projectName){
         return new PathManager(projectName, true);
@@ -41,15 +41,15 @@ public class PathManager {
 
     /**
      * Points to job folder
-     * @param projectName
-     * @return
+     * @param jobName Name of JobFolder
+     * @return PathManager instance
      */
-    public static PathManager jobOwner(String projectName){
-        return new PathManager(projectName, false);
+    public static PathManager jobOwner(String jobName){
+        return new PathManager(jobName, false);
     }
 
-    private PathManager(String projectName, boolean isWorker) {
-        this.projectName = projectName;
+    private PathManager(String workingDirectory, boolean isWorker) {
+        this.projectName = workingDirectory;
 
         if(dataPath == null || headerLocation == null){
             loadDefaultLocation();
@@ -74,7 +74,7 @@ public class PathManager {
 
     /**
      *
-     * @return Project name
+     * @return Project name if isWorker, else JobFolderName
      */
     public String getProjectName() {
         return projectName;
@@ -189,7 +189,7 @@ public class PathManager {
 
     /**
      * Delete all temp files for this project
-     * @return
+     * @return if success
      */
     public boolean deleteTemps(){
         return Install.deleteContents(new File(this.projectTempDir()));
@@ -197,7 +197,7 @@ public class PathManager {
 
     /**
      * Delete all temp files for this task
-     * @return
+     * @return if success
      */
     public boolean deleteTaskTemp(String taskName){
         return Install.deleteContents(new File(this.taskTempDir(taskName)));
@@ -205,7 +205,7 @@ public class PathManager {
 
     /**
      * Delete all binaries for this project
-     * @return
+     * @return if success
      */
     public boolean deleteBinaries(){
         return Install.deleteContents(new File(this.taskBinaryDir()));
