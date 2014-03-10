@@ -1,4 +1,4 @@
-import command.PeerOwner;
+import control.PeerOwner;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;

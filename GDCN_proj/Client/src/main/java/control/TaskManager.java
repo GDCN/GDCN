@@ -1,6 +1,5 @@
 package control;
 
-import command.PeerOwner;
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
 import files.TaskMetaDataException;

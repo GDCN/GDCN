@@ -1,4 +1,4 @@
-package command;
+package control;
 
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.ErrorCode;
@@ -182,7 +182,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void put(final String name, final Data value){
         FutureDHT futureDHT = peer.put(Number160.createHash(name)).setData(value).start();
-        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>(){
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
 
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
