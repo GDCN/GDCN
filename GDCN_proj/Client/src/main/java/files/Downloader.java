@@ -1,7 +1,7 @@
 package files;
 
-import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import command.communicationToUI.NetworkInterface;
 import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.storage.Data;
 import taskbuilder.Task;
@@ -18,19 +18,11 @@ import java.util.concurrent.Semaphore;
  */
 public class Downloader extends AbstractFileMaster {
 
-    /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
-     * solving the dependencies.
-     *
-     * @param client       Client for downloading files from network (DHT)
-     * @param taskListener Listener to learn about failures such as unresolved dependencies.
-     * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
-     */
-    private Downloader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
+    private Downloader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
         super(taskMeta, client, taskListener, CommandWord.GET, pathManager);
     }
 
-    public static Downloader create(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
+    public static Downloader create(String projectName, String taskName, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
 
         PathManager manager = PathManager.worker(projectName);
         TaskMeta taskMeta = resolveMetaFile(taskName, client, taskListener, manager);
@@ -38,7 +30,7 @@ public class Downloader extends AbstractFileMaster {
         return new Downloader(manager, taskMeta, client, taskListener);
     }
 
-    private static TaskMeta resolveMetaFile(String taskName, ClientInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
+    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
         final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
         if(file.exists()){
             System.out.println("Downloader: YAY file exist!");

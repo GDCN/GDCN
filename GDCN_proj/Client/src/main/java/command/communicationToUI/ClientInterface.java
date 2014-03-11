@@ -1,36 +1,15 @@
 package command.communicationToUI;
 
-import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.storage.Data;
-
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * Created by HalfLeif on 2014-02-26.
  */
-public interface ClientInterface {
-    void addListener(PropertyChangeListener listener);
+public interface ClientInterface extends NetworkInterface{
 
-    void removeListener(PropertyChangeListener listener);
+    void install();
+    void uninstall();
 
-    void start(int port);
-
-    void stop();
-
-    void bootstrap(String host, int port);
-
-    void put(String name, Data value);
-
-    void get(String name);
+    void push(String jobName);
 
     void work(String projectName, String taskName);
 
-    List<PeerAddress> getNeighbours();
-
-    List<PeerAddress> getOldNeighbours();
-
-    void reBootstrap();
 }

@@ -2,6 +2,7 @@ package files;
 
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import command.communicationToUI.NetworkInterface;
 import control.PeerOwner;
 import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
@@ -21,19 +22,12 @@ import java.util.Set;
  * Created by HalfLeif on 2014-03-05.
  */
 public class Uploader extends AbstractFileMaster{
-    /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
-     * solving the dependencies.
-     *TODO params
-     * @param client       Client for downloading files from network (DHT)
-     * @param taskListener Listener to learn about failures such as unresolved dependencies.
-     * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
-     */
-    private Uploader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
+
+    private Uploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
         super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
     }
 
-    public static Uploader create(String jobName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    public static Uploader create(String jobName, NetworkInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());

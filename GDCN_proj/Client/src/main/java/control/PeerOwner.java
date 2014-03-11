@@ -17,7 +17,7 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
 import taskbuilder.communicationToClient.TaskListener;
-import control.TaskManager;
+import taskbuilder.fileManagement.Install;
 
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
@@ -26,7 +26,8 @@ import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Leif on 2014-02-17
@@ -205,6 +206,21 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             }
         });
 
+    }
+
+    @Override
+    public void install() {
+        Install.install();
+    }
+
+    @Override
+    public void uninstall() {
+        Install.uninstall();
+    }
+
+    @Override
+    public void push(String jobName) {
+        taskManager.uploadJob(jobName, this);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package files;
 
 import com.google.gson.Gson;
-import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import command.communicationToUI.NetworkInterface;
 import command.communicationToUI.OperationFinishedEvent;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
@@ -26,7 +26,7 @@ abstract class AbstractFileMaster{
 
     protected final TaskMeta taskMeta;
     protected final PathManager pathManager;
-    protected final ClientInterface client;
+    protected final NetworkInterface client;
 
     private final TaskListener taskListener;
     private final CommandWord expectedOperation;
@@ -39,7 +39,7 @@ abstract class AbstractFileMaster{
     private volatile boolean stillStartingUp = true;
 
     /**
-     * Creates FileMaster object that reads meta-file for a task. Run {@link FileMaster#runAndAwait()} for
+     * Creates FileMaster object that reads meta-file for a task. Run {@link AbstractFileMaster#runAndAwait()} for
      * solving the dependencies.
      *
      *
@@ -47,9 +47,10 @@ abstract class AbstractFileMaster{
      * @param client Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @param expectedOperation
+     * @param pathManager PathManager to correct directory
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(TaskMeta taskMeta, ClientInterface client, TaskListener taskListener,
+    public AbstractFileMaster(TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener,
                               CommandWord expectedOperation, PathManager pathManager) throws TaskMetaDataException {
 
         this.taskMeta = taskMeta;
@@ -110,8 +111,8 @@ abstract class AbstractFileMaster{
 
 
     /**
-     * Just runs {@link FileMaster#run()} and {@link FileMaster#await()}
-     * @return result of {@link FileMaster#await()}
+     * Just runs {@link AbstractFileMaster#run()} and {@link AbstractFileMaster#await()}
+     * @return result of {@link AbstractFileMaster#await()}
      */
     public boolean runAndAwait() throws TaskMetaDataException {
         run();

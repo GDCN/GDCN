@@ -8,10 +8,18 @@ package command.communicationToUI;
 public enum CommandWord implements WordInterface {
     START(1, "start", "//help"),
     STOP(0, "stop", "//help"),
+
     PUT(2, "put", "//help"),
     GET(1, "get", "//help"),
+
     BOOTSTRAP(2, "bootstrap", ""),
-    WORK(2, "work", "//help");
+
+    WORK(2, "work", "//help"),
+    PUSH(1, "push", "Put job files to DHT"),
+
+    INSTALL(0, "install", ""),
+    UNINSTALL(0, "uninstall", ""),
+    ;
 
     private final int arity;
     private final String name;
