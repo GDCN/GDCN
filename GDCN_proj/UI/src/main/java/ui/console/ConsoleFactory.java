@@ -130,6 +130,28 @@ public class ConsoleFactory {
             }
         });
 
+        commandMap.put(CommandWord.INSTALL.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                client.install();
+            }
+        });
+
+        commandMap.put(CommandWord.UNINSTALL.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                client.uninstall();
+            }
+        });
+
+        commandMap.put(CommandWord.PUSH.getName(), new Command() {
+            @Override
+            public void execute(List<String> args) {
+                String jobName = args.get(0);
+                client.push(jobName);
+            }
+        });
+
         //TODO use enum
         commandMap.put("neighbours", new Command() {
             @Override
