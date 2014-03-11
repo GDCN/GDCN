@@ -41,7 +41,7 @@ public class Downloader extends AbstractFileMaster {
     private static TaskMeta resolveMetaFile(String taskName, ClientInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
         final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
         if(file.exists()){
-            System.out.println("YAY file exist!");
+            System.out.println("Downloader: YAY file exist!");
             try {
                 return AbstractFileMaster.readMetaFile(file);
             } catch (FileNotFoundException e) {
@@ -82,7 +82,7 @@ public class Downloader extends AbstractFileMaster {
         client.removeListener(localListener);
 
         if(file.exists()){
-            System.out.println("YAY file exist!");
+            System.out.println("Downloader: YAY file exist after download!");
             try {
                 return AbstractFileMaster.readMetaFile(file);
             } catch (FileNotFoundException e) {

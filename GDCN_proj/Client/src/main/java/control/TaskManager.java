@@ -128,7 +128,7 @@ public class TaskManager{
 
         try {
             TaskManager manager = new TaskManager(firstTaskListener);
-            manager.uploadJob("Job1",client);
+            manager.uploadJob("Job1", client);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
@@ -137,6 +137,12 @@ public class TaskManager{
         }
 
         System.out.println("\n-- ENTER Second part! --");
+        executeTaskTest(client);
+    } 
+    public static void main2(String[] args){
+        ClientInterface client = new PeerOwner();
+        client.start(8056);
+
         executeTaskTest(client);
     }
 
@@ -175,12 +181,5 @@ public class TaskManager{
         } finally {
             client.stop();
         }
-    }
-
-    public static void main2(String[] args){
-        ClientInterface client = new PeerOwner();
-        client.start(8056);
-
-        executeTaskTest(client);
     }
 }

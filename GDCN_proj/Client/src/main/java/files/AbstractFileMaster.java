@@ -158,9 +158,6 @@ abstract class AbstractFileMaster{
             System.out.println("Test monitor condition before exit loop...");
         }
 
-        //TODO this is currently the only place to report success in this class... Do somewhere else?
-        taskListener.taskFinished(taskMeta.taskName);
-
         //Alternatively, ignore await() model and use TaskListener instead...
         return true;
     }
