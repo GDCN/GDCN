@@ -69,9 +69,6 @@ public class TaskManager{
 
                     runningTasks.put(taskName, thread);
                     thread.start();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    //TODO handle file not found
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
                     //TODO handle job owner error
@@ -104,10 +101,46 @@ public class TaskManager{
                 }
             }
         });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     public static void main(String[] args){
 
+        final Semaphore semaphore = new Semaphore(0);
+        final TaskListener firstTaskListener = new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task finished "+taskName);
+                semaphore.release();
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task failed "+taskName);
+                System.out.println("because of: "+reason);
+                semaphore.release();
+            }
+        };
+
+        ClientInterface client = new PeerOwner();
+        client.start(11789);
+
+        try {
+            TaskManager manager = new TaskManager(firstTaskListener);
+            manager.uploadJob("Job1",client);
+
+            System.out.println("Await task response");
+            semaphore.acquireUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("\n-- ENTER Second part! --");
+        executeTaskTest(client);
+    }
+
+    private static void executeTaskTest(ClientInterface client){
         final Semaphore semaphore = new Semaphore(0);
         final TaskListener mainTaskListener = new TaskListener() {
             @Override
@@ -131,9 +164,6 @@ public class TaskManager{
         PathManager pathManager = PathManager.worker("Primes");
         pathManager.deleteBinaries();
 
-        ClientInterface client = new PeerOwner();
-        client.start(8056);
-
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
             manager.startTask("Primes", "PrimeTask_01", client);
@@ -145,5 +175,12 @@ public class TaskManager{
         } finally {
             client.stop();
         }
+    }
+
+    public static void main2(String[] args){
+        ClientInterface client = new PeerOwner();
+        client.start(8056);
+
+        executeTaskTest(client);
     }
 }

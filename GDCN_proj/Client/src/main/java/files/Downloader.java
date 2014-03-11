@@ -41,6 +41,7 @@ public class Downloader extends AbstractFileMaster {
     private static TaskMeta resolveMetaFile(String taskName, ClientInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
         final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
         if(file.exists()){
+            System.out.println("YAY file exist!");
             try {
                 return AbstractFileMaster.readMetaFile(file);
             } catch (FileNotFoundException e) {
@@ -68,6 +69,8 @@ public class Downloader extends AbstractFileMaster {
                 if(event.getOperation().isSuccess()){
                     Data data = (Data) event.getOperation().getResult();
                     toFile(file, data.getData());
+                } else {
+                    System.out.println("WARNING: "+key+" wasn't found. Fail");
                 }
                 operationFinished.release();
             }
@@ -78,11 +81,16 @@ public class Downloader extends AbstractFileMaster {
         operationFinished.acquireUninterruptibly();
         client.removeListener(localListener);
 
-        try {
-            return AbstractFileMaster.readMetaFile(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-            throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
+        if(file.exists()){
+            System.out.println("YAY file exist!");
+            try {
+                return AbstractFileMaster.readMetaFile(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
+            }
+        } else {
+            throw new TaskMetaDataException("Unable to resolve key: "+key);
         }
     }
 
@@ -130,6 +138,10 @@ public class Downloader extends AbstractFileMaster {
      * @param data contents of file
      */
     private static void toFile(File file, byte[] data){
+        System.out.println("Attempt create file "+file.getAbsolutePath());
+        File parent = file.getParentFile();
+        parent.mkdirs();
+
         //TODO use Box class and do checksum
         BufferedOutputStream outputStream = null;
         try {
