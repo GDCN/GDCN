@@ -2,11 +2,13 @@ package taskbuilder;
 
 import org.apache.commons.io.IOUtils;
 import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Class for tasks, compiling and executing Haskell code
@@ -56,7 +58,7 @@ public class Task implements Runnable{
         String[] command = {"ghc", "-o", compiledModule(),
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
                 "-outputdir", pathManager.taskTempDir(taskName),
-                "-trust", "base", "-trust", "bytestring", "-trust", "binary"};
+                "-trust", "base", "-trust", "bytestring", "-trust", "gdcn-trusted"};
 
         System.out.println("\nCompile command:");
         for(String c : command){
@@ -64,9 +66,20 @@ public class Task implements Runnable{
         }
         System.out.println("\n");
 
+        ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
+
+        Map<String, String> env = pb.environment();
+        if (env.containsKey("GHC_PACKAGE_PATH")) {
+            env.put("GHC_PACKAGE_PATH", Install.HDB_DIR + File.pathSeparator
+                    + env.get("GHC_PACKAGE_PATH"));
+        }
+        else {
+            env.put("GHC_PACKAGE_PATH", Install.HDB_DIR + File.pathSeparator);
+        }
+
         Process proc = null;
         try {
-            proc = new ProcessBuilder(command).inheritIO().start();
+            proc = pb.start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();

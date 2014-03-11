@@ -1,6 +1,6 @@
 module Prime where
 
-import Data.Binary
+import GDCN.Trusted.Data.Binary
 import Data.ByteString.Lazy (ByteString)
 
 {- A somewhat inefficent prime algorithm

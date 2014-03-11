@@ -1,6 +1,11 @@
 package taskbuilder.fileManagement;
 
+import org.apache.commons.io.IOUtils;
+import taskbuilder.ExitFailureException;
+
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 /**
@@ -15,6 +20,9 @@ public class Install {
     public static final String APPDATA = System.getProperty("user.home") + SEPARATOR + ".gdcn" + SEPARATOR;
     public static final String PATH_DATA = APPDATA + "pathdata.prop";
     public static final String HEADER_NAME = "Header.hs";
+
+    public static final String LIB_DIR = APPDATA + "lib";
+    public static final String HDB_DIR = APPDATA + "hdb.conf.d";
 
     /**
      * Simply runs {@link Install#install()}
@@ -54,6 +62,8 @@ public class Install {
                 }
             }
         }
+
+        installHaskellLibraries();
     }
 
     /**
@@ -105,5 +115,39 @@ public class Install {
         props.put("job_path", APPDATA + "jobs" + File.separator);
 
         return props;
+    }
+
+    private static void installHaskellLibraries() {
+        String[] dbCmd = {"ghc-pkg", "init", HDB_DIR};
+        String[] libCmd = {"runhaskell", "Setup", LIB_DIR, HDB_DIR};
+
+        try {
+            Process makeDb = new ProcessBuilder(dbCmd).start();
+
+            if (makeDb.waitFor() != 0) {
+                StringWriter writer = new StringWriter();
+                IOUtils.copy(makeDb.getErrorStream(), writer, null);
+                throw new ExitFailureException(writer.toString());
+            }
+
+            //TODO Use BIN_PATH from pathdata.prop
+            File buildDir = new File(System.getProperty("user.dir"), "TaskBuilder/resources/gdcn-trusted");
+            Process makeLib = new ProcessBuilder(libCmd).directory(buildDir).start();
+
+            if (makeLib.waitFor() != 0) {
+                StringWriter writer = new StringWriter();
+                IOUtils.copy(makeDb.getErrorStream(), writer, null);
+                throw new ExitFailureException(writer.toString());
+            }
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        catch (ExitFailureException e) {
+            e.printStackTrace();
+        }
     }
 }
