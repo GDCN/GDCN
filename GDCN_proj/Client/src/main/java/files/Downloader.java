@@ -2,12 +2,16 @@ package files;
 
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.storage.Data;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.*;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -22,17 +26,64 @@ public class Downloader extends AbstractFileMaster {
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    private Downloader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    private Downloader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
         super(taskMeta, client, taskListener, CommandWord.GET, pathManager);
     }
 
-    public static Downloader create(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    public static Downloader create(String projectName, String taskName, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
 
         PathManager manager = PathManager.worker(projectName);
-        File file = new File(manager.taskMetaDir() + taskName + ".json");
-        TaskMeta taskMeta = AbstractFileMaster.readMetaFile(file);
+        TaskMeta taskMeta = resolveMetaFile(taskName, client, taskListener, manager);
 
         return new Downloader(manager, taskMeta, client, taskListener);
+    }
+
+    private static TaskMeta resolveMetaFile(String taskName, ClientInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
+        final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
+        if(file.exists()){
+            try {
+                return AbstractFileMaster.readMetaFile(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+                throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
+            }
+        }
+
+        final String key = taskName+".json";
+        final Semaphore operationFinished = new Semaphore(0);
+
+        PropertyChangeListener localListener = new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if(! (evt instanceof OperationFinishedEvent)){
+                    return;
+                }
+                OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                if(event.getCommandWord() != CommandWord.GET){
+                    return;
+                }
+                if(event.getOperation().getKey() != key){
+                    return;
+                }
+                if(event.getOperation().isSuccess()){
+                    Data data = (Data) event.getOperation().getResult();
+                    toFile(file, data.getData());
+                }
+                operationFinished.release();
+            }
+        };
+        client.addListener(localListener);
+
+        client.get(key);
+        operationFinished.acquireUninterruptibly();
+        client.removeListener(localListener);
+
+        try {
+            return AbstractFileMaster.readMetaFile(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
+        }
     }
 
     @Override

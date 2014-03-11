@@ -50,7 +50,7 @@ abstract class AbstractFileMaster{
      * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
     public AbstractFileMaster(TaskMeta taskMeta, ClientInterface client, TaskListener taskListener,
-                              CommandWord expectedOperation, PathManager pathManager) throws FileNotFoundException, TaskMetaDataException {
+                              CommandWord expectedOperation, PathManager pathManager) throws TaskMetaDataException {
 
         this.taskMeta = taskMeta;
         this.client = client;

@@ -29,7 +29,7 @@ public class Uploader extends AbstractFileMaster{
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
      * @throws java.io.FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    private Uploader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    private Uploader(PathManager pathManager, TaskMeta taskMeta, ClientInterface client, TaskListener taskListener) throws TaskMetaDataException {
         super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
     }
 
