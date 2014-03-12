@@ -1,0 +1,1 @@
+screen -S GDCN_Screen mvn -f UI/pom.xml exec:java
