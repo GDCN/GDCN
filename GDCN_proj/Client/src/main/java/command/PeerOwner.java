@@ -20,7 +20,7 @@ import taskbuilder.communicationToClient.TaskListener;
 import control.TaskManager;
 
 import java.beans.PropertyChangeListener;
-import java.io.IOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -35,7 +35,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
     private List<PeerAddress> neighbours = new ArrayList<>();
-    private List<PeerAddress> oldNeighbours = new ArrayList<>();
+
+    private List<String[]> fileNeighbours = new ArrayList<>();
+
+
+    private String fileName = "neighbours";
+    private File neighbourFile = new File(fileName);
 
 
     private final TaskListener taskListener = new TaskListener() {
@@ -54,11 +59,19 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         @Override
         public void peerInserted(PeerAddress peerAddress) {
 
-            //TODO save node to file here?
+            String[] address = {peerAddress.getInetAddress().getHostAddress(), String.valueOf(peerAddress.portUDP())};
 
-            if(oldNeighbours.contains(peerAddress)) {
+            boolean exists = false;
 
-                oldNeighbours.remove(peerAddress);
+            for(String[] fileAddress : fileNeighbours) {
+                if(fileAddress[0].equals(address[0]) && fileAddress[1].equals(address[1])) {
+                    exists = true;
+                }
+            }
+
+            if(!exists) {
+                writeNeighbours(peerAddress);
+                fileNeighbours.add(address);
             }
 
             if(!neighbours.contains(peerAddress)) {
@@ -69,16 +82,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         @Override
         public void peerRemoved(PeerAddress peerAddress) {
 
-            //TODO Change the nodes saved locally here?
-
             neighbours.remove(peerAddress);
 
-            oldNeighbours.add(peerAddress);
         }
 
         @Override
         public void peerUpdated(PeerAddress peerAddress) {
-            //TODO save node to file here?
 
             neighbours.remove(peerAddress);
             neighbours.add(peerAddress);
@@ -105,8 +114,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void start(int port){
 
+//        neighbourFile = new File(fileName);
+
         if(peer != null) {
             stop();
+        } else {
+            readNeighbours();
         }
 
         try {
@@ -114,6 +127,13 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
             KeyPair keyPair = generator.generateKeyPair();
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
+
+            fileNeighbours = readNeighbours();
+
+            for(String[] n : fileNeighbours) {
+                System.out.println(n[0] + " " + n[1]);
+            }
+
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(peerMapChangeListener);
 
@@ -220,23 +240,75 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public List<PeerAddress> getOldNeighbours(){
-
-        return oldNeighbours;
-    }
-
-
-    @Override
     public void reBootstrap() {
 
-        ArrayList<PeerAddress> allNeighbours = new ArrayList<>();
-
-        allNeighbours.addAll(neighbours);
-        allNeighbours.addAll(oldNeighbours);
-
-        for (PeerAddress p : allNeighbours) {
+        for(PeerAddress p : neighbours) {
             bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
         }
 
     }
+
+    public void writeNeighbours(PeerAddress peerAddress) {
+        try {
+
+            BufferedWriter out = new BufferedWriter(new FileWriter(neighbourFile, true));
+
+            out.write(peerAddress.getInetAddress().getHostAddress() + " " + peerAddress.portUDP() + "\n");
+
+            out.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public ArrayList<String[]> readNeighbours(){
+        String line;
+        String[] address;
+        ArrayList<String[]> addresses = new ArrayList<>();
+        if(!neighbourFile.exists()) {
+            return addresses;
+        }
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
+            while((line = in.readLine()) != null) {
+
+                address = line.split(" ");
+                addresses.add(address);
+            }
+
+            in.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return addresses;
+    }
+
+    @Override
+    public void setNeighbourFile(String file){
+        neighbourFile = new File(file);
+    }
+
+    @Override
+    public void clearNeighbourFile(){
+        FileOutputStream writer = null;
+        try {
+            writer = new FileOutputStream(neighbourFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void deleteNeighbourFile(){
+        neighbourFile.delete();
+    }
+
+
 }

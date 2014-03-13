@@ -133,6 +133,7 @@ public class ConsoleFactory {
         commandMap.put("neighbours", new Command() {
             @Override
             public void execute(List<String> args) {
+                //TODO fix!
                 client.getNeighbours();
             }
         });
@@ -143,6 +144,20 @@ public class ConsoleFactory {
             public void execute(List<String> args) {
                 //TODO fix!
 //                client.reBootstrap();
+            }
+        });
+
+        commandMap.put("clearNeighbourFile", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                client.clearNeighbourFile();
+            }
+        });
+
+        commandMap.put("deleteNeighbourFile", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                client.deleteNeighbourFile();
             }
         });
 

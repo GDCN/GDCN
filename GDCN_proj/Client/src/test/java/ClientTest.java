@@ -555,29 +555,29 @@ public class ClientTest {
 
     }
 
-    //Makes sure that the oldNeighbour list is updated
-    @Test
-    public void getOldNeighboursTest() throws InterruptedException {
-        int numberOfPeers = 5;
-
-        PeerOwner[] peers =  new PeerOwner[numberOfPeers];
-
-        for(int i = 0; i < numberOfPeers; i++) {
-            peers[i] = new PeerOwner();
-            peers[i].start(4003+i);
-            peers[i].bootstrap(bootstrapAdress, bootstrapPort);
-        }
-
-        while(bootstrapNode.getNeighbours().size() < 5) {
-            Thread.sleep(1000);
-        }
-
-        for(int i = 0; i < numberOfPeers; i++) {
-            peers[i].stop();
-        }
-
-        while (bootstrapNode.getOldNeighbours().size() < 5) {
-            Thread.sleep(1000);
-        }
-    }
+//    Makes sure that the oldNeighbour list is updated
+//    @Test
+//    public void getOldNeighboursTest() throws InterruptedException {
+//        int numberOfPeers = 5;
+//
+//        PeerOwner[] peers =  new PeerOwner[numberOfPeers];
+//
+//        for(int i = 0; i < numberOfPeers; i++) {
+//            peers[i] = new PeerOwner();
+//            peers[i].start(4003+i);
+//            peers[i].bootstrap(bootstrapAdress, bootstrapPort);
+//        }
+//
+//        while(bootstrapNode.getNeighbours().size() < 5) {
+//            Thread.sleep(1000);
+//        }
+//
+//        for(int i = 0; i < numberOfPeers; i++) {
+//            peers[i].stop();
+//        }
+//
+//        while (bootstrapNode.getOldNeighbours().size() < 5) {
+//            Thread.sleep(1000);
+//        }
+//    }
 }

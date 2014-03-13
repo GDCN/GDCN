@@ -30,7 +30,11 @@ public interface ClientInterface {
 
     List<PeerAddress> getNeighbours();
 
-    List<PeerAddress> getOldNeighbours();
-
     void reBootstrap();
+
+    void setNeighbourFile(String file);
+
+    void clearNeighbourFile();
+
+    void deleteNeighbourFile();
 }
