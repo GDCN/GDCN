@@ -30,10 +30,12 @@ public class DirectDataPasser {
             @Override
             public void operationComplete(FutureResponse future) throws Exception {
                 if(!future.isSuccess()){
-                    //TODO output
+                    System.out.println("Failure in DirectDataPasser!");
                     return;
                 }
                 Message response = future.getResponse();
+                System.out.println("Success in DirectDataPasser! :D");
+                System.out.println(response.toString());
                 //TODO output
             }
         });

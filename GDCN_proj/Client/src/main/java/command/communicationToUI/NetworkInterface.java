@@ -30,4 +30,6 @@ public interface NetworkInterface {
     List<PeerAddress> getOldNeighbours();
 
     void reBootstrap();
+
+    void send(String msg);
 }
