@@ -16,7 +16,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
-import network.DirectDataPasser;
+import network.Passer;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
@@ -259,9 +259,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void send(String msg) {
         //Sends to all known nodes, see what happens
-        DirectDataPasser passer = new DirectDataPasser(peer);
+        Passer passer = new Passer(peer);
         for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.sendObject(msg, address);
+            passer.send(address, msg);
         }
     }
 }
