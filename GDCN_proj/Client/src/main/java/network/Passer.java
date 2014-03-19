@@ -6,7 +6,6 @@ import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
-import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
@@ -31,7 +30,8 @@ public class Passer {
 
     public void send(PeerAddress receiver, final Object message){
         RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
-        SendBuilder sendBuilder = peer.send(Number160.createHash("messageKey"));
+        SendBuilder sendBuilder = peer.send(receiver.getID());
+
         FutureDHT futureDHT = sendBuilder.setObject(message).setRequestP2PConfiguration(requestP2PConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
             @Override
