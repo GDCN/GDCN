@@ -28,6 +28,13 @@ public class Passer {
         });
     }
 
+    /**
+     * In testing, the message gets through but the Future says not successful...
+     * Perhaps has something to do with the reply... TODO check if return "OK" changes that
+     * TODO make good message passing protocol for Tasks
+     * @param receiver other peer
+     * @param message Any object to send
+     */
     public void send(PeerAddress receiver, final Object message){
         RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
         SendBuilder sendBuilder = peer.send(receiver.getID());
