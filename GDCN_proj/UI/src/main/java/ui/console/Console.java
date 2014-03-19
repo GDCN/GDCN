@@ -1,10 +1,11 @@
 package ui.console;
 
-import control.PeerOwner;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;
 import command.communicationToUI.WordInterface;
+import control.PeerOwner;
+import net.tomp2p.storage.Data;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -84,6 +85,20 @@ public class Console implements PropertyChangeListener{
                 break;
             case WORK:
                 println("Work on" + event.getOperation().getKey() + " " + success);
+                break;
+            case PUT:
+                println("Put " + event.getOperation().getKey() + " " + success);
+                break;
+            case GET:
+                println("Got" + event.getOperation().getKey() + " " + success);
+                Data data = (Data) event.getOperation().getResult();
+                try {
+                    println(data.getObject().toString());
+                } catch (ClassNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
                 break;
             default:
                 println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());

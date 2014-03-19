@@ -2,6 +2,7 @@ package ui.console;
 
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
+import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
 import java.io.IOException;
@@ -164,7 +165,11 @@ public class ConsoleFactory {
         commandMap.put("neighbours", new Command() {
             @Override
             public void execute(List<String> args) {
-                client.getNeighbours();
+                List<PeerAddress> neighbours = client.getNeighbours();
+                System.out.println("NEIGHBOURS:");
+                for(PeerAddress address : neighbours){
+                    System.out.println(address.toString());
+                }
             }
         });
 
