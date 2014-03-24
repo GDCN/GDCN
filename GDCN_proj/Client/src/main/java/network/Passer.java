@@ -60,7 +60,7 @@ public class Passer {
         RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
-        FutureDHT futureDHT = sendBuilder.setObject(message).setRequestP2PConfiguration(requestP2PConfiguration).start();
+        FutureDHT futureDHT = sendBuilder.setObject( new NetworkMessage(message, NetworkMessage.Type.REQUEST) ).setRequestP2PConfiguration(requestP2PConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
             @Override
             public void operationComplete(BaseFuture future) throws Exception {
