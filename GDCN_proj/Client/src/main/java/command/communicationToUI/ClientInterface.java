@@ -12,6 +12,8 @@ public interface ClientInterface extends NetworkInterface{
 
     void work(String projectName, String taskName);
 
+    void sendd(String msg);
+
     void put2(String key, String domain, Object value);
 
     void get2(String key, String domain);

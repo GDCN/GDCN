@@ -3,9 +3,11 @@ package network;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
+import net.tomp2p.futures.FutureResponse;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
+import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
@@ -51,5 +53,27 @@ public class Passer {
             }
         });
 
+    }
+
+    /**
+     * SendDirect
+     * @param receiver r
+     * @param message m
+     */
+    public void sendd(PeerAddress receiver, final Object message){
+//        RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
+        SendDirectBuilder sendDirectBuilder = peer.sendDirect(receiver);
+        sendDirectBuilder.setObject(message);
+        FutureResponse futureResponse = sendDirectBuilder.start();
+        futureResponse.addListener(new BaseFutureAdapter<BaseFuture>() {
+            @Override
+            public void operationComplete(BaseFuture future) throws Exception {
+                if(!future.isSuccess()){
+                    System.out.println("Error sendDing "+message.toString());
+                    return;
+                }
+                System.out.println("Success sendDing "+message.toString());
+            }
+        });
     }
 }
