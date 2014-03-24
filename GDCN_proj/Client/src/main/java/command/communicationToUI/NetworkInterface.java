@@ -32,4 +32,10 @@ public interface NetworkInterface {
     void reBootstrap();
 
     void send(String msg);
+
+    void sendd(String msg);
+
+    void put2(String key, String domain, Object value);
+
+    void get2(String key, String domain);
 }

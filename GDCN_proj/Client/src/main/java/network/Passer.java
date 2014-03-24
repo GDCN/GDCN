@@ -23,8 +23,27 @@ public class Passer {
         peer.setObjectDataReply(new ObjectDataReply() {
             @Override
             public Object reply(PeerAddress sender, Object request) throws Exception {
-                //TODO
-                System.out.println("ObjectDataReply:" + request.toString());
+
+                if(!(request instanceof NetworkMessage)){
+                    System.out.println("in Passer: ERROR! some request was not a NetworkMessage");
+                    return null;
+                }
+                NetworkMessage message = (NetworkMessage) request;
+                System.out.println("ObjectDataReply:" + message.toString());
+
+                switch (message.getType()){
+                    case OK:
+                        System.out.println("OK received");
+                        break;
+                    case REQUEST:
+                        System.out.println("REQUEST received: "+message.getObject());
+                        send(sender, new NetworkMessage(null, NetworkMessage.Type.OK));
+                        break;
+                    case NO_REPLY:
+                        System.out.println("NO_REPLY received: "+message.getObject());
+                        break;
+                }
+
                 return null;
             }
         });
