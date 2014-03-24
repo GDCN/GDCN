@@ -20,6 +20,7 @@ public class Install {
     public static final String APPDATA = System.getProperty("user.home") + SEPARATOR + ".gdcn" + SEPARATOR;
     public static final String PATH_DATA = APPDATA + "pathdata.prop";
     public static final String HEADER_NAME = "Header.hs";
+    public static final String HPKG_NAME = "gdcn-trusted";
 
     public static final String LIB_DIR = APPDATA + "lib";
     public static final String HDB_DIR = APPDATA + "hdb.conf.d";
@@ -41,12 +42,13 @@ public class Install {
         rootPath.mkdirs();
 
         File pathDataFile = new File(PATH_DATA);
+	Properties pathData = null;
 
         OutputStream outputStream = null;
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(pathDataFile));
 
-            Properties pathData = paths();
+            pathData = paths();
             pathData.store(outputStream, " -- Paths for GDCN --");
 
         } catch (FileNotFoundException e) {
@@ -63,7 +65,9 @@ public class Install {
             }
         }
 
-        installHaskellLibraries();
+	if (pathData != null) {
+	    installHaskellLibraries(pathData.getProperty("bin_path"));
+	}
     }
 
     /**
@@ -117,7 +121,7 @@ public class Install {
         return props;
     }
 
-    private static void installHaskellLibraries() {
+    private static void installHaskellLibraries(String bin_path) {
         String[] dbCmd = {"ghc-pkg", "init", HDB_DIR};
         String[] libCmd = {"runhaskell", "Setup", LIB_DIR, HDB_DIR};
 
@@ -130,8 +134,7 @@ public class Install {
                 throw new ExitFailureException(writer.toString());
             }
 
-            //TODO Use BIN_PATH from pathdata.prop
-            File buildDir = new File(System.getProperty("user.dir"), "TaskBuilder/resources/gdcn-trusted");
+            File buildDir = new File(bin_path + HPKG_NAME);
             Process makeLib = new ProcessBuilder(libCmd).directory(buildDir).start();
 
             if (makeLib.waitFor() != 0) {

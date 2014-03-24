@@ -1,3 +1,0 @@
-resources = TaskBuilder/resources/
-temp = tmpa/
-header = TaskBuilder/src/main/haskell/Header.hs
