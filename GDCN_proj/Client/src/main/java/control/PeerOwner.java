@@ -4,14 +4,10 @@ import command.communicationToUI.CommandWord;
 import command.communicationToUI.ErrorCode;
 import command.communicationToUI.Operation.OperationBuilder;
 import command.communicationToUI.OperationFinishedSupport;
-import net.tomp2p.futures.BaseFutureAdapter;
-import net.tomp2p.futures.FutureBootstrap;
-import net.tomp2p.futures.FutureDHT;
-import net.tomp2p.futures.FutureDiscover;
+import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
-import net.tomp2p.p2p.builder.BootstrapBuilder;
-import net.tomp2p.p2p.builder.DiscoverBuilder;
+import net.tomp2p.p2p.builder.*;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
@@ -264,4 +260,40 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             passer.send(address, msg);
         }
     }
+
+    @Override
+    public void put2(final String key, final String domain, Object value){
+        PutBuilder builder = peer.put(Number160.createHash(key));
+        try {
+            builder.setData(Number160.createHash(domain), new Data(value));
+            FutureDHT futureDHT = builder.start();
+            futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
+                @Override
+                public void operationComplete(BaseFuture future) throws Exception {
+                    String s = future.isSuccess()?"succeeded":"failed";
+                    System.out.println("Add under "+key+"/"+domain+s);
+                }
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void get2(final String key, final String domain){
+        GetBuilder getBuilder = peer.get(Number160.createHash(key));
+        getBuilder.setContentKey(Number160.createHash(domain));
+        FutureDHT futureDHT = getBuilder.start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                String s = future.isSuccess()?"succeeded":"failed";
+                System.out.println("Get2 under "+key+"/"+domain+s);
+                if(future.isSuccess()){
+                    System.out.println(future.getData().getObject().toString());
+                }
+            }
+        });
+    }
+
 }

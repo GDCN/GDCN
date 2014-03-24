@@ -174,6 +174,27 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
+        commandMap.put("put2", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                String key = args.get(0);
+                String domain = args.get(1);
+                String value = args.get(2);
+                client.put2(key, domain, value);
+            }
+        });
+
+        //TODO use enum
+        commandMap.put("get2", new Command() {
+            @Override
+            public void execute(List<String> args) {
+                String key = args.get(0);
+                String domain = args.get(1);
+                client.get2(key, domain);
+            }
+        });
+
+        //TODO use enum
         commandMap.put("rebootstrap", new Command() {
             @Override
             public void execute(List<String> args) {
