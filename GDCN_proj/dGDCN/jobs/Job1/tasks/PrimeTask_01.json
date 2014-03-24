@@ -1,5 +1,5 @@
 {
-    "projectName":"Primes",
+    "resultKey":"Primes",
     "taskName":"PrimeTask_01",
     "module":{"fileName":"Prime.hs","location":"code","key":"Primes_algorithms","sticky":true,"checkSum":500},
     "dependencies":

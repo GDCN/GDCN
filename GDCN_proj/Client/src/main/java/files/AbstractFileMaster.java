@@ -300,21 +300,21 @@ abstract class AbstractFileMaster{
      * Represents contents in one MetaTask file
      */
     protected static class TaskMeta implements Serializable{
-        private String projectName;
+        private String resultKey;
         private String taskName;
 
         private FileDep module;
         private List<FileDep> dependencies;
 
-        protected TaskMeta(String projectName, String taskName, FileDep module, List<FileDep> dependencies) {
-            this.projectName = projectName;
+        protected TaskMeta(String resultKey, String taskName, FileDep module, List<FileDep> dependencies) {
+            this.resultKey = resultKey;
             this.taskName = taskName;
             this.module = module;
             this.dependencies = dependencies;
         }
 
-        public String getProjectName() {
-            return projectName;
+        public String getResultKey() {
+            return resultKey;
         }
 
         public String getTaskName() {
