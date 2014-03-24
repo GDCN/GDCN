@@ -9,10 +9,12 @@ public class NetworkMessage implements Serializable {
 
     private final Object object;
     private final Type type;
+    private final Long ref;
 
-    public NetworkMessage(Object object, Type type) {
+    public NetworkMessage(Object object, Type type, Long ref) {
         this.object = object;
         this.type = type;
+        this.ref = ref;
     }
 
     public Object getObject() {
@@ -21,6 +23,10 @@ public class NetworkMessage implements Serializable {
 
     public Type getType() {
         return type;
+    }
+
+    public Long getRef() {
+        return ref;
     }
 
     @Override

@@ -11,6 +11,9 @@ import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
+import java.util.HashMap;
+import java.util.Random;
+
 /**
  * Created by Leif on 2014-03-19.
  */
@@ -18,7 +21,12 @@ public class Passer {
 
     private final Peer peer;
 
-    public Passer(Peer peer) {
+    private final Random random = new Random();
+
+    //TODO <Long, Command> instead of <Long, String>...
+    private final HashMap<Long, String> pendingRequests = new HashMap<>();
+
+    public Passer(final Peer peer) {
         this.peer = peer;
         peer.setObjectDataReply(new ObjectDataReply() {
             @Override
@@ -28,29 +36,39 @@ public class Passer {
                     System.out.println("in Passer: ERROR! some request was not a NetworkMessage");
                     return null;
                 }
+                if(peer.getPeerAddress().equals(sender)){
+                    System.out.println("in Passer: ERROR! sender is myself!!!");
+                }
+
                 NetworkMessage message = (NetworkMessage) request;
                 System.out.println("ObjectDataReply:" + message.toString());
 
                 switch (message.getType()){
                     case OK:
-                        System.out.println("OK received");
+                        String resolved = pendingRequests.remove(message.getRef());
+                        if(resolved==null){
+                            System.out.println("OK received for unknown! Ref "+message.getRef());
+                        }else{
+                            System.out.println("OK received for "+resolved);
+                        }
                         break;
                     case REQUEST:
                         System.out.println("REQUEST received: "+message.getObject());
-                        sendMessage(sender, new NetworkMessage(null, NetworkMessage.Type.OK));
+                        sendMessage(sender, new NetworkMessage(null, NetworkMessage.Type.OK, message.getRef()));
                         break;
                     case NO_REPLY:
                         System.out.println("NO_REPLY received: "+message.getObject());
                         break;
                 }
-
                 return null;
             }
         });
     }
 
-    public void send(PeerAddress receiver, String data){
-        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST));
+    public void sendRequest(PeerAddress receiver, String data){
+        Long ref = random.nextLong();
+        pendingRequests.put(ref, data);
+        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST, ref));
     }
 
     /**
