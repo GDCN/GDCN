@@ -37,7 +37,7 @@ public class Passer {
                         break;
                     case REQUEST:
                         System.out.println("REQUEST received: "+message.getObject());
-                        send(sender, new NetworkMessage(null, NetworkMessage.Type.OK));
+                        sendMessage(sender, new NetworkMessage(null, NetworkMessage.Type.OK));
                         break;
                     case NO_REPLY:
                         System.out.println("NO_REPLY received: "+message.getObject());
@@ -49,26 +49,30 @@ public class Passer {
         });
     }
 
+    public void send(PeerAddress receiver, String data){
+        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST));
+    }
+
     /**
      * In testing, the message gets through but the Future says not successful...
      * Perhaps has something to do with the reply... TODO check if return "OK" changes that
      * TODO make good message passing protocol for Tasks
      * @param receiver other peer
-     * @param message Any object to send
+     * @param networkMessage Any object to send
      */
-    public void send(PeerAddress receiver, final Object message){
+    private void sendMessage(PeerAddress receiver, final NetworkMessage networkMessage){
         RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
-        FutureDHT futureDHT = sendBuilder.setObject( new NetworkMessage(message, NetworkMessage.Type.REQUEST) ).setRequestP2PConfiguration(requestP2PConfiguration).start();
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage ).setRequestP2PConfiguration(requestP2PConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
             @Override
             public void operationComplete(BaseFuture future) throws Exception {
                 if(!future.isSuccess()){
-                    System.out.println("Error sending "+message.toString());
+                    System.out.println("Error sending " + networkMessage.toString());
                     return;
                 }
-                System.out.println("Success sending "+message.toString());
+                System.out.println("Success sending " + networkMessage.toString());
             }
         });
 
