@@ -71,6 +71,10 @@ public class Passer {
         sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST, ref));
     }
 
+    public void sendReply(PeerAddress receiver, Object data, Long ref){
+        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.NO_REPLY, ref));
+    }
+
     /**
      * In testing, the message gets through but the Future says not successful...
      * Perhaps has something to do with the reply... TODO check if return "OK" changes that
