@@ -266,7 +266,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         //Sends to all known nodes, see what happens
         Passer passer = new Passer(peer);
         for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.send(address, msg);
+            passer.sendd(address, msg);
         }
     }
 

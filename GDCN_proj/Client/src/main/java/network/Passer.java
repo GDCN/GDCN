@@ -10,6 +10,8 @@ import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
+import net.tomp2p.rpc.RawDataReply;
+import org.jboss.netty.buffer.ChannelBuffer;
 
 /**
  * Created by Leif on 2014-03-19.
@@ -24,7 +26,15 @@ public class Passer {
             @Override
             public Object reply(PeerAddress sender, Object request) throws Exception {
                 //TODO
-                System.out.println(request.toString());
+                System.out.println("ObjectDataReply:" + request.toString());
+                return null;
+            }
+        });
+
+        peer.setRawDataReply(new RawDataReply() {
+            @Override
+            public ChannelBuffer reply(PeerAddress sender, ChannelBuffer requestBuffer) throws Exception {
+                System.out.println("Received raw data reply from "+sender);
                 return null;
             }
         });
