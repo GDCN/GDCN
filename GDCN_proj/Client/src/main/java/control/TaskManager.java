@@ -2,6 +2,7 @@ package control;
 
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
+import files.ResultListener;
 import files.TaskMetaDataException;
 import files.Uploader;
 import taskbuilder.communicationToClient.TaskListener;
@@ -9,8 +10,6 @@ import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -20,37 +19,46 @@ import java.util.concurrent.Semaphore;
  */
 public class TaskManager{
 
-    private final Map<String,Thread> runningTasks = new HashMap<String,Thread>();
+//    private final Map<String,Thread> runningTasks = new HashMap<>();
 
     private final TaskListener taskListener;
-    private final TaskListener localListener = new TaskListener() {
-        @Override
-        public void taskFinished(String taskName) {
-            runningTasks.remove(taskName);
-            //TODO do something other than pass along signal?
-
-            taskListener.taskFinished(taskName);
-        }
-
-        @Override
-        public void taskFailed(String taskName, String reason) {
-            runningTasks.remove(taskName);
-            //TODO do something other than pass along signal?
-
-            taskListener.taskFailed(taskName, reason);
-        }
-    };
+//    private final TaskListener localListener = new TaskListener() {
+//        @Override
+//        public void taskFinished(String taskName) {
+//            runningTasks.remove(taskName);
+//            //TODO do something other than pass along signal?
+//
+//            taskListener.taskFinished(taskName);
+//        }
+//
+//        @Override
+//        public void taskFailed(String taskName, String reason) {
+//            runningTasks.remove(taskName);
+//            //TODO do something other than pass along signal?
+//
+//            taskListener.taskFailed(taskName, reason);
+//        }
+//    };
 
     public TaskManager(TaskListener taskListener) {
         this.taskListener = taskListener;
     }
 
-    public int numberOfRunningTasks(){
-        return runningTasks.size();
+//    public int numberOfRunningTasks(){
+//        return runningTasks.size();
+//    }
+
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
+        startTask(projectName, taskName, networker, new ResultListener() {
+            @Override
+            public void taskCompleted(byte[] results) {
+                //TODO remove this overloaded method and start cleaning
+            }
+        });
     }
 
     //TODO use worker pool instead of new Threads
-    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener someListener){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -64,10 +72,10 @@ public class TaskManager{
                         return;
                     }
 
-                    Thread thread = new Thread(downloader.buildTask(localListener));
+                    Thread thread = new Thread(downloader.buildTask(taskListener));
                     thread.setDaemon(true);
 
-                    runningTasks.put(taskName, thread);
+//                    runningTasks.put(taskName, thread);
                     thread.start();
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
@@ -80,6 +88,7 @@ public class TaskManager{
         thread.start();
     }
 
+    //TODO use worker pool instead of new Threads
     public void uploadJob(final String jobName, final ClientInterface networker){
         Thread thread = new Thread(new Runnable() {
             @Override
