@@ -30,7 +30,7 @@ public class Task implements Runnable{
         this.projectName = projectName;
         this.taskName = taskName;
         this.moduleName = moduleName;
-        this.initDataPaths = new ArrayList<String>(initDataFiles);
+        this.initDataPaths = new ArrayList<>(initDataFiles);
         this.listener = listener;
 
         pathManager = PathManager.worker(this.projectName);
@@ -44,7 +44,7 @@ public class Task implements Runnable{
      * Compiles task code
      */
     public void compile(){
-        List<File> dirs = new ArrayList<File>();
+        List<File> dirs = new ArrayList<>();
         dirs.add(new File(pathManager.taskBinaryDir()));
         dirs.add(new File(pathManager.projectTempDir()));
 
