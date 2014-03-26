@@ -32,4 +32,10 @@ public interface NetworkInterface {
     void reBootstrap();
 
     void send(String msg);
+
+    void setNeighbourFile(String file);
+
+    void clearNeighbourFile();
+
+    void deleteNeighbourFile();
 }
