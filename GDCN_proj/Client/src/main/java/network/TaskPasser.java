@@ -21,10 +21,25 @@ public class TaskPasser extends Passer {
     private final Map<String, Challenge> pendingChallenges = new HashMap<>();
 
     /**
+     * Debug message. Just sends a request that is answered.
+     * @param otherPeer peer
+     * @param hello String of words
+     */
+    public void sendHello(PeerAddress otherPeer, String hello){
+        sendRequest(otherPeer, new TaskMessage(TaskMessageType.HELLO, hello), new OnReplyCommand() {
+            @Override
+            public void execute(Object replyMessageContent) {
+                System.out.println(replyMessageContent.toString());
+            }
+        });
+    }
+
+    /**
      * Starts task process working for this peer
      * @param jobOwner Peer to work for
      */
     public void requestWork(final PeerAddress jobOwner){
+        //TODO do concurrently?
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, null), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
@@ -34,7 +49,7 @@ public class TaskPasser extends Passer {
                 }
                 Solution challengeSolution = challengeReceived(taskMessage.actualContent);
 
-                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQEST_TASK, challengeSolution), new OnReplyCommand() {
+                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, challengeSolution), new OnReplyCommand() {
                     @Override
                     public void execute(Object replyMessageContent2) {
                         TaskMessage taskMessage2 = check(replyMessageContent2);
@@ -67,14 +82,16 @@ public class TaskPasser extends Passer {
 
         switch(taskMessage.type){
             case REQUEST_CHALLENGE:
+                //TODO if Worker is not registered, generate HARD challenge instead!
                 Challenge challenge = Challenge.generate();
                 pendingChallenges.put(challenge.getKey(), challenge);
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
-            case REQEST_TASK:
+            case REQUEST_TASK:
                 Solution solution = (Solution) taskMessage.actualContent;
                 Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
+                    //TODO register Peer in list of workers if not is there already
                     //TODO give actual task information
                     return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
                 } else {
@@ -82,7 +99,9 @@ public class TaskPasser extends Passer {
                 }
 
             case HELLO:
+                System.out.println("Received Hello: "+taskMessage.actualContent.toString());
                 return new TaskMessage(TaskMessageType.HELLO, "Hi, I heard you said "+taskMessage.actualContent);
+
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
         }
@@ -112,7 +131,7 @@ public class TaskPasser extends Passer {
     private static enum TaskMessageType{
         REQUEST_CHALLENGE,
         CHALLENGE,
-        REQEST_TASK,
+        REQUEST_TASK,
         FAIL,
         TASK,
         RESULT_UPLOADED,

@@ -27,6 +27,11 @@ public class Challenge implements Serializable{
         return new Challenge();
     }
 
+    public static Challenge generateHard(){
+        //TODO generate new HARD Challenge for register
+        return new Challenge();
+    }
+
     public String getKey() {
         return key;
     }
