@@ -11,7 +11,7 @@ public class MessageTest {
     public void encryptDecryptMessage(){
         NetworkMessage message = new NetworkMessage("SomeData", NetworkMessage.Type.REQUEST, 127658817L);
 
-        Data encrypted = message.encrypt();
+        Object encrypted = message.encrypt();
         NetworkMessage decrypted = NetworkMessage.decrypt(encrypted);
 
         assert decrypted.getRef().equals(message.getRef());
