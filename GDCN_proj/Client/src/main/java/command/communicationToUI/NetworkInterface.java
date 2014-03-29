@@ -43,4 +43,6 @@ public interface NetworkInterface {
 
     void deleteNeighbourFile();
 
+    void requestWork(int index);
+
 }

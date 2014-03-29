@@ -195,6 +195,18 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
+        commandMap.put("reqw", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                int ix = 0;
+                if(args.size()>0){
+                    ix = Integer.parseInt(args.get(0));
+                }
+                client.requestWork(ix);
+            }
+        });
+
+        //TODO use enum
         commandMap.put("rebootstrap", new UICommand() {
             @Override
             public void execute(List<String> args) {

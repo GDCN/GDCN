@@ -43,6 +43,8 @@ public class TaskPasser extends Passer {
      */
     public void requestWork(final PeerAddress jobOwner){
         //TODO do concurrently?
+        System.out.println("Request work from "+jobOwner.toString());
+
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, ""), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
@@ -52,15 +54,20 @@ public class TaskPasser extends Passer {
                 }
                 Solution challengeSolution = challengeReceived(taskMessage.actualContent);
 
+                System.out.println("Challenge received and solved");
+
                 sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, challengeSolution), new OnReplyCommand() {
                     @Override
                     public void execute(Object replyMessageContent2) {
                         TaskMessage taskMessage2 = check(replyMessageContent2);
-                        switch (taskMessage2.type){
+                        switch (taskMessage2.type) {
                             case TASK:
 //                                Object taskMeta = taskMessage2.actualContent;
                                 //TODO work on Task...
+                                System.out.println("Start processing task");
 
+                                workOnTask(jobOwner, "SomeTaskID");
+                                System.out.println("Some Task was received from " + jobOwner.toString());
                             case FAIL:
                                 throw new IllegalStateException("Solution failed!");
                             default:
@@ -77,8 +84,17 @@ public class TaskPasser extends Passer {
      * @param jobOwner Peer to work for
      * @param taskID ID of task
      */
-    public void notifyJobOwner(final PeerAddress jobOwner, String taskID){
+    public void notifyJobOwner(PeerAddress jobOwner, String taskID){
+        System.out.println("JobOwner was notified, if he was still online");
         sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, taskID));
+    }
+
+    /**
+     * Dummy method. Remove with actual work
+     */
+    private void workOnTask(PeerAddress jobOwner, String taskID){
+        //TODO work on Task...
+        notifyJobOwner(jobOwner, taskID);
     }
 
     private Solution challengeReceived(Object challengeData){
@@ -94,12 +110,18 @@ public class TaskPasser extends Passer {
 
         switch(taskMessage.type){
             case REQUEST_CHALLENGE:
+
+                System.out.println("Received request for a Challenge");
+
                 //TODO if Worker is not registered, generate HARD challenge instead!
                 Challenge challenge = Challenge.generate();
                 pendingChallenges.put(challenge.getKey(), challenge);
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
             case REQUEST_TASK:
+
+                System.out.println("Received request for a Task");
+
                 Solution solution = (Solution) taskMessage.actualContent;
                 Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
@@ -125,6 +147,7 @@ public class TaskPasser extends Passer {
 
         switch (taskMessage.type){
             case RESULT_UPLOADED:
+                System.out.println("Apparently some task was completed");
                 //TODO download result. Mark that task as solved. After that, validate...
                 break;
             default:

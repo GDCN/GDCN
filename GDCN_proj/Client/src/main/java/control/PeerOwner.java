@@ -449,4 +449,10 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         neighbourFile.delete();
     }
 
+    @Override
+    public void requestWork(int index) {
+        int N = getNeighbours().size();
+        taskPasser.requestWork(getNeighbours().get(index%N));
+    }
+
 }
