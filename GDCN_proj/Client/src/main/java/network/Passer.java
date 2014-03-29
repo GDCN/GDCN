@@ -1,6 +1,5 @@
 package network;
 
-import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
@@ -39,7 +38,7 @@ abstract class Passer {
                 if(message == null){
                     //Error has occured in decrypt
                     System.out.println("Decrypt returned NULL!");
-                    return null;
+                    return "Decrypt was NULL";
                 }
                 System.out.println("ObjectDataReply: " + message.getType().name());
 
@@ -64,7 +63,7 @@ abstract class Passer {
                         handleNoReply(sender, message.getObject());
                         break;
                 }
-                return null;
+                return "Message was Handled in some way...";
             }
         });
     }
@@ -96,15 +95,18 @@ abstract class Passer {
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
         FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(requestP2PConfiguration).start();
-        futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
-            public void operationComplete(BaseFuture future) throws Exception {
+            public void operationComplete(FutureDHT future) throws Exception {
                 if(!future.isSuccess()){
                     System.out.println("Error sending " + networkMessage.toString());
                     System.out.println("WHY: "+future.getFailedReason());
                     return;
                 }
                 System.out.println("Success sending " + networkMessage.toString());
+                for(PeerAddress address : future.getRawDirectData2().keySet()){
+                    System.out.println(""+address+" answered with "+future.getRawDirectData2().get(address));
+                }
             }
         });
 
