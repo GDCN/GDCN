@@ -5,6 +5,7 @@ import challenge.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public class TaskPasser extends Passer {
      */
     public void requestWork(final PeerAddress jobOwner){
         //TODO do concurrently?
-        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, null), new OnReplyCommand() {
+        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, ""), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
                 TaskMessage taskMessage = check(replyMessageContent);
@@ -86,7 +87,7 @@ public class TaskPasser extends Passer {
     }
 
     @Override
-    protected Object handleRequest(PeerAddress sender, Object messageContent) {
+    protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
         TaskMessage taskMessage = check(messageContent);
 
@@ -148,7 +149,7 @@ public class TaskPasser extends Passer {
         HELLO
     }
 
-    private static class TaskMessage{
+    private static class TaskMessage implements Serializable{
         private TaskMessageType type;
         private Object actualContent;
 

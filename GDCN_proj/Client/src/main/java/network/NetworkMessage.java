@@ -7,11 +7,11 @@ import java.io.Serializable;
  */
 public class NetworkMessage implements Serializable {
 
-    private final Object object;
+    private final Serializable object;
     private final Type type;
     private final Long ref;
 
-    public NetworkMessage(Object object, Type type, Long ref) {
+    public NetworkMessage(Serializable object, Type type, Long ref) {
         this.object = object;
         this.type = type;
         this.ref = ref;
