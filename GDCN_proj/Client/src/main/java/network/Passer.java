@@ -3,11 +3,9 @@ package network;
 import net.tomp2p.futures.BaseFuture;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
-import net.tomp2p.futures.FutureResponse;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
-import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import net.tomp2p.storage.Data;
@@ -25,7 +23,7 @@ public class Passer {
     private final Random random = new Random();
 
     //TODO <Long, Command> instead of <Long, String>...
-    private final HashMap<Long, String> pendingRequests = new HashMap<>();
+    private final HashMap<Long, Object> pendingRequests = new HashMap<>();
 
     public Passer(final Peer peer) {
         this.peer = peer;
@@ -41,7 +39,7 @@ public class Passer {
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
-                NetworkMessage message = NetworkMessage.decrpyt( (Data) request );
+                NetworkMessage message = NetworkMessage.decrypt((Data) request);
                 if(message == null){
                     //Error has occured in decrypt
                     return null;
@@ -50,11 +48,11 @@ public class Passer {
 
                 switch (message.getType()){
                     case OK:
-                        String resolved = pendingRequests.remove(message.getRef());
+                        Object resolved = pendingRequests.remove(message.getRef());
                         if(resolved==null){
                             System.out.println("OK received for unknown! Ref "+message.getRef());
                         }else{
-                            System.out.println("OK received for "+resolved);
+                            System.out.println("OK received for "+resolved.toString());
                         }
                         break;
                     case REQUEST:
@@ -70,7 +68,7 @@ public class Passer {
         });
     }
 
-    public void sendRequest(PeerAddress receiver, String data){
+    public void sendRequest(PeerAddress receiver, Object data){
         Long ref = random.nextLong();
         pendingRequests.put(ref, data);
         sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST, ref));
@@ -103,28 +101,5 @@ public class Passer {
             }
         });
 
-    }
-
-    /**
-     * SendDirect. Seems to work just as well or worse
-     * @param receiver r
-     * @param message m
-     *
-     * @deprecated
-     */
-    public void sendd(PeerAddress receiver, final Object message){
-        SendDirectBuilder sendDirectBuilder = peer.sendDirect(receiver);
-        sendDirectBuilder.setObject(message);
-        FutureResponse futureResponse = sendDirectBuilder.start();
-        futureResponse.addListener(new BaseFutureAdapter<BaseFuture>() {
-            @Override
-            public void operationComplete(BaseFuture future) throws Exception {
-                if(!future.isSuccess()){
-                    System.out.println("Error sendDing "+message.toString());
-                    return;
-                }
-                System.out.println("Success sendDing "+message.toString());
-            }
-        });
     }
 }

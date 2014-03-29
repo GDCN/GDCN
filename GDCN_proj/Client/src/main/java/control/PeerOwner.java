@@ -262,15 +262,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public void sendd(String msg) {
-        //Sends to all known nodes, see what happens
-        Passer passer = new Passer(peer);
-        for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.sendd(address, msg);
-        }
-    }
-
-    @Override
     public void put2(final String key, final String domain, Object value){
         PutBuilder builder = peer.put(Number160.createHash(key));
         try {

@@ -32,6 +32,10 @@ public class NetworkMessage implements Serializable {
         return ref;
     }
 
+    /**
+     * Encrypt message using receiving peer's public key
+     * @return encrypted message
+     */
     public Data encrypt(){
         //TODO encrypt and sign message
         try {
@@ -42,7 +46,12 @@ public class NetworkMessage implements Serializable {
         return null;
     }
 
-    public static NetworkMessage decrpyt(Data data){
+    /**
+     * Decrypt message using private key
+     * @param data Encrypted message
+     * @return Decrypted message
+     */
+    public static NetworkMessage decrypt(Data data){
         //TODO decrypt message
         try {
             return (NetworkMessage) data.getObject();

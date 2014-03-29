@@ -107,14 +107,6 @@ public class ConsoleFactory {
             }
         });
 
-        //TODO keep or remove?
-        commandMap.put("sendd", new Command() {
-            @Override
-            public void execute(List<String> args) {
-                client.sendd(args.get(0));
-            }
-        });
-
         commandMap.put(CommandWord.BOOTSTRAP.getName(), new Command() {
             @Override
             public void execute(List<String> args) {
