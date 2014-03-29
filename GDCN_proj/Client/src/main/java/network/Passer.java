@@ -9,8 +9,6 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Random;
 
 /**
  * Created by Leif on 2014-03-19.
@@ -21,8 +19,8 @@ abstract class Passer {
 
     private final Peer peer;
 
-    private final Random random = new Random();
-    private final HashMap<Long, OnReplyCommand> pendingRequests = new HashMap<>();
+    private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
+    private final static RequestP2PConfiguration noReplyConfiguration = new RequestP2PConfiguration(0, 10, 0);
 
     public Passer(final Peer peer) {
         this.peer = peer;
@@ -43,27 +41,18 @@ abstract class Passer {
                 System.out.println("ObjectDataReply: " + message.getType().name());
 
                 switch (message.getType()){
-                    case OK:
-                        OnReplyCommand resolved = pendingRequests.remove(message.getRef());
-                        if(resolved==null){
-                            System.out.println("OK received for unknown! Ref "+message.getRef());
-                        }else{
-                            resolved.execute(message.getObject());
-//                            System.out.println("OK received for "+resolved.toString());
-                        }
-                        break;
                     case REQUEST:
                         //TODO remove these outputs
 //                        System.out.println("REQUEST received: "+message.getObject());
                         Serializable reply = handleRequest(sender, message.getObject());
-                        sendMessage(sender, new NetworkMessage(reply, NetworkMessage.Type.OK, message.getRef()));
-                        break;
+//                        sendMessage(sender, new NetworkMessage(reply, NetworkMessage.Type.OK, message.getRef()));
+                        return reply;
                     case NO_REPLY:
 //                        System.out.println("NO_REPLY received: "+message.getObject());
                         handleNoReply(sender, message.getObject());
-                        break;
+                        return "Message was Handled in some way...";
                 }
-                return "Message was Handled in some way...";
+                return "Message was read but not Handled! Type: "+message.getType().name();
             }
         });
     }
@@ -72,29 +61,12 @@ abstract class Passer {
 
     protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
 
-    protected void sendRequest(PeerAddress receiver, Serializable data, OnReplyCommand onReturn){
-        Long ref = random.nextLong();
-        pendingRequests.put(ref, onReturn);
-        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST, ref));
-    }
-
-    protected void sendNoReplyMessage(PeerAddress receiver, Serializable data){
-        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.NO_REPLY, random.nextLong()));
-    }
-
-    /**
-     * In testing, the message gets through but the Future says not successful...
-     * Perhaps has something to do with the reply...
-     * //TODO check further?
-     *
-     * @param receiver other peer
-     * @param networkMessage Any object to send
-     */
-    private void sendMessage(PeerAddress receiver, final NetworkMessage networkMessage){
-        RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
+    protected void sendRequest(PeerAddress receiver, Serializable data, final OnReplyCommand onReturn){
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(requestP2PConfiguration).start();
+        final NetworkMessage networkMessage = new NetworkMessage(data, NetworkMessage.Type.REQUEST);
+
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -105,10 +77,34 @@ abstract class Passer {
                 }
                 System.out.println("Success sending " + networkMessage.toString());
                 for(PeerAddress address : future.getRawDirectData2().keySet()){
-                    System.out.println(""+address+" answered with "+future.getRawDirectData2().get(address));
+                    Object answer = future.getRawDirectData2().get(address);
+                    onReturn.execute(answer);
+                    System.out.println(""+address+" answered with "+answer);
                 }
             }
         });
+    }
 
+    protected void sendNoReplyMessage(PeerAddress receiver, Serializable data){
+        SendBuilder sendBuilder = peer.send(receiver.getID());
+
+        final NetworkMessage networkMessage = new NetworkMessage(data, NetworkMessage.Type.NO_REPLY);
+
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(noReplyConfiguration).start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                if(!future.isSuccess()){
+                    System.out.println("Error sending " + networkMessage.toString());
+                    System.out.println("WHY: "+future.getFailedReason());
+                    return;
+                }
+                System.out.println("Success sending " + networkMessage.toString());
+                for(PeerAddress address : future.getRawDirectData2().keySet()){
+                    Object answer = future.getRawDirectData2().get(address);
+                    System.out.println(""+address+" answered with "+answer);
+                }
+            }
+        });
     }
 }

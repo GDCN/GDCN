@@ -9,12 +9,10 @@ public class NetworkMessage implements Serializable {
 
     private final Serializable object;
     private final Type type;
-    private final Long ref;
 
-    public NetworkMessage(Serializable object, Type type, Long ref) {
+    public NetworkMessage(Serializable object, Type type) {
         this.object = object;
         this.type = type;
-        this.ref = ref;
     }
 
     public Object getObject() {
@@ -23,10 +21,6 @@ public class NetworkMessage implements Serializable {
 
     public Type getType() {
         return type;
-    }
-
-    public Long getRef() {
-        return ref;
     }
 
     /**
@@ -69,7 +63,6 @@ public class NetworkMessage implements Serializable {
     }
 
     public static enum Type {
-        OK,
         REQUEST,
         NO_REPLY
     }
