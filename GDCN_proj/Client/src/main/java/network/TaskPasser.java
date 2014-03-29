@@ -158,5 +158,13 @@ public class TaskPasser extends Passer {
             this.type = type;
             this.actualContent = actualContent;
         }
+
+        @Override
+        public String toString() {
+            return "TaskMessage{" +
+                    "type=" + type +
+                    ", actualContent=" + actualContent +
+                    '}';
+        }
     }
 }
