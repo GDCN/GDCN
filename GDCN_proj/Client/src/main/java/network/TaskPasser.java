@@ -43,6 +43,7 @@ public class TaskPasser extends Passer {
      */
     public void requestWork(final PeerAddress jobOwner){
         //TODO do concurrently?
+        //TODO make tread safe...
         System.out.println("Request work from "+jobOwner.toString());
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, ""), new OnReplyCommand() {
@@ -69,7 +70,7 @@ public class TaskPasser extends Passer {
                                 workOnTask(jobOwner, "SomeTaskID");
                                 System.out.println("Some Task was received from " + jobOwner.toString());
                             case FAIL:
-                                throw new IllegalStateException("Solution failed!");
+                                throw new IllegalStateException("Solution failed: "+taskMessage2.actualContent);
                             default:
                                 throw new IllegalStateException("Should be a Challenge response here!");
                         }
@@ -104,7 +105,7 @@ public class TaskPasser extends Passer {
     }
 
     @Override
-    protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
+    synchronized protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
         TaskMessage taskMessage = check(messageContent);
 
@@ -129,6 +130,9 @@ public class TaskPasser extends Passer {
                     //TODO give actual task information
                     return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
                 } else {
+                    if(originalChallenge == null){
+                        return new TaskMessage(TaskMessageType.FAIL, "Provided solution didn't match any challenge!");
+                    }
                     return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
                 }
 
@@ -142,7 +146,7 @@ public class TaskPasser extends Passer {
     }
 
     @Override
-    protected void handleNoReply(PeerAddress sender, Object messageContent) {
+    synchronized protected void handleNoReply(PeerAddress sender, Object messageContent) {
         TaskMessage taskMessage = check(messageContent);
 
         switch (taskMessage.type){

@@ -35,4 +35,11 @@ public class Challenge implements Serializable{
     public String getKey() {
         return key;
     }
+
+    @Override
+    public String toString() {
+        return "Challenge{" +
+                "key='" + key + '\'' +
+                '}';
+    }
 }

@@ -20,4 +20,11 @@ public class Solution implements Serializable{
     public String getKey() {
         return key;
     }
+
+    @Override
+    public String toString() {
+        return "Solution{" +
+                "key='" + key + '\'' +
+                '}';
+    }
 }
