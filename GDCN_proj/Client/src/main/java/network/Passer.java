@@ -8,7 +8,6 @@ import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
-import net.tomp2p.storage.Data;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -35,7 +34,7 @@ abstract class Passer {
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
-                NetworkMessage message = NetworkMessage.decrypt((Data) request);
+                NetworkMessage message = NetworkMessage.decrypt( request);
                 if(message == null){
                     //Error has occured in decrypt
                     return null;
