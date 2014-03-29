@@ -41,7 +41,7 @@ abstract class Passer {
                     System.out.println("Decrypt returned NULL!");
                     return null;
                 }
-                System.out.println("ObjectDataReply:" + message.toString());
+                System.out.println("ObjectDataReply: " + message.getType().name());
 
                 switch (message.getType()){
                     case OK:
@@ -50,17 +50,17 @@ abstract class Passer {
                             System.out.println("OK received for unknown! Ref "+message.getRef());
                         }else{
                             resolved.execute(message.getObject());
-                            System.out.println("OK received for "+resolved.toString());
+//                            System.out.println("OK received for "+resolved.toString());
                         }
                         break;
                     case REQUEST:
                         //TODO remove these outputs
-                        System.out.println("REQUEST received: "+message.getObject());
+//                        System.out.println("REQUEST received: "+message.getObject());
                         Serializable reply = handleRequest(sender, message.getObject());
                         sendMessage(sender, new NetworkMessage(reply, NetworkMessage.Type.OK, message.getRef()));
                         break;
                     case NO_REPLY:
-                        System.out.println("NO_REPLY received: "+message.getObject());
+//                        System.out.println("NO_REPLY received: "+message.getObject());
                         handleNoReply(sender, message.getObject());
                         break;
                 }
