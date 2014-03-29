@@ -36,4 +36,11 @@ public interface NetworkInterface {
     void put2(String key, String domain, Object value);
 
     void get2(String key, String domain);
+
+    void setNeighbourFile(String file);
+
+    void clearNeighbourFile();
+
+    void deleteNeighbourFile();
+
 }

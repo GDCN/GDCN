@@ -199,7 +199,21 @@ public class ConsoleFactory {
             @Override
             public void execute(List<String> args) {
                 //TODO fix!
-//                client.reBootstrap();
+                client.reBootstrap();
+            }
+        });
+
+        commandMap.put("clearNeighbourFile", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                client.clearNeighbourFile();
+            }
+        });
+
+        commandMap.put("deleteNeighbourFile", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                client.deleteNeighbourFile();
             }
         });
 
