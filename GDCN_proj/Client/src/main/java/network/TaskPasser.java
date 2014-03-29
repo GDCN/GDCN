@@ -18,6 +18,7 @@ public class TaskPasser extends Passer {
         super(peer);
     }
 
+    //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
     private final Map<String, Challenge> pendingChallenges = new HashMap<>();
 
     /**
@@ -55,7 +56,7 @@ public class TaskPasser extends Passer {
                         TaskMessage taskMessage2 = check(replyMessageContent2);
                         switch (taskMessage2.type){
                             case TASK:
-                                Object taskMeta = taskMessage2.actualContent;
+//                                Object taskMeta = taskMessage2.actualContent;
                                 //TODO work on Task...
 
                             case FAIL:
@@ -67,6 +68,15 @@ public class TaskPasser extends Passer {
                 });
             }
         });
+    }
+
+    /**
+     * Notify jobOwner that result has been uploaded for this task.
+     * @param jobOwner Peer to work for
+     * @param taskID ID of task
+     */
+    public void notifyJobOwner(final PeerAddress jobOwner, String taskID){
+        sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, taskID));
     }
 
     private Solution challengeReceived(Object challengeData){

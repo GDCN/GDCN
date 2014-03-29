@@ -31,10 +31,6 @@ abstract class Passer {
             @Override
             public Object reply(PeerAddress sender, Object request) throws Exception {
 
-//                if(!(request instanceof NetworkMessage)){
-//                    System.out.println("in Passer: ERROR! some request was not a NetworkMessage");
-//                    return null;
-//                }
                 if(peer.getPeerAddress().equals(sender)){
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
@@ -52,13 +48,12 @@ abstract class Passer {
                         if(resolved==null){
                             System.out.println("OK received for unknown! Ref "+message.getRef());
                         }else{
-//                            handleOK(sender, message.getObject());
                             resolved.execute(message.getObject());
-                            //System.out.println("OK received for "+resolved.toString());
+                            System.out.println("OK received for "+resolved.toString());
                         }
                         break;
                     case REQUEST:
-                        //TODO remove this output
+                        //TODO remove these outputs
                         System.out.println("REQUEST received: "+message.getObject());
                         Object reply = handleRequest(sender, message.getObject());
                         sendMessage(sender, new NetworkMessage(reply, NetworkMessage.Type.OK, message.getRef()));
@@ -89,8 +84,9 @@ abstract class Passer {
 
     /**
      * In testing, the message gets through but the Future says not successful...
-     * Perhaps has something to do with the reply... TODO check if return "OK" changes that
-     * TODO make good message passing protocol for Tasks
+     * Perhaps has something to do with the reply...
+     * //TODO check further?
+     *
      * @param receiver other peer
      * @param networkMessage Any object to send
      */
