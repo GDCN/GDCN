@@ -69,6 +69,7 @@ public class TaskPasser extends Passer {
 
                                 workOnTask(jobOwner, "SomeTaskID");
                                 System.out.println("Some Task was received from " + jobOwner.toString());
+                                break;
                             case FAIL:
                                 throw new IllegalStateException("Solution failed: "+taskMessage2.actualContent);
                             default:
