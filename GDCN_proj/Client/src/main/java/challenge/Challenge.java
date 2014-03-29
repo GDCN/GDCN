@@ -5,6 +5,7 @@ import java.util.Random;
 
 /**
  * Created by Leif on 2014-03-29.
+ *
  */
 public class Challenge implements Serializable{
 

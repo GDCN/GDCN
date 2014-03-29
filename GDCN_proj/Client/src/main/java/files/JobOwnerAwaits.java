@@ -3,7 +3,6 @@ package files;
 import command.communicationToUI.ClientInterface;
 import control.TaskManager;
 import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.storage.Data;
 
 import java.util.HashMap;
 
@@ -27,26 +26,6 @@ public class JobOwnerAwaits {
             this.jobOwner = jobOwner;
             this.ref = ref;
         }
-    }
-
-    public void tryWorkFor(PeerAddress jobOwner){
-        //TODO request work
-//        passer.sendRequest(jobOwner, "SomeData", new OnReplyCommand() {
-//            @Override
-//            public void execute() {
-//                //Start solving
-//            }
-//        });
-    }
-
-    public void solveProof(PeerAddress jobOwner, Data indata, Long ref){
-        //TODO solve proof
-//        passer.sendRequest(jobOwner, "SomeSolution"+ref, new OnReplyCommand() {
-//            @Override
-//            public void execute() {
-//                //TODO after solved proof is acknowledged... and some reply has come?
-//            }
-//        });
     }
 
     public void workReceived(PeerAddress jobOwner, AbstractFileMaster.TaskMeta taskMeta, Long ref){

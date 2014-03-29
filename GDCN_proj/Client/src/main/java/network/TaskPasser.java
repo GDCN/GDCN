@@ -1,7 +1,12 @@
 package network;
 
+import challenge.Challenge;
+import challenge.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -12,6 +17,8 @@ public class TaskPasser extends Passer {
     public TaskPasser(Peer peer) {
         super(peer);
     }
+
+    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
 
     /**
      * Starts task process working for this peer
@@ -25,23 +32,32 @@ public class TaskPasser extends Passer {
                 if (taskMessage.type != TaskMessageType.CHALLENGE) {
                     throw new IllegalStateException("Should be a Challenge response here!");
                 }
-                Object challengeSolution = challengeReceived(taskMessage.actualContent);
+                Solution challengeSolution = challengeReceived(taskMessage.actualContent);
 
-                //TODO send solution
-
-                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQEST_TASK, null), new OnReplyCommand() {
+                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQEST_TASK, challengeSolution), new OnReplyCommand() {
                     @Override
-                    public void execute(Object replyMessageContent) {
+                    public void execute(Object replyMessageContent2) {
+                        TaskMessage taskMessage2 = check(replyMessageContent2);
+                        switch (taskMessage2.type){
+                            case TASK:
+                                Object taskMeta = taskMessage2.actualContent;
+                                //TODO work on Task...
 
+                            case FAIL:
+                                throw new IllegalStateException("Solution failed!");
+                            default:
+                                throw new IllegalStateException("Should be a Challenge response here!");
+                        }
                     }
                 });
             }
         });
     }
 
-    private Object challengeReceived(Object challengeData){
-        //TODO solve challenge
-        return "Some solution";
+    private Solution challengeReceived(Object challengeData){
+        // TODO real challenge, not just mock up challenge
+        Challenge challenge = (Challenge) challengeData;
+        return Solution.solve(challenge);
     }
 
     @Override
@@ -51,11 +67,20 @@ public class TaskPasser extends Passer {
 
         switch(taskMessage.type){
             case REQUEST_CHALLENGE:
-                //TODO give challenge data
-                return new TaskMessage(TaskMessageType.CHALLENGE, "Some challenge data");
+                Challenge challenge = Challenge.generate();
+                pendingChallenges.put(challenge.getKey(), challenge);
+                return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
+
             case REQEST_TASK:
-                //TODO give actual task information
-                return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
+                Solution solution = (Solution) taskMessage.actualContent;
+                Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
+                if(originalChallenge != null && originalChallenge.isSolution(solution)){
+                    //TODO give actual task information
+                    return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
+                } else {
+                    return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
+                }
+
             case HELLO:
                 return new TaskMessage(TaskMessageType.HELLO, "Hi, I heard you said "+taskMessage.actualContent);
             default:
@@ -88,6 +113,7 @@ public class TaskPasser extends Passer {
         REQUEST_CHALLENGE,
         CHALLENGE,
         REQEST_TASK,
+        FAIL,
         TASK,
         RESULT_UPLOADED,
         HELLO
