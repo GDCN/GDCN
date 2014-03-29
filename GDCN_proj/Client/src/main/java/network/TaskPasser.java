@@ -44,7 +44,7 @@ public class TaskPasser extends Passer {
     public void requestWork(final PeerAddress jobOwner){
         //TODO do concurrently?
         //TODO make tread safe...
-        System.out.println("Request work from "+jobOwner.toString());
+        System.out.println("Request work from "+Passer.print(jobOwner));
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, ""), new OnReplyCommand() {
             @Override
@@ -68,7 +68,7 @@ public class TaskPasser extends Passer {
                                 System.out.println("Start processing task");
 
                                 workOnTask(jobOwner, "SomeTaskID");
-                                System.out.println("Some Task was received from " + jobOwner.toString());
+                                System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                 break;
                             case FAIL:
                                 throw new IllegalStateException("Solution failed: "+taskMessage2.actualContent);
@@ -189,9 +189,8 @@ public class TaskPasser extends Passer {
 
         @Override
         public String toString() {
-            return "TaskMessage{" +
-                    "type=" + type +
-                    ", actualContent=" + actualContent +
+            return "TaskM{ " + type +
+                    ", " + actualContent +
                     '}';
         }
     }
