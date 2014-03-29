@@ -31,7 +31,8 @@ public class TaskPasser extends Passer {
         sendRequest(otherPeer, new TaskMessage(TaskMessageType.HELLO, hello), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
-                System.out.println(replyMessageContent.toString());
+                TaskMessage taskMessage = check(replyMessageContent);
+                System.out.println(taskMessage.actualContent);
             }
         });
     }
