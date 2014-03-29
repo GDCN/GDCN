@@ -10,6 +10,7 @@ import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.p2p.builder.SendDirectBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
+import net.tomp2p.storage.Data;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -32,15 +33,19 @@ public class Passer {
             @Override
             public Object reply(PeerAddress sender, Object request) throws Exception {
 
-                if(!(request instanceof NetworkMessage)){
-                    System.out.println("in Passer: ERROR! some request was not a NetworkMessage");
-                    return null;
-                }
+//                if(!(request instanceof NetworkMessage)){
+//                    System.out.println("in Passer: ERROR! some request was not a NetworkMessage");
+//                    return null;
+//                }
                 if(peer.getPeerAddress().equals(sender)){
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
-                NetworkMessage message = (NetworkMessage) request;
+                NetworkMessage message = NetworkMessage.decrpyt( (Data) request );
+                if(message == null){
+                    //Error has occured in decrypt
+                    return null;
+                }
                 System.out.println("ObjectDataReply:" + message.toString());
 
                 switch (message.getType()){
@@ -86,7 +91,7 @@ public class Passer {
         RequestP2PConfiguration requestP2PConfiguration = new RequestP2PConfiguration(1, 10, 0);
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage ).setRequestP2PConfiguration(requestP2PConfiguration).start();
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(requestP2PConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
             @Override
             public void operationComplete(BaseFuture future) throws Exception {

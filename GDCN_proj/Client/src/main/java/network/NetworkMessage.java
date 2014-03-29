@@ -1,5 +1,8 @@
 package network;
 
+import net.tomp2p.storage.Data;
+
+import java.io.IOException;
 import java.io.Serializable;
 
 /**
@@ -27,6 +30,28 @@ public class NetworkMessage implements Serializable {
 
     public Long getRef() {
         return ref;
+    }
+
+    public Data encrypt(){
+        //TODO encrypt and sign message
+        try {
+            return new Data(this);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static NetworkMessage decrpyt(Data data){
+        //TODO decrypt message
+        try {
+            return (NetworkMessage) data.getObject();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
