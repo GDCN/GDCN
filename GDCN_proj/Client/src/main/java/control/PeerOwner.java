@@ -7,12 +7,14 @@ import command.communicationToUI.OperationFinishedSupport;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
-import net.tomp2p.p2p.builder.*;
+import net.tomp2p.p2p.builder.BootstrapBuilder;
+import net.tomp2p.p2p.builder.DiscoverBuilder;
+import net.tomp2p.p2p.builder.GetBuilder;
+import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
-import network.Passer;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
@@ -253,12 +255,20 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    public void send(String msg) {
+    public void send(final String msg) {
         //Sends to all known nodes, see what happens
-        Passer passer = new Passer(peer);
-        for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.sendRequest(address, msg);
-        }
+
+        //TODO fix this...
+
+//        Passer passer = new Passer(peer);
+//        for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
+//            passer.sendRequest(address, msg, new OnReplyCommand() {
+//                @Override
+//                public void execute(Object replyMessageContent) {
+//                    System.out.println("Received reply to msg "+msg);
+//                }
+//            });
+//        }
     }
 
     @Override

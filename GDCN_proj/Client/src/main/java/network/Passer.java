@@ -15,15 +15,15 @@ import java.util.Random;
 
 /**
  * Created by Leif on 2014-03-19.
+ *
+ * There must only be ONE Passer for each Peer!
  */
-public class Passer {
+abstract class Passer {
 
     private final Peer peer;
 
     private final Random random = new Random();
-
-    //TODO <Long, Command> instead of <Long, String>...
-    private final HashMap<Long, Object> pendingRequests = new HashMap<>();
+    private final HashMap<Long, OnReplyCommand> pendingRequests = new HashMap<>();
 
     public Passer(final Peer peer) {
         this.peer = peer;
@@ -48,19 +48,24 @@ public class Passer {
 
                 switch (message.getType()){
                     case OK:
-                        Object resolved = pendingRequests.remove(message.getRef());
+                        OnReplyCommand resolved = pendingRequests.remove(message.getRef());
                         if(resolved==null){
                             System.out.println("OK received for unknown! Ref "+message.getRef());
                         }else{
-                            System.out.println("OK received for "+resolved.toString());
+//                            handleOK(sender, message.getObject());
+                            resolved.execute(message.getObject());
+                            //System.out.println("OK received for "+resolved.toString());
                         }
                         break;
                     case REQUEST:
+                        //TODO remove this output
                         System.out.println("REQUEST received: "+message.getObject());
-                        sendMessage(sender, new NetworkMessage(null, NetworkMessage.Type.OK, message.getRef()));
+                        Object reply = handleRequest(sender, message.getObject());
+                        sendMessage(sender, new NetworkMessage(reply, NetworkMessage.Type.OK, message.getRef()));
                         break;
                     case NO_REPLY:
                         System.out.println("NO_REPLY received: "+message.getObject());
+                        handleNoReply(sender, message.getObject());
                         break;
                 }
                 return null;
@@ -68,14 +73,18 @@ public class Passer {
         });
     }
 
-    public void sendRequest(PeerAddress receiver, Object data){
+    protected abstract Object handleRequest(PeerAddress sender, Object messageContent);
+
+    protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
+
+    protected void sendRequest(PeerAddress receiver, Object data, OnReplyCommand onReturn){
         Long ref = random.nextLong();
-        pendingRequests.put(ref, data);
+        pendingRequests.put(ref, onReturn);
         sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.REQUEST, ref));
     }
 
-    public void sendReply(PeerAddress receiver, Object data, Long ref){
-        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.NO_REPLY, ref));
+    protected void sendNoReplyMessage(PeerAddress receiver, Object data){
+        sendMessage(receiver, new NetworkMessage(data, NetworkMessage.Type.NO_REPLY, random.nextLong()));
     }
 
     /**

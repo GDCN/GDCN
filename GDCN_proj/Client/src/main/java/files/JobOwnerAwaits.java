@@ -4,7 +4,6 @@ import command.communicationToUI.ClientInterface;
 import control.TaskManager;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import network.Passer;
 
 import java.util.HashMap;
 
@@ -14,7 +13,7 @@ import java.util.HashMap;
 public class JobOwnerAwaits {
 
     private ClientInterface client;
-    private Passer passer;
+//    private Passer passer;
     private TaskManager taskManager;
     private HashMap<String, AwaitTask> awaitTaskHashMap = new HashMap<>();
 
@@ -32,11 +31,22 @@ public class JobOwnerAwaits {
 
     public void tryWorkFor(PeerAddress jobOwner){
         //TODO request work
+//        passer.sendRequest(jobOwner, "SomeData", new OnReplyCommand() {
+//            @Override
+//            public void execute() {
+//                //Start solving
+//            }
+//        });
     }
 
     public void solveProof(PeerAddress jobOwner, Data indata, Long ref){
         //TODO solve proof
-        passer.sendRequest(jobOwner, "SomeSolution"+ref);
+//        passer.sendRequest(jobOwner, "SomeSolution"+ref, new OnReplyCommand() {
+//            @Override
+//            public void execute() {
+//                //TODO after solved proof is acknowledged... and some reply has come?
+//            }
+//        });
     }
 
     public void workReceived(PeerAddress jobOwner, AbstractFileMaster.TaskMeta taskMeta, Long ref){
@@ -54,7 +64,8 @@ public class JobOwnerAwaits {
             System.out.println("ERROR in JobOwnerAwaits: "+taskName+" was not found in awaited tasks!");
             return;
         }
-        passer.sendReply(awaitTask.jobOwner, "CompletedYourTask", awaitTask.ref);
+        //TODO
+//        passer.sendNoReplyMessage(awaitTask.jobOwner, "CompletedYourTask", awaitTask.ref);
         System.out.println("Job owner may or not be notified about the finished task "+awaitTask.taskMeta.getTaskName());
     }
 }

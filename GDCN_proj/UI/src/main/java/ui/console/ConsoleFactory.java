@@ -23,7 +23,7 @@ public class ConsoleFactory {
      * @return
      */
     public static Console create(final ClientInterface client){
-        Map<String, Command> commandMap = ConsoleFactory.createCommands(client);
+        Map<String, UICommand> commandMap = ConsoleFactory.createCommands(client);
         Console console = new Console(commandMap);
         client.addListener(console);
 
@@ -35,10 +35,10 @@ public class ConsoleFactory {
      * @param client Client to pass commands to
      * @return
      */
-    private static Map<String, Command> createCommands(final ClientInterface client){
-        Map<String, Command> commandMap = new HashMap<String, Command>();
+    private static Map<String, UICommand> createCommands(final ClientInterface client){
+        Map<String, UICommand> commandMap = new HashMap<String, UICommand>();
 
-        commandMap.put(CommandWord.START.getName(), new Command() {
+        commandMap.put(CommandWord.START.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 int port = 4001;
@@ -49,14 +49,14 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put(CommandWord.STOP.getName(), new Command() {
+        commandMap.put(CommandWord.STOP.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.stop();
             }
         });
 
-        commandMap.put(CommandWord.PUT.getName(), new Command() {
+        commandMap.put(CommandWord.PUT.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 String name = args.remove(0);
@@ -70,7 +70,7 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put(CommandWord.GET.getName(), new Command() {
+        commandMap.put(CommandWord.GET.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.get(args.remove(0));
@@ -78,7 +78,7 @@ public class ConsoleFactory {
         });
 
         //TODO remove command or make better (enum + good output)
-        commandMap.put("connect", new Command() {
+        commandMap.put("connect", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 String site = "narrens.olf.sgsnet.se";
@@ -100,14 +100,14 @@ public class ConsoleFactory {
         });
 
         //TODO keep or remove?
-        commandMap.put("send", new Command() {
+        commandMap.put("send", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.send(args.get(0));
             }
         });
 
-        commandMap.put(CommandWord.BOOTSTRAP.getName(), new Command() {
+        commandMap.put(CommandWord.BOOTSTRAP.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
 
@@ -128,7 +128,7 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put(CommandWord.WORK.getName(), new Command() {
+        commandMap.put(CommandWord.WORK.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 //TODO check num args
@@ -139,21 +139,21 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put(CommandWord.INSTALL.getName(), new Command() {
+        commandMap.put(CommandWord.INSTALL.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.install();
             }
         });
 
-        commandMap.put(CommandWord.UNINSTALL.getName(), new Command() {
+        commandMap.put(CommandWord.UNINSTALL.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.uninstall();
             }
         });
 
-        commandMap.put(CommandWord.PUSH.getName(), new Command() {
+        commandMap.put(CommandWord.PUSH.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 String jobName = args.get(0);
@@ -162,7 +162,7 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
-        commandMap.put("neighbours", new Command() {
+        commandMap.put("neighbours", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 List<PeerAddress> neighbours = client.getNeighbours();
@@ -174,7 +174,7 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
-        commandMap.put("put2", new Command() {
+        commandMap.put("put2", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 String key = args.get(0);
@@ -185,7 +185,7 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
-        commandMap.put("get2", new Command() {
+        commandMap.put("get2", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 String key = args.get(0);
@@ -195,7 +195,7 @@ public class ConsoleFactory {
         });
 
         //TODO use enum
-        commandMap.put("rebootstrap", new Command() {
+        commandMap.put("rebootstrap", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 //TODO fix!
