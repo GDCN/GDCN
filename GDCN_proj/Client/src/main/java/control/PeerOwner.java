@@ -7,12 +7,15 @@ import command.communicationToUI.OperationFinishedSupport;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
-import net.tomp2p.p2p.builder.*;
+import net.tomp2p.p2p.builder.BootstrapBuilder;
+import net.tomp2p.p2p.builder.DiscoverBuilder;
+import net.tomp2p.p2p.builder.GetBuilder;
+import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
-import network.Passer;
+import network.TaskPasser;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
@@ -32,6 +35,8 @@ import java.util.List;
 public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private Peer peer  = null;
+    private TaskPasser taskPasser = null;
+
     private List<PeerAddress> neighbours = new ArrayList<>();
     private List<PeerAddress> oldNeighbours = new ArrayList<>();
 
@@ -114,6 +119,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(peerMapChangeListener);
+
+            taskPasser = new TaskPasser(peer);
 
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
@@ -255,18 +262,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void send(String msg) {
         //Sends to all known nodes, see what happens
-        Passer passer = new Passer(peer);
-        for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.sendRequest(address, msg);
-        }
-    }
 
-    @Override
-    public void sendd(String msg) {
-        //Sends to all known nodes, see what happens
-        Passer passer = new Passer(peer);
         for(PeerAddress address : peer.getPeerBean().getPeerMap().getAll()){
-            passer.sendd(address, msg);
+            taskPasser.sendHello(address, msg);
         }
     }
 

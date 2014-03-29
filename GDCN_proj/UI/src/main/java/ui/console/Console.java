@@ -42,16 +42,16 @@ public class Console implements PropertyChangeListener{
      * Package-private constructor used by {@link ui.console.ConsoleFactory#create(command.communicationToUI.ClientInterface)}.
      * @param commandMap
      */
-    Console(Map<String, Command> commandMap) {
+    Console(Map<String, UICommand> commandMap) {
 
-        commandMap.put(MetaCommand.EXIT.getName(), new Command() {
+        commandMap.put(MetaCommand.EXIT.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 loop = false;
             }
         });
 
-        commandMap.put(MetaCommand.HELP.getName(), new Command() {
+        commandMap.put(MetaCommand.HELP.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 //TODO use TreeSet instead?

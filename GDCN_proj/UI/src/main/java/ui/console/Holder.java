@@ -10,9 +10,9 @@ import java.util.Map;
  * Immutable class to hold commands for Console
 */
 public class Holder {
-    private final Map<String, Command> commandMap = new HashMap<String, Command>();
+    private final Map<String, UICommand> commandMap = new HashMap<String, UICommand>();
 
-    public Holder(Map<String, Command> commandMap){
+    public Holder(Map<String, UICommand> commandMap){
         this.commandMap.putAll(commandMap);
     }
 
@@ -23,11 +23,11 @@ public class Holder {
      * @throws UnsupportedOperationException if name doesn't exist
      */
     public void execute(String name, List<String> args) throws UnsupportedOperationException{
-        Command command = commandMap.get(name);
-        if(command == null){
+        UICommand UICommand = commandMap.get(name);
+        if(UICommand == null){
             //TODO if name exist in enum: throw NotImplementedException
-            throw new UnsupportedOperationException("Command "+name+" doesn't exist!");
+            throw new UnsupportedOperationException("UICommand "+name+" doesn't exist!");
         }
-        command.execute(args);
+        UICommand.execute(args);
     }
 }
