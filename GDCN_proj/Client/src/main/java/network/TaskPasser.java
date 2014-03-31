@@ -1,7 +1,7 @@
 package network;
 
-import challenge.Challenge;
-import challenge.Solution;
+import hashcash.Challenge;
+import hashcash.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 
@@ -117,7 +117,7 @@ public class TaskPasser extends Passer {
 
                 //TODO if Worker is not registered, generate HARD challenge instead!
                 Challenge challenge = Challenge.generate();
-                pendingChallenges.put(challenge.getKey(), challenge);
+                pendingChallenges.put(challenge.getSeed(), challenge);
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
             case REQUEST_TASK:
@@ -125,8 +125,8 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
 
                 Solution solution = (Solution) taskMessage.actualContent;
-                Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
-                if(originalChallenge != null && originalChallenge.isSolution(solution)){
+                Challenge originalChallenge = pendingChallenges.remove(solution.getSeed());
+                if(originalChallenge != null && originalChallenge.solvedBy(solution)){
                     //TODO register Peer in list of workers if not is there already
                     //TODO give actual task information
                     return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");

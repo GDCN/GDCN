@@ -1,5 +1,5 @@
-import challenge.Challenge;
-import challenge.Solution;
+import hashcash.Challenge;
+import hashcash.Solution;
 import org.testng.annotations.Test;
 
 /**
@@ -12,6 +12,6 @@ public class ChallengeTest {
         Challenge challenge = Challenge.generate();
         Solution solution = Solution.solve(challenge);
 
-        assert challenge.isSolution(solution);
+        assert challenge.solvedBy(solution);
     }
 }
