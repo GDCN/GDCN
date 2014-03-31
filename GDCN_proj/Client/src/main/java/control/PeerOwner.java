@@ -16,6 +16,7 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
 import network.TaskPasser;
+import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
@@ -39,6 +40,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
+    private final ReplicaManager replicaManager = new ReplicaManager(3);
 
     //List containing the peers connected to right now
     private List<PeerAddress> neighbours = new ArrayList<>();
@@ -64,6 +66,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             notifier.fireOperationFinished(CommandWord.WORK, new OperationBuilder<String>(false).setKey(taskName).create());
         }
     };
+    private final TaskManager taskManager = new TaskManager(taskListener);
+    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
 
     //Listener used by PeerOwner to know when the addressmap changes in the Peer
     private final PeerMapChangeListener peerMapChangeListener = new PeerMapChangeListener() {
@@ -102,11 +106,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
         }
     };
-
-    private final TaskManager taskManager = new TaskManager(taskListener);
-
-    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
-
 
     @Override
     public void addListener(PropertyChangeListener listener){
@@ -150,7 +149,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(peerMapChangeListener);
 
-            taskPasser = new TaskPasser(peer);
+            taskPasser = new TaskPasser(peer, replicaManager);
 
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();

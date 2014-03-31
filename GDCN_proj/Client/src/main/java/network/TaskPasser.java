@@ -5,6 +5,7 @@ import challenge.Solution;
 import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
+import replica.ReplicaManager;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -18,9 +19,11 @@ import java.util.Map;
 public class TaskPasser extends Passer {
 
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE);
+    private final ReplicaManager replicaManager;
 
-    public TaskPasser(Peer peer) {
+    public TaskPasser(Peer peer, ReplicaManager replicaManager) {
         super(peer);
+        this.replicaManager = replicaManager;
     }
 
     //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
@@ -138,8 +141,9 @@ public class TaskPasser extends Passer {
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
                     workerNodeManager.registerWorker(workerID);
 
+                    String replicaID = replicaManager.giveReplicaToWorker(workerID);
                     //TODO give actual task information
-                    return new TaskMessage(TaskMessageType.TASK, "TODO An actual serializable TaskMeta here please");
+                    return new TaskMessage(TaskMessageType.TASK, "TODO An actual serializable TaskMeta here please "+replicaID);
 
                 } else {
                     workerNodeManager.reportWorker(workerID);
@@ -164,18 +168,17 @@ public class TaskPasser extends Passer {
 
         switch (taskMessage.type){
             case RESULT_UPLOADED:
-                resultUploaded(taskMessage.actualContent);
+                resultUploaded((String) taskMessage.actualContent);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
         }
     }
 
-    private void resultUploaded(Object resultCode){
+    private void resultUploaded(String replicaID){
         System.out.println("Apparently some task was completed");
-        //TODO download result. Mark that replica as solved.
-        //TODO If Task complete: validate...
-        //TODO promote workers who did well
+        //TODO download result.
+        replicaManager.replicaFinished(replicaID, "TODO Put downloaded result here...");
     }
 
     private static TaskMessage check(Object messageContent){
