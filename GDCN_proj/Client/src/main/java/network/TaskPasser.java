@@ -2,6 +2,7 @@ package network;
 
 import challenge.Challenge;
 import challenge.Solution;
+import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 
@@ -15,6 +16,9 @@ import java.util.Map;
  * Only ONE Passer object may be created for each peer! Handles all messages to and from this Peer.
  */
 public class TaskPasser extends Passer {
+
+    private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE);
+
     public TaskPasser(Peer peer) {
         super(peer);
     }
@@ -109,14 +113,18 @@ public class TaskPasser extends Passer {
     synchronized protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
         TaskMessage taskMessage = check(messageContent);
+        //TODO set workerID as what we really want
+        WorkerNodeManager.WorkerID workerID = new WorkerNodeManager.WorkerID(sender);
 
         switch(taskMessage.type){
             case REQUEST_CHALLENGE:
 
                 System.out.println("Received request for a Challenge");
 
-                //TODO if Worker is not registered, generate HARD challenge instead!
-                Challenge challenge = Challenge.generate();
+                //TODO PeerAddress sender doesn't always refer to the correct Peer!!! Send WorkerID in message instead!
+
+                Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
+                        Challenge.generate() : Challenge.generateHard();
                 pendingChallenges.put(challenge.getKey(), challenge);
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
@@ -126,11 +134,15 @@ public class TaskPasser extends Passer {
 
                 Solution solution = (Solution) taskMessage.actualContent;
                 Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
+
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
-                    //TODO register Peer in list of workers if not is there already
+                    workerNodeManager.registerWorker(workerID);
+
                     //TODO give actual task information
-                    return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
+                    return new TaskMessage(TaskMessageType.TASK, "TODO An actual serializable TaskMeta here please");
+
                 } else {
+                    workerNodeManager.reportWorker(workerID);
                     if(originalChallenge == null){
                         return new TaskMessage(TaskMessageType.FAIL, "Provided solution didn't match any challenge!");
                     }
@@ -152,12 +164,18 @@ public class TaskPasser extends Passer {
 
         switch (taskMessage.type){
             case RESULT_UPLOADED:
-                System.out.println("Apparently some task was completed");
-                //TODO download result. Mark that task as solved. After that, validate...
+                resultUploaded(taskMessage.actualContent);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
         }
+    }
+
+    private void resultUploaded(Object resultCode){
+        System.out.println("Apparently some task was completed");
+        //TODO download result. Mark that replica as solved.
+        //TODO If Task complete: validate...
+        //TODO promote workers who did well
     }
 
     private static TaskMessage check(Object messageContent){

@@ -48,6 +48,12 @@ public class TaskManager{
 //        return runningTasks.size();
 //    }
 
+    /**
+     * @deprecated TODO clean up
+     * @param projectName
+     * @param taskName
+     * @param networker
+     */
     public void startTask(final String projectName, final String taskName, final ClientInterface networker){
         startTask(projectName, taskName, networker, new ResultListener() {
             @Override
@@ -58,6 +64,7 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
+
     public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener someListener){
         Thread thread = new Thread(new Runnable() {
             @Override
