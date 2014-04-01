@@ -25,19 +25,25 @@ class FileDep implements Serializable {
     }
 
     @Override
-    public int hashCode(){
-        return key.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FileDep)) return false;
+
+        FileDep fileDep = (FileDep) o;
+
+        if (!fileName.equals(fileDep.fileName)) return false;
+        if (!key.equals(fileDep.key)) return false;
+        if (!location.equals(fileDep.location)) return false;
+
+        return true;
     }
 
     @Override
-    public boolean equals(Object o){
-        if(o == null){
-            return false;
-        }
-        if(!(o instanceof FileDep)){
-            return false;
-        }
-        return key.equals(((FileDep) o).key);
+    public int hashCode() {
+        int result = fileName.hashCode();
+        result = 31 * result + location.hashCode();
+        result = 31 * result + key.hashCode();
+        return result;
     }
 
     public String getFileName() {

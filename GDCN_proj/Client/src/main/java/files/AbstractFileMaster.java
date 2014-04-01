@@ -295,42 +295,6 @@ abstract class AbstractFileMaster{
     }
 
     /**
-     * Serialized data-class to Json
-     *
-     * Represents contents in one MetaTask file
-     */
-    protected static class TaskMeta implements Serializable{
-        private String resultKey;
-        private String taskName;
-
-        private FileDep module;
-        private List<FileDep> dependencies;
-
-        protected TaskMeta(String resultKey, String taskName, FileDep module, List<FileDep> dependencies) {
-            this.resultKey = resultKey;
-            this.taskName = taskName;
-            this.module = module;
-            this.dependencies = dependencies;
-        }
-
-        public String getResultKey() {
-            return resultKey;
-        }
-
-        public String getTaskName() {
-            return taskName;
-        }
-
-        public FileDep getModule() {
-            return module;
-        }
-
-        public List<FileDep> getDependencies() {
-            return dependencies;
-        }
-    }
-
-    /**
      * Generates a suitable json-String to put in a file, used for debugging
      * @param args
      */
