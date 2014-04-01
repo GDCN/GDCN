@@ -15,7 +15,6 @@ import java.security.NoSuchAlgorithmException;
  */
 public class WorkerManagementTest {
 
-    private KeyPairGenerator generator;
     private WorkerNodeManager workerNodeManager;
 
     private KeyPair keyPairA;
@@ -25,7 +24,7 @@ public class WorkerManagementTest {
 
     @BeforeClass
     public void setupClass() throws NoSuchAlgorithmException {
-        generator = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         keyPairA = generator.generateKeyPair();
         workerA = new WorkerID(keyPairA.getPublic());
     }

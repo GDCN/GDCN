@@ -10,6 +10,7 @@ import java.util.*;
  * Created by Leif on 2014-03-31.
  *
  * //TODO save this object to file on 'exit' and load it from file on startup
+ * //TODO in order to save object to file, Replicas result "object" must be Serializable!
  *
  * //TODO reissue replicas after timeout time
  */

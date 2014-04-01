@@ -23,7 +23,6 @@ public class ReplicaTest {
     private ReplicaManager replicaManager;
     private TaskMeta taskMetaA;
 
-    private KeyPairGenerator generator;
     private WorkerID workerA;
     private WorkerID workerB;
     private WorkerID workerC;
@@ -31,7 +30,6 @@ public class ReplicaTest {
     private final Gson gson = new Gson();
 
     private final static String TASK_META_A = "{\n" +
-            "    \"resultKey\":\"Primes1\",\n" +
             "    \"taskName\":\"PrimeTask_01\",\n" +
             "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
             "    \"dependencies\":\n" +
@@ -43,7 +41,7 @@ public class ReplicaTest {
     @BeforeClass
     public void setupClass() throws NoSuchAlgorithmException {
         taskMetaA = gson.fromJson(TASK_META_A, TaskMeta.class);
-        generator = KeyPairGenerator.getInstance("RSA");
+        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         workerA = new WorkerID(generator.generateKeyPair().getPublic());
         workerB = new WorkerID(generator.generateKeyPair().getPublic());
         workerC = new WorkerID(generator.generateKeyPair().getPublic());
@@ -96,7 +94,6 @@ public class ReplicaTest {
             exceptionThrown2 = true;
         }
         assert exceptionThrown2;
-
 
         replicaManager.replicaFinished(replicaBox.getReplicaID(), "Some result");
     }

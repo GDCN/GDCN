@@ -3,10 +3,12 @@ package replica;
 import files.TaskMeta;
 import network.WorkerID;
 
+import java.io.Serializable;
+
 /**
 * Created by Leif on 2014-03-31.
 */
-class Replica{
+class Replica implements Serializable{
 
     private final ReplicaBox replicaBox;
 
