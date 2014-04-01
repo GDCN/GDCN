@@ -74,11 +74,11 @@ abstract class AbstractFileMaster{
 //            }
 
         for(FileDep fileDep : taskMeta.dependencies){
-            unresolvedFiles.put(fileDep.key, fileDep);
+            unresolvedFiles.put(fileDep.getKey(), fileDep);
         }
         if(taskMeta.module != null){
             //is currently null when coming from Uploader class
-            unresolvedFiles.put(taskMeta.module.key, taskMeta.module);
+            unresolvedFiles.put(taskMeta.module.getKey(), taskMeta.module);
         }
     }
 
@@ -213,7 +213,7 @@ abstract class AbstractFileMaster{
      */
     protected final void fileDependencyResolved(FileDep fileDep){
         lock.lock();
-        unresolvedFiles.remove(fileDep.key);
+        unresolvedFiles.remove(fileDep.getKey());
         allDependenciesComplete.signalAll();
         lock.unlock();
     }
@@ -251,7 +251,7 @@ abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            taskListener.taskFailed(taskMeta.taskName, "Failed to resolve file with name " +  fileDep.fileName);
+            taskListener.taskFailed(taskMeta.taskName, "Failed to resolve file with name " +  fileDep.getFileName());
             allDependenciesComplete.signalAll();
         }
 
@@ -268,7 +268,7 @@ abstract class AbstractFileMaster{
      * @return Absolute path to file
      */
     protected File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
+        return new File(pathManager.projectDir() + fileDep.getLocation() + File.separator + fileDep.getFileName());
     }
 
     /**
@@ -277,7 +277,7 @@ abstract class AbstractFileMaster{
      * @return Absolute path to file
      */
     protected static File pathTo(PathManager pathManager, FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.location + File.separator + fileDep.fileName);
+        return new File(pathManager.projectDir() + fileDep.getLocation() + File.separator + fileDep.getFileName());
     }
 
     /**
@@ -327,65 +327,6 @@ abstract class AbstractFileMaster{
 
         public List<FileDep> getDependencies() {
             return dependencies;
-        }
-    }
-
-    /**
-     * Serialized data-class to Json
-     *
-     * Represent one file that has to be resolved for Task to compile or run
-     */
-    protected static class FileDep implements Serializable{
-        private String fileName;
-        private String location;
-        private String key;
-
-        private boolean sticky = false;
-        //TODO put checksum elsewhere
-        private int checkSum;
-
-        protected FileDep(String fileName, String location, String key, boolean sticky, int checkSum) {
-            this.fileName = fileName;
-            this.location = location;
-            this.key = key;
-            this.sticky = sticky;
-            this.checkSum = checkSum;
-        }
-
-        @Override
-        public int hashCode(){
-            return key.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object o){
-            if(o == null){
-                return false;
-            }
-            if(!(o instanceof FileDep)){
-                return false;
-            }
-            return key.equals(((FileDep) o).key);
-        }
-
-        public String getFileName() {
-            return fileName;
-        }
-
-        public String getLocation() {
-            return location;
-        }
-
-        public String getKey() {
-            return key;
-        }
-
-        public boolean isSticky() {
-            return sticky;
-        }
-
-        public int getCheckSum() {
-            return checkSum;
         }
     }
 

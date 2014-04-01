@@ -42,12 +42,18 @@ public class Uploader extends AbstractFileMaster{
             System.out.println("\t"+task);
             FileDep fileDep = new FileDep(task, "tasks", task, true, 0);
             dependencyTasks.add(fileDep);
-            allFileDependencies.add(fileDep);
+//            allFileDependencies.add(fileDep); //Since taskMeta shall be sent using MPI instead...
         }
         for(FileDep fileDep : dependencyTasks){
+            System.out.println(" READ task "+fileDep.getFileName());
+
             TaskMeta taskMeta = AbstractFileMaster.readMetaFile( AbstractFileMaster.pathTo(manager, fileDep));
             allFileDependencies.add(taskMeta.getModule());
             allFileDependencies.addAll(taskMeta.getDependencies());
+        }
+
+        for(FileDep fileDep : allFileDependencies){
+            System.out.println(" Dependency: "+fileDep.getFileName());
         }
 
         TaskMeta totalMeta = new TaskMeta(jobName, "Upload"+jobName, null, new ArrayList<>(allFileDependencies));
