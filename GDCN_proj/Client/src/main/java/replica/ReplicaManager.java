@@ -1,5 +1,6 @@
 package replica;
 
+import files.TaskMeta;
 import network.WorkerID;
 
 import java.io.Serializable;
@@ -30,9 +31,10 @@ public class ReplicaManager implements Serializable{
      * Load in TaskMeta objects
      *
      * TODO send real Task information!
+     * @param tasks
      */
-    public synchronized void loadTasksAndReplicate(List<String> tasks){
-        for(String task : tasks){
+    public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
+        for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
                 Replica replica = new Replica(task, i);
                 replicaMap.put(replica.getReplicaID(), replica);

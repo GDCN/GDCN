@@ -74,11 +74,11 @@ abstract class AbstractFileMaster{
 //            }
 
         for(FileDep fileDep : taskMeta.getDependencies()){
-            unresolvedFiles.put(fileDep.getKey(), fileDep);
+            unresolvedFiles.put(fileDep.getDhtKey(), fileDep);
         }
         if(taskMeta.getModule() != null){
             //is currently null when coming from Uploader class
-            unresolvedFiles.put(taskMeta.getModule().getKey(), taskMeta.getModule());
+            unresolvedFiles.put(taskMeta.getModule().getDhtKey(), taskMeta.getModule());
         }
     }
 
@@ -213,7 +213,7 @@ abstract class AbstractFileMaster{
      */
     protected final void fileDependencyResolved(FileDep fileDep){
         lock.lock();
-        unresolvedFiles.remove(fileDep.getKey());
+        unresolvedFiles.remove(fileDep.getDhtKey());
         allDependenciesComplete.signalAll();
         lock.unlock();
     }
@@ -268,7 +268,7 @@ abstract class AbstractFileMaster{
      * @return Absolute path to file
      */
     protected File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getLocation() + File.separator + fileDep.getFileName());
+        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
     }
 
     /**
@@ -277,7 +277,7 @@ abstract class AbstractFileMaster{
      * @return Absolute path to file
      */
     protected static File pathTo(PathManager pathManager, FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getLocation() + File.separator + fileDep.getFileName());
+        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
     }
 
     /**

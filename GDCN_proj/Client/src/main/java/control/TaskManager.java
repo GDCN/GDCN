@@ -56,7 +56,7 @@ public class TaskManager{
             @Override
             public void run() {
                 try {
-                    Uploader uploader = Uploader.create(jobName, networker, taskListener);
+                    Uploader uploader = Uploader.create(jobName, networker, taskListener, replicaManager);
                     boolean success = uploader.runAndAwait();
 
                     if(!success){

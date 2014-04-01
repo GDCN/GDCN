@@ -9,17 +9,19 @@ import java.io.Serializable;
  */
 class FileDep implements Serializable {
     private String fileName;
-    private String location;
-    private String key;
+    private String fileLocation;
+    private String dhtKey;
+
+    //TODO generate dhtKey from projectName + fileName? will be hashed later on to a Number160
 
     private boolean sticky = false;
     //TODO put checksum elsewhere
     private int checkSum;
 
-    FileDep(String fileName, String location, String key, boolean sticky, int checkSum) {
+    FileDep(String fileName, String fileLocation, String dhtKey, boolean sticky, int checkSum) {
         this.fileName = fileName;
-        this.location = location;
-        this.key = key;
+        this.fileLocation = fileLocation;
+        this.dhtKey = dhtKey;
         this.sticky = sticky;
         this.checkSum = checkSum;
     }
@@ -32,8 +34,8 @@ class FileDep implements Serializable {
         FileDep fileDep = (FileDep) o;
 
         if (!fileName.equals(fileDep.fileName)) return false;
-        if (!key.equals(fileDep.key)) return false;
-        if (!location.equals(fileDep.location)) return false;
+        if (!dhtKey.equals(fileDep.dhtKey)) return false;
+        if (!fileLocation.equals(fileDep.fileLocation)) return false;
 
         return true;
     }
@@ -41,8 +43,8 @@ class FileDep implements Serializable {
     @Override
     public int hashCode() {
         int result = fileName.hashCode();
-        result = 31 * result + location.hashCode();
-        result = 31 * result + key.hashCode();
+        result = 31 * result + fileLocation.hashCode();
+        result = 31 * result + dhtKey.hashCode();
         return result;
     }
 
@@ -50,12 +52,12 @@ class FileDep implements Serializable {
         return fileName;
     }
 
-    public String getLocation() {
-        return location;
+    public String getFileLocation() {
+        return fileLocation;
     }
 
-    public String getKey() {
-        return key;
+    public String getDhtKey() {
+        return dhtKey;
     }
 
     public boolean isSticky() {

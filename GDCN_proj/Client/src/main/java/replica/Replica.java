@@ -1,28 +1,30 @@
 package replica;
 
+import files.TaskMeta;
 import net.tomp2p.peers.Number160;
 import network.WorkerID;
 
+import java.io.Serializable;
 import java.util.Random;
 
 /**
 * Created by Leif on 2014-03-31.
 */
-class Replica {
+class Replica implements Serializable{
 
     private static final Random random = new Random();
 
     private final String replicaID;
-    private final String taskID;
+    private final TaskMeta taskMeta;
     private final Number160 resultKey;
 
     private WorkerID worker = null;
     private Object result = null;
 
 
-    Replica(String taskID, int index) {
-        this.taskID = taskID;
-        this.replicaID = generateReplicaID(taskID, index);
+    Replica(TaskMeta taskMeta, int index) {
+        this.taskMeta = taskMeta;
+        this.replicaID = generateReplicaID(taskMeta, index);
         resultKey = Number160.createHash(random.nextLong());
     }
 
@@ -30,8 +32,8 @@ class Replica {
         return replicaID;
     }
 
-    public String getTaskID() {
-        return taskID;
+    public TaskMeta getTaskID() {
+        return taskMeta;
     }
 
     public Number160 getResultKey() {
@@ -63,7 +65,7 @@ class Replica {
 
         if (!replicaID.equals(replica.replicaID)) return false;
         if (!resultKey.equals(replica.resultKey)) return false;
-        if (!taskID.equals(replica.taskID)) return false;
+        if (!taskMeta.equals(replica.taskMeta)) return false;
 
         return true;
     }
@@ -71,14 +73,14 @@ class Replica {
     @Override
     public int hashCode() {
         int result = replicaID.hashCode();
-        result = 31 * result + taskID.hashCode();
+        result = 31 * result + taskMeta.hashCode();
         result = 31 * result + resultKey.hashCode();
         return result;
     }
 
 
-    private static String generateReplicaID(String taskID, int index){
-        return taskID + index;
+    private static String generateReplicaID(TaskMeta taskMeta, int index){
+        return taskMeta.getTaskName() + index;
         //TODO hash replicaID or something, should not be so obvious, or should it?
     }
 }

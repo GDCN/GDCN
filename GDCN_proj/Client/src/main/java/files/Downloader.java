@@ -96,7 +96,7 @@ public class Downloader extends AbstractFileMaster {
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
         System.out.println("Didn't find file " + pathTo(fileDep));
-        client.get(fileDep.getKey());
+        client.get(fileDep.getDhtKey());
     }
 
     @Override

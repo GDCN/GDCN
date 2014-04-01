@@ -9,7 +9,7 @@ import java.util.List;
  *
  * Represents contents in one MetaTask file
  */
-class TaskMeta implements Serializable {
+public class TaskMeta implements Serializable {
     private final String resultKey;
     private final String taskName;
 

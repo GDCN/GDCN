@@ -1,12 +1,10 @@
 package files;
 
-import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.NetworkInterface;
-import control.PeerOwner;
 import net.tomp2p.storage.Data;
+import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
@@ -27,7 +25,7 @@ public class Uploader extends AbstractFileMaster{
         super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
     }
 
-    public static Uploader create(String jobName, NetworkInterface client, TaskListener taskListener) throws FileNotFoundException, TaskMetaDataException {
+    public static Uploader create(String jobName, NetworkInterface client, TaskListener taskListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());
@@ -44,19 +42,23 @@ public class Uploader extends AbstractFileMaster{
             dependencyTasks.add(fileDep);
 //            allFileDependencies.add(fileDep); //Since taskMeta shall be sent using MPI instead...
         }
+
+        List<TaskMeta> taskMetas = new ArrayList<>();
         for(FileDep fileDep : dependencyTasks){
             TaskMeta taskMeta = AbstractFileMaster.readMetaFile( AbstractFileMaster.pathTo(manager, fileDep));
+            taskMetas.add(taskMeta);
             allFileDependencies.add(taskMeta.getModule());
             allFileDependencies.addAll(taskMeta.getDependencies());
         }
+        replicaManager.loadTasksAndReplicate(taskMetas);
 
         for(FileDep fileDep : allFileDependencies){
             System.out.println(" Dependency: "+fileDep.getFileName());
         }
 
-        TaskMeta totalMeta = new TaskMeta(jobName, "Upload"+jobName, null, new ArrayList<>(allFileDependencies));
+        TaskMeta totalJobMeta = new TaskMeta(jobName, "Upload"+jobName, null, new ArrayList<>(allFileDependencies));
 
-        return new Uploader(manager, totalMeta, client, taskListener);
+        return new Uploader(manager, totalJobMeta, client, taskListener);
     }
 
     @Override
@@ -65,7 +67,7 @@ public class Uploader extends AbstractFileMaster{
 
         try {
             System.out.println("Put " + pathTo(fileDep));
-            client.put(fileDep.getKey(), new Data(fromFile(file)));
+            client.put(fileDep.getDhtKey(), new Data(fromFile(file)));
         } catch (IOException e) {
             e.printStackTrace();
             //TODO better output?
@@ -115,48 +117,6 @@ public class Uploader extends AbstractFileMaster{
         return null;
     }
 
-    public static void main(String[] args){
 
-//        final Semaphore semaphore = new Semaphore(0);
-        final TaskListener mainTaskListener = new TaskListener() {
-            @Override
-            public void taskFinished(String taskName) {
-                System.out.println("Task finished "+taskName);
-//                semaphore.release();
-            }
-
-            @Override
-            public void taskFailed(String taskName, String reason) {
-                System.out.println("Task failed "+taskName);
-                System.out.println("because of: "+reason);
-//                semaphore.release();
-            }
-        };
-
-        Install.install();
-
-        //Might want to copy "dGDCN/" to "~/.gdcn/"
-
-        PathManager pathManager = PathManager.jobOwner("Job1");
-        ClientInterface client = new PeerOwner();
-        client.start(8056);
-
-        try {
-            Uploader uploader = Uploader.create("Job1", client, mainTaskListener);
-            boolean success = uploader.runAndAwait();
-
-            if(success){
-                System.out.println("Seems to work :D");
-            } else {
-                System.out.println("Something whent wrong...");
-            }
-            //OBS doesn't need the semaphore since runs in the same thread
-//            semaphore.acquire();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            client.stop();
-        }
-    }
 
 }
