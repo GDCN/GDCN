@@ -6,6 +6,7 @@ import network.WorkerID;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import replica.ReplicaBox;
 import replica.ReplicaManager;
 
 import java.security.KeyPairGenerator;
@@ -86,18 +87,18 @@ public class ReplicaTest {
         assert exceptionThrown;
 
         loadMeta(taskMetaA);
-        String replicaID = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
 
         boolean exceptionThrown2 = false;
         try{
-            replicaManager.replicaFinished(replicaID, null);
+            replicaManager.replicaFinished(replicaBox.getReplicaID(), null);
         } catch (Exception e){
             exceptionThrown2 = true;
         }
         assert exceptionThrown2;
 
 
-        replicaManager.replicaFinished(replicaID, "Some result");
+        replicaManager.replicaFinished(replicaBox.getReplicaID(), "Some result");
     }
 
     private void loadMeta(TaskMeta taskMeta){

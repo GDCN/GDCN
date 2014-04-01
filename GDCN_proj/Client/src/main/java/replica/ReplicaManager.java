@@ -50,7 +50,7 @@ public class ReplicaManager implements Serializable{
      *
      * //TODO send real Task information!
      */
-    public synchronized String giveReplicaToWorker(WorkerID worker){
+    public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
         Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
@@ -71,7 +71,7 @@ public class ReplicaManager implements Serializable{
             replica.setWorker(worker);
             alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
 
-            return replica.getReplicaBox().getReplicaID();
+            return replica.getReplicaBox();
         } catch (NoSuchElementException e){
             //Deque is empty
             return null;

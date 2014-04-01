@@ -5,6 +5,7 @@ import challenge.Solution;
 import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
+import replica.ReplicaBox;
 import replica.ReplicaManager;
 
 import java.io.Serializable;
@@ -73,7 +74,7 @@ public class TaskPasser extends Passer {
                         TaskMessage taskMessage2 = check(replyMessageContent2);
                         switch (taskMessage2.type) {
                             case TASK:
-//                                Object taskMeta = taskMessage2.actualContent;
+                                ReplicaBox replicaBox = (ReplicaBox) taskMessage2.actualContent;
                                 //TODO work on Task...
                                 System.out.println("Start processing task");
 
@@ -141,9 +142,8 @@ public class TaskPasser extends Passer {
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
                     workerNodeManager.registerWorker(workerID);
 
-                    String replicaID = replicaManager.giveReplicaToWorker(workerID);
-                    //TODO give actual task information
-                    return new TaskMessage(TaskMessageType.TASK, myWorkerID, "TODO An actual serializable TaskMeta here please "+replicaID);
+                    ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
+                    return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
                 } else {
                     workerNodeManager.reportWorker(workerID);
