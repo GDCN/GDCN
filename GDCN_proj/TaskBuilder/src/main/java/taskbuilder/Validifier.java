@@ -60,4 +60,26 @@ public class Validifier {
                 proc.destroy();
         }
     }
+
+    public static void main(String[] args) {
+        ValidityListener vl = new ValidityListener() {
+            @Override
+            public void validityOk(String worker, String taskName) {
+                System.out.println("Validity Ok");
+            }
+
+            @Override
+            public void validityCorrupt(String worker, String taskName) {
+                System.out.println("Validity corrupt");
+            }
+
+            @Override
+            public void validityError(String worker, String taskName, String reason) {
+                System.out.println("Validity error: " + reason);
+            }
+        };
+
+        Validifier v = new Validifier("someProgram", vl);
+        v.testResult("", "", "someResultFile");
+    }
 }
