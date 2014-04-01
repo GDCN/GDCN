@@ -21,6 +21,7 @@ public class PathManager {
     private static String headerLocation = null;
     private static String dataPath = null;
     private static String jobPath = null;
+    private static String settingsPath = null;
 
     private final boolean isWorker;
 
@@ -58,9 +59,13 @@ public class PathManager {
     }
 
     private void check(){
-        if(dataPath == null || headerLocation == null){
+        if(dataPath == null || headerLocation == null || jobPath == null || settingsPath == null){
             throw new AssertionError("Paths has not been read properly!");
         }
+    }
+
+    public String getSettingsPath() {
+        return settingsPath;
     }
 
     /**
@@ -169,6 +174,7 @@ public class PathManager {
             headerLocation = prop.getProperty("bin_path");
             dataPath = prop.getProperty("data_path");
             jobPath = prop.getProperty("job_path");
+            settingsPath = prop.getProperty("settings_path");
         }
         catch (FileNotFoundException e) {
             e.printStackTrace();
