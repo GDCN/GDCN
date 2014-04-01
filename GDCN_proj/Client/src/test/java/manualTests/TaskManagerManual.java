@@ -49,20 +49,21 @@ public class TaskManagerManual {
         }
 
         System.out.println("\n-- ENTER Second part! --");
-        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
+
+        ResultListener ignore = new ResultListener() {
             @Override
             public void taskCompleted(byte[] results) {
-                ResultListener ignore = new ResultListener() {
-                    @Override
-                    public void taskCompleted(byte[] results) {
-                        //ignore
-                    }
-                };
-                System.out.println("\n-- ENTER Third part: next generation tasks! --");
-                executeTaskTest(client, "PrimeTask_02", ignore);
-                executeTaskTest(client, "PrimeTask_03", ignore);
+                //ignore
             }
-        });
+        };
+        executeTaskTest(client, "PrimeTask_01", ignore);
+        System.out.println("\n-- ENTER Third part: next generation tasks! --");
+        executeTaskTest(client, "PrimeTask_02", ignore);
+        System.out.println("\n-- 02 finished? --");
+        //executeTaskTest(client, "PrimeTask_03", ignore);
+        System.out.println("\n-- 03 finished? --");
+
+        client.stop();
     }
     public static void main2(String[] args){
         ClientInterface client = new PeerOwner();
@@ -74,15 +75,17 @@ public class TaskManagerManual {
                 //ignore
             }
         });
+        client.stop();
     }
 
-    private static void executeTaskTest(ClientInterface client, String taskName, ResultListener resultListener){
+    private static void executeTaskTest(ClientInterface client, String taskName, final ResultListener resultListener){
         final Semaphore semaphore = new Semaphore(0);
         final TaskListener mainTaskListener = new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
                 System.out.println("Task finished "+taskName);
                 semaphore.release();
+                resultListener.taskCompleted(null);
             }
 
             @Override
@@ -90,6 +93,7 @@ public class TaskManagerManual {
                 System.out.println("Task failed "+taskName);
                 System.out.println("because of: "+reason);
                 semaphore.release();
+                resultListener.taskCompleted(null);
             }
         };
 
@@ -102,14 +106,14 @@ public class TaskManagerManual {
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", taskName, client, resultListener);
+            manager.startTask("Primes", taskName, client);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            client.stop();
+
         }
     }
 }

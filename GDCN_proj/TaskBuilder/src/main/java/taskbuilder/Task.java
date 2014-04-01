@@ -197,7 +197,7 @@ public class Task implements Runnable{
         return stringBuilder.toString();
     }
 
-    public static void outputStdErr(String output){
+    private static void outputStdErr(String output){
         //TODO output in more general fashion
         System.out.println("-- StdErr:");
         System.out.println(output);

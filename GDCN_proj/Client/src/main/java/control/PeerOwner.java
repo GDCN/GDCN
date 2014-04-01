@@ -4,7 +4,6 @@ import command.communicationToUI.CommandWord;
 import command.communicationToUI.ErrorCode;
 import command.communicationToUI.Operation.OperationBuilder;
 import command.communicationToUI.OperationFinishedSupport;
-import files.ResultListener;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
@@ -262,12 +261,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void work(String projectName, String taskName) {
-        taskManager.startTask(projectName, taskName, this, new ResultListener() {
-            @Override
-            public void taskCompleted(byte[] results) {
-                //TODO where?
-            }
-        });
+        taskManager.startTask(projectName, taskName, this);
     }
 
     @Override

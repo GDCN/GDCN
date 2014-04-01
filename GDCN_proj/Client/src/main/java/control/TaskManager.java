@@ -2,7 +2,6 @@ package control;
 
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
-import files.ResultListener;
 import files.TaskMetaDataException;
 import files.Uploader;
 import taskbuilder.communicationToClient.TaskListener;
@@ -23,9 +22,8 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
-
-    public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener resultListener){
-        Thread thread = new Thread(new Runnable() {
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
+        Thread downloaderThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to networker (ie PeerOwner). Makes call to his listeners
@@ -48,8 +46,8 @@ public class TaskManager{
 
             }
         });
-        thread.setDaemon(true);
-        thread.start();
+        downloaderThread.setDaemon(true);
+        downloaderThread.start();
     }
 
     //TODO use worker pool instead of new Threads
