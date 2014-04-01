@@ -134,7 +134,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         try {
 
             //Initiates the peer
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
+            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             KeyPair keyPair = generator.generateKeyPair();
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
 

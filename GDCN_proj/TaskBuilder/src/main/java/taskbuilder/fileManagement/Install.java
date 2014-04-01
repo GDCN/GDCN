@@ -4,8 +4,6 @@ import org.apache.commons.io.IOUtils;
 import taskbuilder.ExitFailureException;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 /**
@@ -42,7 +40,7 @@ public class Install {
         rootPath.mkdirs();
 
         File pathDataFile = new File(PATH_DATA);
-	Properties pathData = null;
+    Properties pathData = null;
 
         OutputStream outputStream = null;
         try {
@@ -65,9 +63,9 @@ public class Install {
             }
         }
 
-	if (pathData != null) {
-	    installHaskellLibraries(pathData.getProperty("bin_path"));
-	}
+    if (pathData != null) {
+        installHaskellLibraries(pathData.getProperty("bin_path"));
+    }
     }
 
     /**
@@ -117,6 +115,7 @@ public class Install {
         props.put("bin_path", System.getProperty("user.dir") + SEPARATOR + subHeaderPath);
         props.put("data_path", APPDATA + "data" + File.separator);
         props.put("job_path", APPDATA + "jobs" + File.separator);
+        props.put("settings_path", APPDATA + "settings" + File.separator);
 
         return props;
     }
