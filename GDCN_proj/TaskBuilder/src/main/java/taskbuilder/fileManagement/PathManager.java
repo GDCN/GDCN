@@ -25,12 +25,6 @@ public class PathManager {
 
     private final boolean isWorker;
 
-    public static void main(String[] args){
-//        PathManager manager = new PathManager("Primes");
-//        System.out.println(manager.taskCodeDir());
-//        System.out.println(manager.taskResourcesDir());
-    }
-
     /**
      * Points to data folder
      * @param projectName Name of project to work on
@@ -64,7 +58,12 @@ public class PathManager {
         }
     }
 
+    /**
+     *
+     * @return Path to settings folder
+     */
     public String getSettingsPath() {
+        check();
         return settingsPath;
     }
 
