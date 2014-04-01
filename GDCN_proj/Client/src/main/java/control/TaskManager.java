@@ -48,21 +48,6 @@ public class TaskManager{
 //        return runningTasks.size();
 //    }
 
-    /**
-     * @deprecated TODO clean up
-     * @param projectName
-     * @param taskName
-     * @param networker
-     */
-    public void startTask(final String projectName, final String taskName, final ClientInterface networker){
-        startTask(projectName, taskName, networker, new ResultListener() {
-            @Override
-            public void taskCompleted(byte[] results) {
-                //TODO remove this overloaded method and start cleaning
-            }
-        });
-    }
-
     //TODO use worker pool instead of new Threads
 
     public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener someListener){
@@ -188,7 +173,12 @@ public class TaskManager{
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01", client);
+            manager.startTask("Primes", "PrimeTask_01", client, new ResultListener() {
+                @Override
+                public void taskCompleted(byte[] results) {
+                    //TODO
+                }
+            });
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
