@@ -116,6 +116,7 @@ public class Challenge implements Serializable {
             if ((sha[i] & b) != 0) {
                 return false;
             }
+	    b = b << 1;
         }
         return true;
     }
