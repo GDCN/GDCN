@@ -286,7 +286,6 @@ abstract class AbstractFileMaster{
      */
     protected List<String> getResourceFiles() {
         List<String> resources = new ArrayList<>();
-
         for(FileDep fileDep : taskMeta.getDependencies()){
             resources.add(pathTo(fileDep).getAbsolutePath());
         }

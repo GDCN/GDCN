@@ -1,10 +1,10 @@
 {
-    "resultKey":"Primes",
-    "taskName":"PrimeTask_02",
+    "resultKey":"Primes3",
+    "taskName":"PrimeTask_03",
     "module":{"fileName":"Prime.hs","location":"code","key":"Primes_algorithms","sticky":true,"checkSum":500},
     "dependencies":
     [
-        {"fileName":"PrimeTask_01.result","location":"resources","key":"Primes_1_result","sticky":false,"checkSum":25},
-        {"fileName":"20001_30000.raw","location":"resources","key":"Primes_3_indata","sticky":false,"checkSum":25}
+        {"fileName":"20001_30000.raw","location":"resources","key":"Primes_3_indata","sticky":false,"checkSum":25},
+        {"fileName":"PrimeTask_01.result","location":"resources","key":"Primes_1_result","sticky":false,"checkSum":25}
     ]
 }

@@ -56,29 +56,38 @@ public class TaskManagerManual {
                 //ignore
             }
         };
-        executeTaskTest(client, "PrimeTask_01", ignore);
-        System.out.println("\n-- ENTER Third part: next generation tasks! --");
-        executeTaskTest(client, "PrimeTask_02", ignore);
-        System.out.println("\n-- 02 finished? --");
-        //executeTaskTest(client, "PrimeTask_03", ignore);
-        System.out.println("\n-- 03 finished? --");
+        try {
+            executeTaskTest(client, "PrimeTask_01", ignore);
+            System.out.println("\n-- ENTER Third part: next generation tasks! --");
 
-        client.stop();
+            executeTaskTest(client, "PrimeTask_02", ignore);
+            executeTaskTest(client, "PrimeTask_03", ignore);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            client.stop();
+        }
     }
     public static void main2(String[] args){
         ClientInterface client = new PeerOwner();
         client.start(8056);
 
-        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
-            @Override
-            public void taskCompleted(byte[] results) {
-                //ignore
-            }
-        });
-        client.stop();
+        try {
+            executeTaskTest(client, "PrimeTask_02", new ResultListener() {
+                @Override
+                public void taskCompleted(byte[] results) {
+                    //ignore
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            client.stop();
+        }
     }
 
-    private static void executeTaskTest(ClientInterface client, String taskName, final ResultListener resultListener){
+    private static void executeTaskTest(ClientInterface client, String taskName, final ResultListener resultListener) throws Exception{
         final Semaphore semaphore = new Semaphore(0);
         final TaskListener mainTaskListener = new TaskListener() {
             @Override
@@ -104,16 +113,10 @@ public class TaskManagerManual {
         PathManager pathManager = PathManager.worker("Primes");
         pathManager.deleteBinaries();
 
-        try {
-            TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", taskName, client);
+        TaskManager manager = new TaskManager(mainTaskListener);
+        manager.startTask("Primes", taskName, client);
 
-            System.out.println("Await task response");
-            semaphore.acquireUninterruptibly();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-
-        }
+        System.out.println("Await task response");
+        semaphore.acquireUninterruptibly();
     }
 }
