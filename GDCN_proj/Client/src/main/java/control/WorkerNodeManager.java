@@ -27,6 +27,9 @@ public class WorkerNodeManager implements Serializable{
 
     public WorkerNodeManager(DisciplinaryAction standardAction, int removeSoManyPoints) {
         this.standardAction = standardAction;
+        if(standardAction==DisciplinaryAction.REMOVE && removeSoManyPoints <= 0){
+            throw new IllegalArgumentException("If use REMOVE, one must subtract points, not give points, on failure.");
+        }
         this.removeSoManyPoints = removeSoManyPoints;
     }
 
