@@ -40,7 +40,7 @@ public class Install {
         rootPath.mkdirs();
 
         File pathDataFile = new File(PATH_DATA);
-	Properties pathData = null;
+    Properties pathData = null;
 
         OutputStream outputStream = null;
         try {
@@ -63,9 +63,9 @@ public class Install {
             }
         }
 
-	if (pathData != null) {
-	    installHaskellLibraries(pathData.getProperty("bin_path"));
-	}
+    if (pathData != null) {
+        installHaskellLibraries(pathData.getProperty("bin_path"));
+    }
     }
 
     /**
