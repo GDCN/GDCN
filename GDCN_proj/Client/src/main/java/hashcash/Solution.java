@@ -3,7 +3,6 @@ package hashcash;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.Key;
-import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -17,11 +16,25 @@ public class Solution implements Serializable {
         this.challenge = challenge;
     }
 
-    public boolean isValid(Key key) throws NoSuchAlgorithmException, InvalidKeyException {
+    /**
+     * Gets the identity of the challenge this solution claims to solve.
+     * @return The identity of the challenge if it exists, null otherwise.
+     */
+    public byte[] getId() {
+        return challenge.getId();
+    }
+
+    /**
+     * Checks whether the solution is a valid solution to the challenge it claims to solve.
+     * @param key The key used when creating the challenge.
+     * @return True if the solution solves the challenge and is authentic.
+     * @throws InvalidKeyException
+     */
+    public boolean isValid(Key key) throws InvalidKeyException {
         return isAuthentic(key) && isSolution();
     }
 
-    private boolean isAuthentic(Key key) throws InvalidKeyException, NoSuchAlgorithmException {
+    private boolean isAuthentic(Key key) throws InvalidKeyException {
         return challenge.isAuthentic(key);
     }
 

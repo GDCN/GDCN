@@ -15,39 +15,66 @@ import java.util.Random;
  *
  */
 public class Challenge implements Serializable {
-    private final byte[] seed, mac;
+    private final byte[] id, seed, mac;
     private final int difficulty;
-
+    private final boolean identifiable;
 
     /**
-     * Creates a new Challenge.
+     * Creates a new anonymous Challenge.
      * @param seed The seed of the Challenge. Should not be reused!
      * @param difficulty The difficulty of the Challenge.
+     * @param key The key which should be used to authenticate the solution. (Must be compatible with javax.crypto.Mac)
      */
     public Challenge(byte[] seed, int difficulty, Key key) throws InvalidKeyException {
-        Mac macgen = null;
-        try {
-            macgen = Mac.getInstance("SHA-1");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            //TODO Something went really wrong here, present it to the user in some way?
-        }
-
-        this.seed = seed;
-        this.difficulty = difficulty;
-
-        macgen.init(key);
-        macgen.update(seed);
-        this.mac = macgen.doFinal(ByteBuffer.allocate(4).putInt(difficulty).array());
+        this(new byte[]{-1},seed,difficulty,key);
     }
 
-    public boolean isAuthentic(Key key) throws InvalidKeyException, NoSuchAlgorithmException {
-        Mac macgen = Mac.getInstance("SHA-1");
-        macgen.init(key);
-        macgen.update(seed);
-        byte[] mac = macgen.doFinal(ByteBuffer.allocate(4).putInt(difficulty).array());
+    /**
+     * Creates a new identifiable Challenge.
+     * @param id The identity of the Challenge.
+     * @param seed The seed of the Challenge. Should not be reused!
+     * @param difficulty The difficulty of the Challenge.
+     * @param key The key which should be used to authenticate the solution. (Must be compatible with javax.crypto.Mac)
+     */
+    public Challenge(byte[] id, byte[] seed, int difficulty, Key key) throws InvalidKeyException {
+        this.id = id.clone();
+        this.seed = seed.clone();
+        this.difficulty = difficulty;
+        this.mac = generateMAC(key);
+        this.identifiable = !(id.length == 1 && id[0] == -1);
+    }
 
-        return Arrays.equals(this.mac, mac);
+    /**
+     * Gets the identity of the challenge
+     * @return The identity if it exists, null otherwise.
+     */
+    public byte[] getId() {
+        if(identifiable) {
+            return id.clone();
+        } else {
+            return null;
+        }
+    }
+
+    private byte[] generateMAC(Key key) throws InvalidKeyException {
+        Mac macGen = null;
+        try {
+            macGen = Mac.getInstance(key.getAlgorithm());
+            macGen.init(key);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            //TODO Something went really wrong here, present it to the user in some way?
+        } catch (NoSuchAlgorithmException e) {
+            throw new InvalidKeyException("The key must be compatible with javax.crypto.Mac");
+        }
+
+        macGen.update(id);
+        macGen.update(seed);
+        return macGen.doFinal(ByteBuffer.allocate(4).putInt(difficulty).array());
+    }
+
+    public boolean isAuthentic(Key key) throws InvalidKeyException {
+        return Arrays.equals(this.mac, generateMAC(key));
     }
 
     /**
@@ -57,22 +84,20 @@ public class Challenge implements Serializable {
     public Solution solve() {
         MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance("SHA-1");
+            md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             //TODO Something went really wrong here, present it to the user in some way?
         }
         Random random = new Random();
-        byte[] rest;
+        byte[] testToken;
 
         do {
-            rest = new byte[random.nextInt(32)];
-            random.nextBytes(rest);
-            md.update(seed);
-            md.update(rest);
-        } while (!checkZeros(md.digest(), difficulty));
+            testToken = new byte[random.nextInt(32)];
+            random.nextBytes(testToken);
+        } while (!isCorrectToken(testToken));
 
-        return new Solution(rest,this);
+        return new Solution(testToken,this);
     }
 
     @Override
@@ -84,15 +109,10 @@ public class Challenge implements Serializable {
                 '}';
     }
 
-    /**
-     * Checks if the given token solves the challenge
-     * @param token
-     * @return True if the token is a solution to the challenge, false otherwise.
-     */
-    public boolean isCorrectToken(byte[] token) {
+    private byte[] hash(byte[] seed, byte[] token) {
         MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance("SHA-1");
+            md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             //TODO Something went really wrong here, present it to the user in some way?
@@ -100,20 +120,28 @@ public class Challenge implements Serializable {
 
         md.update(seed);
         md.update(token);
-
-        return checkZeros(md.digest(), difficulty);
+        return md.digest();
     }
 
-    private static boolean checkZeros(byte[] sha, int difficulty) {
+    /**
+     * Checks if the given token solves the challenge
+     * @param token
+     * @return True if the token is a solution to the challenge, false otherwise.
+     */
+    public boolean isCorrectToken(byte[] token) {
+        return checkZeros(hash(seed,token));
+    }
+
+    private boolean checkZeros(byte[] hash) {
         int i;
         for (i = 0; i < difficulty/8; i++) {
-            if (sha[i] != 0) {
+            if (hash[i] != 0) {
                 return false;
             }
         }
-        byte b = 1;
+
         for (int j = 0; j < difficulty%8; j++) {
-            if ((sha[i] & b) != 0) {
+            if ((hash[i] & 2^j) != 0) {
                 return false;
             }
 	    b = b << 1;
