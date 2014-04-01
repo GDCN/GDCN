@@ -2,11 +2,13 @@ package network;
 
 import challenge.Challenge;
 import challenge.Solution;
+import control.TaskManager;
 import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
+import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -21,12 +23,14 @@ public class TaskPasser extends Passer {
 
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
     private final ReplicaManager replicaManager;
+    private final TaskManager taskManager;
 
     private final WorkerID myWorkerID;
 
-    public TaskPasser(Peer peer, ReplicaManager replicaManager) {
+    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager) {
         super(peer);
         this.replicaManager = replicaManager;
+        this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
     }
 
@@ -75,13 +79,12 @@ public class TaskPasser extends Passer {
                         switch (taskMessage2.type) {
                             case TASK:
                                 ReplicaBox replicaBox = (ReplicaBox) taskMessage2.actualContent;
-                                //TODO work on Task...
                                 System.out.println("Start processing task");
 
-                                workOnTask(jobOwner, "SomeTaskID");
+                                workOnTask(jobOwner, replicaBox);
                                 System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                 break;
-                            case FAIL:
+                            case CHALLENGE_FAIL:
                                 throw new IllegalStateException("Solution failed: " + taskMessage2.actualContent);
                             default:
                                 throw new IllegalStateException("Should be a Challenge response here!");
@@ -93,21 +96,34 @@ public class TaskPasser extends Passer {
     }
 
     /**
-     * Notify jobOwner that result has been uploaded for this task.
-     * @param jobOwner Peer to work for
-     * @param taskID ID of task
-     */
-    public void notifyJobOwner(PeerAddress jobOwner, String taskID){
-        System.out.println("JobOwner was notified, if he was still online");
-        sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, taskID));
-    }
-
-    /**
      * Dummy method. Remove with actual work
      */
-    private void workOnTask(PeerAddress jobOwner, String taskID){
-        //TODO work on Task...
-        notifyJobOwner(jobOwner, taskID);
+    private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
+        //TODO project name?
+        taskManager.startTask("Primes", replicaBox.getTaskMeta(), new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task "+taskName+" failed. Job owner notified if still online. Reason: "+reason);
+                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID, new FailMessage(reason, replicaBox.getReplicaID())));
+            }
+        });
+
+    }
+
+    private static class FailMessage implements Serializable{
+        private final String reason;
+        private final String ID;
+
+        private FailMessage(String reason, String ID) {
+            this.reason = reason;
+            this.ID = ID;
+        }
     }
 
     private Solution challengeReceived(Object challengeData){
@@ -148,9 +164,9 @@ public class TaskPasser extends Passer {
                 } else {
                     workerNodeManager.reportWorker(workerID);
                     if(originalChallenge == null){
-                        return new TaskMessage(TaskMessageType.FAIL, myWorkerID, "Provided solution didn't match any challenge!");
+                        return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution didn't match any challenge!");
                     }
-                    return new TaskMessage(TaskMessageType.FAIL, myWorkerID, "Provided solution was FALSE!");
+                    return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
                 }
 
             case HELLO:
@@ -169,6 +185,11 @@ public class TaskPasser extends Passer {
         switch (taskMessage.type){
             case RESULT_UPLOADED:
                 resultUploaded((String) taskMessage.actualContent);
+                break;
+            case TASK_FAIL:
+                FailMessage failMessage = (FailMessage) taskMessage.actualContent;
+                System.out.println("My task failed! Reason: "+failMessage.reason);
+                replicaManager.replicaFailed(failMessage.ID);
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
@@ -193,7 +214,8 @@ public class TaskPasser extends Passer {
         REQUEST_CHALLENGE,
         CHALLENGE,
         REQUEST_TASK,
-        FAIL,
+        TASK_FAIL,
+        CHALLENGE_FAIL,
         TASK,
         RESULT_UPLOADED,
         HELLO

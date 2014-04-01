@@ -44,8 +44,8 @@ public class TaskManagerManual {
         client.start(11789);
 
         try {
-            TaskManager manager = new TaskManager(firstTaskListener);
-            manager.uploadJob("Job1", client, new ReplicaManager(1));
+            TaskManager manager = new TaskManager(firstTaskListener, client);
+            manager.uploadJob("Job1", new ReplicaManager(1));
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
@@ -118,9 +118,9 @@ public class TaskManagerManual {
         PathManager pathManager = PathManager.worker("Primes");
         pathManager.deleteBinaries();
 
-        TaskManager manager = new TaskManager(mainTaskListener);
+        TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-        manager.startTask("Primes", taskMeta, client);
+        manager.startTask("Primes", taskMeta, null);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

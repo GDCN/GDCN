@@ -66,7 +66,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             notifier.fireOperationFinished(CommandWord.WORK, new OperationBuilder<String>(false).setKey(taskName).create());
         }
     };
-    private final TaskManager taskManager = new TaskManager(taskListener);
+    private final TaskManager taskManager = new TaskManager(taskListener, this);
     private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
 
     //Listener used by PeerOwner to know when the addressmap changes in the Peer
@@ -149,7 +149,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(peerMapChangeListener);
 
-            taskPasser = new TaskPasser(peer, replicaManager);
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
 
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
@@ -255,7 +255,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void push(String jobName) {
-        taskManager.uploadJob(jobName, this, replicaManager);
+        taskManager.uploadJob(jobName, replicaManager);
     }
 
     @Override

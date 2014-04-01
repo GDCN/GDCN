@@ -116,6 +116,10 @@ public class ReplicaManager implements Serializable{
         }
     }
 
+    public synchronized void replicaFailed(String replicaID){
+        //TODO implement
+    }
+
     public synchronized Collection<Replica> pendingReplicas(){
         //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
         return null;
