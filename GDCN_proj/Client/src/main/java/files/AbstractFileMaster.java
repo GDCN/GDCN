@@ -73,12 +73,12 @@ abstract class AbstractFileMaster{
 //                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
 //            }
 
-        for(FileDep fileDep : taskMeta.dependencies){
+        for(FileDep fileDep : taskMeta.getDependencies()){
             unresolvedFiles.put(fileDep.getKey(), fileDep);
         }
-        if(taskMeta.module != null){
+        if(taskMeta.getModule() != null){
             //is currently null when coming from Uploader class
-            unresolvedFiles.put(taskMeta.module.getKey(), taskMeta.module);
+            unresolvedFiles.put(taskMeta.getModule().getKey(), taskMeta.getModule());
         }
     }
 
@@ -251,7 +251,7 @@ abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            taskListener.taskFailed(taskMeta.taskName, "Failed to resolve file with name " +  fileDep.getFileName());
+            taskListener.taskFailed(taskMeta.getTaskName(), "Failed to resolve file with name " +  fileDep.getFileName());
             allDependenciesComplete.signalAll();
         }
 
@@ -287,7 +287,7 @@ abstract class AbstractFileMaster{
     protected List<String> getResourceFiles() {
         List<String> resources = new ArrayList<>();
 
-        for(FileDep fileDep : taskMeta.dependencies){
+        for(FileDep fileDep : taskMeta.getDependencies()){
             resources.add(pathTo(fileDep).getAbsolutePath());
         }
 
