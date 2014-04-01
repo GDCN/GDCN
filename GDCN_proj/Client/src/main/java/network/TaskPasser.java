@@ -21,9 +21,12 @@ public class TaskPasser extends Passer {
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE);
     private final ReplicaManager replicaManager;
 
+    private final WorkerID myWorkerID;
+
     public TaskPasser(Peer peer, ReplicaManager replicaManager) {
         super(peer);
         this.replicaManager = replicaManager;
+        this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
     }
 
     //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
@@ -35,7 +38,7 @@ public class TaskPasser extends Passer {
      * @param hello String of words
      */
     public void sendHello(PeerAddress otherPeer, String hello){
-        sendRequest(otherPeer, new TaskMessage(TaskMessageType.HELLO, hello), new OnReplyCommand() {
+        sendRequest(otherPeer, new TaskMessage(TaskMessageType.HELLO, myWorkerID, hello), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
                 TaskMessage taskMessage = check(replyMessageContent);
@@ -53,7 +56,7 @@ public class TaskPasser extends Passer {
         //TODO make tread safe...
         System.out.println("Request work from "+Passer.print(jobOwner));
 
-        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, ""), new OnReplyCommand() {
+        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
                 TaskMessage taskMessage = check(replyMessageContent);
@@ -64,7 +67,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Challenge received and solved");
 
-                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, challengeSolution), new OnReplyCommand() {
+                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, myWorkerID, challengeSolution), new OnReplyCommand() {
                     @Override
                     public void execute(Object replyMessageContent2) {
                         TaskMessage taskMessage2 = check(replyMessageContent2);
@@ -78,7 +81,7 @@ public class TaskPasser extends Passer {
                                 System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                 break;
                             case FAIL:
-                                throw new IllegalStateException("Solution failed: "+taskMessage2.actualContent);
+                                throw new IllegalStateException("Solution failed: " + taskMessage2.actualContent);
                             default:
                                 throw new IllegalStateException("Should be a Challenge response here!");
                         }
@@ -95,7 +98,7 @@ public class TaskPasser extends Passer {
      */
     public void notifyJobOwner(PeerAddress jobOwner, String taskID){
         System.out.println("JobOwner was notified, if he was still online");
-        sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, taskID));
+        sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, taskID));
     }
 
     /**
@@ -116,20 +119,17 @@ public class TaskPasser extends Passer {
     synchronized protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
         TaskMessage taskMessage = check(messageContent);
-        //TODO set workerID as what we really want
-        WorkerNodeManager.WorkerID workerID = new WorkerNodeManager.WorkerID(sender);
+        WorkerID workerID = taskMessage.senderID;
 
         switch(taskMessage.type){
             case REQUEST_CHALLENGE:
 
                 System.out.println("Received request for a Challenge");
 
-                //TODO PeerAddress sender doesn't always refer to the correct Peer!!! Send WorkerID in message instead!
-
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
                         Challenge.generate() : Challenge.generateHard();
                 pendingChallenges.put(challenge.getKey(), challenge);
-                return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
+                return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
             case REQUEST_TASK:
 
@@ -143,19 +143,19 @@ public class TaskPasser extends Passer {
 
                     String replicaID = replicaManager.giveReplicaToWorker(workerID);
                     //TODO give actual task information
-                    return new TaskMessage(TaskMessageType.TASK, "TODO An actual serializable TaskMeta here please "+replicaID);
+                    return new TaskMessage(TaskMessageType.TASK, myWorkerID, "TODO An actual serializable TaskMeta here please "+replicaID);
 
                 } else {
                     workerNodeManager.reportWorker(workerID);
                     if(originalChallenge == null){
-                        return new TaskMessage(TaskMessageType.FAIL, "Provided solution didn't match any challenge!");
+                        return new TaskMessage(TaskMessageType.FAIL, myWorkerID, "Provided solution didn't match any challenge!");
                     }
-                    return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
+                    return new TaskMessage(TaskMessageType.FAIL, myWorkerID, "Provided solution was FALSE!");
                 }
 
             case HELLO:
                 System.out.println("Received Hello: "+taskMessage.actualContent.toString());
-                return new TaskMessage(TaskMessageType.HELLO, "Hi, I heard you said "+taskMessage.actualContent);
+                return new TaskMessage(TaskMessageType.HELLO, myWorkerID, "Hi, I heard you said "+taskMessage.actualContent);
 
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
@@ -200,11 +200,13 @@ public class TaskPasser extends Passer {
     }
 
     private static class TaskMessage implements Serializable{
-        private TaskMessageType type;
-        private Object actualContent;
+        private final TaskMessageType type;
+        private final WorkerID senderID;
+        private final Object actualContent;
 
-        private TaskMessage(TaskMessageType type, Object actualContent) {
+        private TaskMessage(TaskMessageType type, WorkerID senderID, Object actualContent) {
             this.type = type;
+            this.senderID = senderID;
             this.actualContent = actualContent;
         }
 

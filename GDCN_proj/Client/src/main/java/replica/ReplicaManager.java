@@ -1,6 +1,6 @@
 package replica;
 
-import control.WorkerNodeManager;
+import network.WorkerID;
 
 import java.util.*;
 
@@ -19,7 +19,7 @@ public class ReplicaManager {
     private final Map<String, Replica> replicaMap = new HashMap<>();
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
-    private final Map<WorkerNodeManager.WorkerID, Set<String>> assignedTasks = new HashMap<>();
+    private final Map<WorkerID, Set<String>> assignedTasks = new HashMap<>();
 
     public ReplicaManager(int replicas) {
         REPLICAS = replicas;
@@ -47,7 +47,7 @@ public class ReplicaManager {
      *
      * //TODO send real Task information!
      */
-    public synchronized String giveReplicaToWorker(WorkerNodeManager.WorkerID worker){
+    public synchronized String giveReplicaToWorker(WorkerID worker){
         Set<String> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();

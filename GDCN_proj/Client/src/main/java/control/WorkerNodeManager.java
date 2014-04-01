@@ -1,6 +1,6 @@
 package control;
 
-import net.tomp2p.peers.PeerAddress;
+import network.WorkerID;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,15 +13,6 @@ import java.util.Map;
  * //TODO save this object to file on 'exit' and load it from file on startup
  */
 public class WorkerNodeManager {
-
-    // TODO replace this WorkerID class with more proper one such as PeerAddress or whatever is chosen
-    public static class WorkerID {
-        private final PeerAddress address;
-
-        public WorkerID(PeerAddress address){
-            this.address = address;
-        }
-    }
 
     public static enum DisciplinaryAction{
         REMOVE,

@@ -1,7 +1,7 @@
 package replica;
 
-import control.WorkerNodeManager;
 import net.tomp2p.peers.Number160;
+import network.WorkerID;
 
 import java.util.Random;
 
@@ -16,7 +16,7 @@ class Replica {
     private final String taskID;
     private final Number160 resultKey;
 
-    private WorkerNodeManager.WorkerID worker = null;
+    private WorkerID worker = null;
     private Object result = null;
 
 
@@ -38,7 +38,7 @@ class Replica {
         return resultKey;
     }
 
-    public WorkerNodeManager.WorkerID getWorker() {
+    public WorkerID getWorker() {
         return worker;
     }
 
@@ -46,7 +46,7 @@ class Replica {
         return result;
     }
 
-    public void setWorker(WorkerNodeManager.WorkerID worker) {
+    public void setWorker(WorkerID worker) {
         this.worker = worker;
     }
 
