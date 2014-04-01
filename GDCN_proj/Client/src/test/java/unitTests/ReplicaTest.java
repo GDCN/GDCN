@@ -88,6 +88,15 @@ public class ReplicaTest {
         loadMeta(taskMetaA);
         String replicaID = replicaManager.giveReplicaToWorker(workerA);
 
+        boolean exceptionThrown2 = false;
+        try{
+            replicaManager.replicaFinished(replicaID, null);
+        } catch (Exception e){
+            exceptionThrown2 = true;
+        }
+        assert exceptionThrown2;
+
+
         replicaManager.replicaFinished(replicaID, "Some result");
     }
 
