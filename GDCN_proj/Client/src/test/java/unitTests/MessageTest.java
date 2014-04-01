@@ -1,3 +1,5 @@
+package unitTests;
+
 import network.NetworkMessage;
 import org.testng.annotations.Test;
 

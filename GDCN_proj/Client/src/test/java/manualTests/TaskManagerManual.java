@@ -1,0 +1,115 @@
+package manualTests;
+
+import command.communicationToUI.ClientInterface;
+import control.PeerOwner;
+import control.TaskManager;
+import files.ResultListener;
+import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.fileManagement.Install;
+import taskbuilder.fileManagement.PathManager;
+
+import java.util.concurrent.Semaphore;
+
+/**
+ * Created by Leif on 2014-04-01.
+ *
+ * Not really Unit testing but manual testing...
+ */
+public class TaskManagerManual {
+
+    public static void main(String[] args){
+
+        final Semaphore semaphore = new Semaphore(0);
+        final TaskListener firstTaskListener = new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task finished "+taskName);
+                semaphore.release();
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task failed "+taskName);
+                System.out.println("because of: "+reason);
+                semaphore.release();
+            }
+        };
+
+        final ClientInterface client = new PeerOwner();
+        client.start(11789);
+
+        try {
+            TaskManager manager = new TaskManager(firstTaskListener);
+            manager.uploadJob("Job1", client);
+
+            System.out.println("Await task response");
+            semaphore.acquireUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("\n-- ENTER Second part! --");
+        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
+            @Override
+            public void taskCompleted(byte[] results) {
+                ResultListener ignore = new ResultListener() {
+                    @Override
+                    public void taskCompleted(byte[] results) {
+                        //ignore
+                    }
+                };
+                System.out.println("\n-- ENTER Third part: next generation tasks! --");
+                executeTaskTest(client, "PrimeTask_02", ignore);
+                executeTaskTest(client, "PrimeTask_03", ignore);
+            }
+        });
+    }
+    public static void main2(String[] args){
+        ClientInterface client = new PeerOwner();
+        client.start(8056);
+
+        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
+            @Override
+            public void taskCompleted(byte[] results) {
+                //ignore
+            }
+        });
+    }
+
+    private static void executeTaskTest(ClientInterface client, String taskName, ResultListener resultListener){
+        final Semaphore semaphore = new Semaphore(0);
+        final TaskListener mainTaskListener = new TaskListener() {
+            @Override
+            public void taskFinished(String taskName) {
+                System.out.println("Task finished "+taskName);
+                semaphore.release();
+            }
+
+            @Override
+            public void taskFailed(String taskName, String reason) {
+                System.out.println("Task failed "+taskName);
+                System.out.println("because of: "+reason);
+                semaphore.release();
+            }
+        };
+
+        Install.install();
+
+        //Might want to copy "dGDCN/" to "~/.gdcn/"
+
+        PathManager pathManager = PathManager.worker("Primes");
+        pathManager.deleteBinaries();
+
+        try {
+            TaskManager manager = new TaskManager(mainTaskListener);
+            manager.startTask("Primes", taskName, client, resultListener);
+
+            System.out.println("Await task response");
+            semaphore.acquireUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            client.stop();
+        }
+    }
+}
