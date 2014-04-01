@@ -104,4 +104,17 @@ public class WorkerNodeManager implements Serializable{
         registeredWorkers.put(worker, reputation+1);
     }
 
+    /**
+     *
+     * @param worker Worker node
+     * @return Current reputation
+     */
+    public int getReputation(WorkerID worker){
+        if(!registeredWorkers.containsKey(worker)){
+            throw new IllegalArgumentException("Worker doesn't exist");
+        }
+
+        return registeredWorkers.get(worker);
+    }
+
 }

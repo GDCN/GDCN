@@ -13,8 +13,13 @@ import java.security.NoSuchAlgorithmException;
  */
 public class WorkerManagementTest {
 
-    private KeyPairGenerator generator = null;
+    private KeyPairGenerator generator;
     private WorkerNodeManager workerNodeManager;
+
+    private KeyPair keyPairA;
+    private WorkerID workerA;
+
+    private final static int DEMOTE_REPUTATION = 3;
 
     @BeforeClass
     public void setupClass() throws NoSuchAlgorithmException {
@@ -23,14 +28,13 @@ public class WorkerManagementTest {
 
     @BeforeMethod
     public void setupTest(){
-        workerNodeManager = new WorkerNodeManager();
+        workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, DEMOTE_REPUTATION);
+        keyPairA = generator.generateKeyPair();
+        workerA = new WorkerID(keyPairA.getPublic());
     }
 
     @Test
     public void registerTest() throws NoSuchAlgorithmException {
-        KeyPair keyPairA = generator.generateKeyPair();
-        WorkerID workerA = new WorkerID(keyPairA.getPublic());
-
         assert ! workerNodeManager.isWorkerRegistered(workerA);
         assert workerNodeManager.registerWorker(workerA);
 
@@ -40,12 +44,54 @@ public class WorkerManagementTest {
 
     @Test
     public void removeTest(){
-        KeyPair keyPairA = generator.generateKeyPair();
-        WorkerID workerA = new WorkerID(keyPairA.getPublic());
-
         assert workerNodeManager.registerWorker(workerA);
         workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.REMOVE);
 
         assert ! workerNodeManager.isWorkerRegistered(workerA);
+    }
+
+    @Test
+    public void reputationTest(){
+        workerNodeManager.registerWorker(workerA);
+
+        assert 0 == workerNodeManager.getReputation(workerA);
+        workerNodeManager.promoteWorker(workerA);
+        assert 1 == workerNodeManager.getReputation(workerA);
+
+        workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.DEMOTE);
+        assert 1-DEMOTE_REPUTATION == workerNodeManager.getReputation(workerA);
+    }
+
+    @Test
+    public void exceptionTestReputation(){
+        boolean exceptionThrown = false;
+        try{
+            workerNodeManager.getReputation(workerA);
+        } catch (IllegalArgumentException e){
+            exceptionThrown = true;
+        }
+        assert exceptionThrown;
+    }
+
+    @Test
+    public void exceptionTestPromote(){
+        boolean exceptionThrown = false;
+        try{
+            workerNodeManager.promoteWorker(workerA);
+        } catch (IllegalArgumentException e){
+            exceptionThrown = true;
+        }
+        assert exceptionThrown;
+    }
+
+    @Test
+    public void exceptionTestReport(){
+        boolean exceptionThrown = false;
+        try{
+            workerNodeManager.reportWorker(workerA);
+        } catch (IllegalArgumentException e){
+            exceptionThrown = true;
+        }
+        assert exceptionThrown;
     }
 }
