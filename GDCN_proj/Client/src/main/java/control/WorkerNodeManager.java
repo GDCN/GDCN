@@ -2,6 +2,7 @@ package control;
 
 import network.WorkerID;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,7 +13,7 @@ import java.util.Map;
  *
  * //TODO save this object to file on 'exit' and load it from file on startup
  */
-public class WorkerNodeManager {
+public class WorkerNodeManager implements Serializable{
 
     public static enum DisciplinaryAction{
         REMOVE,
@@ -20,11 +21,13 @@ public class WorkerNodeManager {
     }
 
     private final DisciplinaryAction standardAction;
+    private final int removeSoManyPoints;
 
     private final Map<WorkerID, Integer> registeredWorkers = new HashMap<>();
 
-    public WorkerNodeManager(DisciplinaryAction standardAction) {
+    public WorkerNodeManager(DisciplinaryAction standardAction, int removeSoManyPoints) {
         this.standardAction = standardAction;
+        this.removeSoManyPoints = removeSoManyPoints;
     }
 
     /**
@@ -69,8 +72,7 @@ public class WorkerNodeManager {
                 break;
             case DEMOTE:
                 Integer reputation = registeredWorkers.get(worker);
-                // TODO remove more than 1 point?
-                registeredWorkers.put(worker, reputation-1);
+                registeredWorkers.put(worker, reputation-removeSoManyPoints);
                 break;
         }
     }

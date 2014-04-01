@@ -2,6 +2,7 @@ package replica;
 
 import network.WorkerID;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -11,7 +12,7 @@ import java.util.*;
  *
  * //TODO reissue replicas after timeout time
  */
-public class ReplicaManager {
+public class ReplicaManager implements Serializable{
 
     private final int REPLICAS;
 

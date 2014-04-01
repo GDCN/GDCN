@@ -18,7 +18,7 @@ import java.util.Map;
  */
 public class TaskPasser extends Passer {
 
-    private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE);
+    private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
     private final ReplicaManager replicaManager;
 
     private final WorkerID myWorkerID;
