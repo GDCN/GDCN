@@ -10,14 +10,12 @@ import java.util.List;
  * Represents contents in one MetaTask file
  */
 public class TaskMeta implements Serializable {
-    private final String resultKey;
     private final String taskName;
 
     private final FileDep module;
     private final List<FileDep> dependencies;
 
-    TaskMeta(String resultKey, String taskName, FileDep module, List<FileDep> dependencies) {
-        this.resultKey = resultKey;
+    TaskMeta(String taskName, FileDep module, List<FileDep> dependencies) {
         this.taskName = taskName;
         this.module = module;
         this.dependencies = new ArrayList<>(dependencies);
@@ -31,7 +29,6 @@ public class TaskMeta implements Serializable {
         TaskMeta taskMeta = (TaskMeta) o;
 
         if (!module.equals(taskMeta.module)) return false;
-        if (!resultKey.equals(taskMeta.resultKey)) return false;
         if (!taskName.equals(taskMeta.taskName)) return false;
 
         return true;
@@ -39,14 +36,9 @@ public class TaskMeta implements Serializable {
 
     @Override
     public int hashCode() {
-        int result = resultKey.hashCode();
-        result = 31 * result + taskName.hashCode();
+        int result = taskName.hashCode();
         result = 31 * result + module.hashCode();
         return result;
-    }
-
-    public String getResultKey() {
-        return resultKey;
     }
 
     public String getTaskName() {

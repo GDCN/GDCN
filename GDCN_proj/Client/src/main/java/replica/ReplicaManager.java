@@ -37,7 +37,7 @@ public class ReplicaManager implements Serializable{
         for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
                 Replica replica = new Replica(task, i);
-                replicaMap.put(replica.getReplicaID(), replica);
+                replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
                 stagedReplicas.addFirst(replica);
             }
         }
@@ -61,7 +61,7 @@ public class ReplicaManager implements Serializable{
         try{
             Replica replica = stagedReplicas.removeLast();
 
-            while(alreadyGiven.contains(replica.getTaskMeta())){
+            while(alreadyGiven.contains(replica.getReplicaBox().getTaskMeta())){
                 if(skipped == null){
                     skipped = new Stack<>();
                 }
@@ -69,9 +69,9 @@ public class ReplicaManager implements Serializable{
                 replica = stagedReplicas.removeLast();
             }
             replica.setWorker(worker);
-            alreadyGiven.add(replica.getTaskMeta());
+            alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
 
-            return replica.getReplicaID();
+            return replica.getReplicaBox().getReplicaID();
         } catch (NoSuchElementException e){
             //Deque is empty
             return null;
@@ -97,16 +97,17 @@ public class ReplicaManager implements Serializable{
         }
 
         replica.setResult(result);
+        final String taskName = replica.getReplicaBox().getTaskMeta().getTaskName();
 
-        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(replica.getTaskMeta().getTaskName());
+        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
         if(returnedReplicas==null){
             //This is the First replica to return for this task
             List<Replica> list = new ArrayList<>();
             list.add(replica);
-            finishedReplicasTaskMap.put(replica.getTaskMeta().getTaskName(), list);
+            finishedReplicasTaskMap.put(taskName, list);
         } else if(returnedReplicas.size()==REPLICAS-1){
             //This is the Last replica to return for this task
-            finishedReplicasTaskMap.remove(replica.getTaskMeta().getTaskName());
+            finishedReplicasTaskMap.remove(taskName);
             returnedReplicas.add(replica);
             validateResults(returnedReplicas);
         } else {

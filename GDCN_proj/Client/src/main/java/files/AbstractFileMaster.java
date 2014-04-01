@@ -304,7 +304,7 @@ abstract class AbstractFileMaster{
 
         FileDep algorithm = new FileDep("Prime.hs", "code", "Primes_algorithms", true, 500);
 
-        TaskMeta taskMetaTest = new TaskMeta("Primes", "PrimeTask_01", algorithm, deps);
+        TaskMeta taskMetaTest = new TaskMeta("PrimeTask_01", algorithm, deps);
         System.out.println( new Gson().toJson(taskMetaTest));
     }
 }

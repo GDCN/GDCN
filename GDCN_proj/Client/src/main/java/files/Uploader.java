@@ -56,7 +56,7 @@ public class Uploader extends AbstractFileMaster{
             System.out.println(" Dependency: "+fileDep.getFileName());
         }
 
-        TaskMeta totalJobMeta = new TaskMeta(jobName, "Upload"+jobName, null, new ArrayList<>(allFileDependencies));
+        TaskMeta totalJobMeta = new TaskMeta("Upload"+jobName, null, new ArrayList<>(allFileDependencies));
 
         return new Uploader(manager, totalJobMeta, client, taskListener);
     }
