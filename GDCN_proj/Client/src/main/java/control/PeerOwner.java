@@ -256,6 +256,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void push(String jobName) {
+        //TODO queue task metas
         taskManager.uploadJob(jobName, this);
     }
 

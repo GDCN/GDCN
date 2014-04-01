@@ -50,7 +50,7 @@ public class TaskManager{
 
     //TODO use worker pool instead of new Threads
 
-    public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener someListener){
+    public void startTask(final String projectName, final String taskName, final ClientInterface networker, final ResultListener resultListener){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -64,11 +64,11 @@ public class TaskManager{
                         return;
                     }
 
-                    Thread thread = new Thread(downloader.buildTask(taskListener));
-                    thread.setDaemon(true);
+                    Thread taskThread = new Thread(downloader.buildTask(taskListener));
+                    taskThread.setDaemon(true);
 
 //                    runningTasks.put(taskName, thread);
-                    thread.start();
+                    taskThread.start();
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
                     //TODO handle job owner error
@@ -124,7 +124,7 @@ public class TaskManager{
             }
         };
 
-        ClientInterface client = new PeerOwner();
+        final ClientInterface client = new PeerOwner();
         client.start(11789);
 
         try {
@@ -138,16 +138,34 @@ public class TaskManager{
         }
 
         System.out.println("\n-- ENTER Second part! --");
-        executeTaskTest(client);
+        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
+            @Override
+            public void taskCompleted(byte[] results) {
+                ResultListener ignore = new ResultListener() {
+                    @Override
+                    public void taskCompleted(byte[] results) {
+                        //ignore
+                    }
+                };
+                System.out.println("\n-- ENTER Third part: next generation tasks! --");
+                executeTaskTest(client, "PrimeTask_02", ignore);
+                executeTaskTest(client, "PrimeTask_03", ignore);
+            }
+        });
     } 
     public static void main2(String[] args){
         ClientInterface client = new PeerOwner();
         client.start(8056);
 
-        executeTaskTest(client);
+        executeTaskTest(client, "PrimeTask_01", new ResultListener() {
+            @Override
+            public void taskCompleted(byte[] results) {
+                //ignore
+            }
+        });
     }
 
-    private static void executeTaskTest(ClientInterface client){
+    private static void executeTaskTest(ClientInterface client, String taskName, ResultListener resultListener){
         final Semaphore semaphore = new Semaphore(0);
         final TaskListener mainTaskListener = new TaskListener() {
             @Override
@@ -173,12 +191,7 @@ public class TaskManager{
 
         try {
             TaskManager manager = new TaskManager(mainTaskListener);
-            manager.startTask("Primes", "PrimeTask_01", client, new ResultListener() {
-                @Override
-                public void taskCompleted(byte[] results) {
-                    //TODO
-                }
-            });
+            manager.startTask("Primes", taskName, client, resultListener);
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();
