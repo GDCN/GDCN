@@ -90,7 +90,7 @@ public class ReplicaManager implements Serializable{
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
-        
+
         final Replica replica = replicaMap.remove(replicaID);
         if(replica == null){
             throw new IllegalStateException("Error: Replica was not found!");
