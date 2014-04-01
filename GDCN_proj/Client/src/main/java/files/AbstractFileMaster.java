@@ -46,9 +46,9 @@ abstract class AbstractFileMaster{
      * @param taskMeta Dependencies to be solved
      * @param client Client for downloading files from network (DHT)
      * @param taskListener Listener to learn about failures such as unresolved dependencies.
-     * @param expectedOperation
+     * @param expectedOperation What kind of operation this object will wait for
      * @param pathManager PathManager to correct directory
-     * @throws FileNotFoundException if meta-file is not found. Path to search on is derived from projectName and taskName.
+     * @throws files.TaskMetaDataException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
     public AbstractFileMaster(TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener,
                               CommandWord expectedOperation, PathManager pathManager) throws TaskMetaDataException {
