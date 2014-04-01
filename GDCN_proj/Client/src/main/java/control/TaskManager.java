@@ -4,6 +4,7 @@ import command.communicationToUI.ClientInterface;
 import files.Downloader;
 import files.TaskMetaDataException;
 import files.Uploader;
+import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.FileNotFoundException;
@@ -51,7 +52,7 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
-    public void uploadJob(final String jobName, final ClientInterface networker){
+    public void uploadJob(final String jobName, final ClientInterface networker, final ReplicaManager replicaManager){
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {

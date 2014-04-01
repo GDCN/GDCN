@@ -21,7 +21,7 @@ public class ReplicaManager implements Serializable{
     private final Map<String, Replica> replicaMap = new HashMap<>();
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
-    private final Map<WorkerID, Set<String>> assignedTasks = new HashMap<>();
+    private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
 
     public ReplicaManager(int replicas) {
         REPLICAS = replicas;
@@ -51,7 +51,7 @@ public class ReplicaManager implements Serializable{
      * //TODO send real Task information!
      */
     public synchronized String giveReplicaToWorker(WorkerID worker){
-        Set<String> alreadyGiven = assignedTasks.get(worker);
+        Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
             assignedTasks.put(worker, alreadyGiven);

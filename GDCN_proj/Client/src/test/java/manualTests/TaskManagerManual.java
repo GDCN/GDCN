@@ -4,6 +4,7 @@ import command.communicationToUI.ClientInterface;
 import control.PeerOwner;
 import control.TaskManager;
 import files.ResultListener;
+import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
@@ -40,7 +41,7 @@ public class TaskManagerManual {
 
         try {
             TaskManager manager = new TaskManager(firstTaskListener);
-            manager.uploadJob("Job1", client);
+            manager.uploadJob("Job1", client, new ReplicaManager(1));
 
             System.out.println("Await task response");
             semaphore.acquireUninterruptibly();

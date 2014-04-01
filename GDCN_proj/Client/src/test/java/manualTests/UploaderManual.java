@@ -39,8 +39,7 @@ public class UploaderManual {
         client.start(8056);
 
         try {
-            ReplicaManager replicaManager = null; //TODO fix this if want to use this method
-            Uploader uploader = Uploader.create("Job1", client, mainTaskListener, replicaManager);
+            Uploader uploader = Uploader.create("Job1", client, mainTaskListener, new ReplicaManager(1));
             boolean success = uploader.runAndAwait();
 
             if(success){
