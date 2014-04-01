@@ -89,12 +89,18 @@ public class Downloader extends AbstractFileMaster {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void ifFileExist(FileDep fileDep) {
         System.out.println("Found file :D - " + pathTo(fileDep));
         super.fileDependencyResolved(fileDep);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
@@ -102,6 +108,9 @@ public class Downloader extends AbstractFileMaster {
         client.get(fileDep.getDhtKey());
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
         File file = pathTo(fileDep);

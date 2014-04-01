@@ -32,6 +32,11 @@ public class WorkerNodeManager implements Serializable{
         this(DisciplinaryAction.REMOVE, 3);
     }
 
+    /**
+     *
+     * @param standardAction Default action to do when reporting
+     * @param removeSoManyPoints So many points are withdrawn from a workers reputation when it misbehaves.
+     */
     public WorkerNodeManager(DisciplinaryAction standardAction, int removeSoManyPoints) {
         this.standardAction = standardAction;
         this.removeSoManyPoints = removeSoManyPoints;

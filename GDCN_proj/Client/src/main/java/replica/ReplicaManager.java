@@ -29,10 +29,9 @@ public class ReplicaManager implements Serializable{
     }
 
     /**
-     * Load in TaskMeta objects
+     * Load TaskMeta objects to make replicas of
      *
-     * TODO send real Task information!
-     * @param tasks
+     * @param tasks List of TaskMeta objects
      */
     public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
@@ -47,9 +46,8 @@ public class ReplicaManager implements Serializable{
     /**
      *
      * @param worker Worker node
-     * @return String with replica info if exist. Returns null if queue is empty.
+     * @return Replica info if there are any. Returns null if queue is empty.
      *
-     * //TODO send real Task information!
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
         Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
@@ -87,7 +85,12 @@ public class ReplicaManager implements Serializable{
         }
     }
 
-    public synchronized void replicaFinished(String replicaID, Object result){
+    /**
+     *
+     * @param replicaID ID of a replica
+     * @param result Computed result of the replica
+     */
+    public synchronized void replicaFinished(String replicaID, Serializable result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }

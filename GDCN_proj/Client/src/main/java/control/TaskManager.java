@@ -20,6 +20,11 @@ public class TaskManager{
     private final TaskListener taskListener;
     private final ClientInterface client;
 
+    /**
+     *
+     * @param taskListener Listener for the different kinds of things TaskManager can do such as Upload job or Work on task
+     * @param client Client such as {@link control.PeerOwner} that can do network operations.
+     */
     public TaskManager(TaskListener taskListener, ClientInterface client) {
         this.taskListener = taskListener;
         this.client = client;
@@ -27,6 +32,13 @@ public class TaskManager{
 
     //TODO use worker pool instead of new Threads
     //TODO handle Listeners more nicely...
+
+    /**
+     * Work on this task
+     * @param projectName Name of working directory that contains /resources etc
+     * @param taskMeta Meta information of the task
+     * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
+     */
     public void startTask(final String projectName, final TaskMeta taskMeta, final TaskListener subjectListener){
         final TaskListener combinedTaskListener = new TaskListener() {
             @Override
@@ -74,6 +86,12 @@ public class TaskManager{
     }
 
     //TODO use worker pool instead of new Threads
+
+    /**
+     * Upload entire job, that is all necessary files within the directory to fulfill the TaskMetas
+     * @param jobName Name of job directory
+     * @param replicaManager Manager that will produce replicas of each task
+     */
     public void uploadJob(final String jobName, final ReplicaManager replicaManager){
         Thread thread = new Thread(new Runnable() {
             @Override

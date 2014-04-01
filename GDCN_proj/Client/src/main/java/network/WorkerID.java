@@ -4,7 +4,9 @@ import java.io.Serializable;
 import java.security.PublicKey;
 
 /**
-* Created by HalfLeif on 2014-04-01.
+ * Created by HalfLeif on 2014-04-01.
+ *
+ * Class to identify a worker.
 */
 public class WorkerID implements Serializable {
     private final PublicKey publicKey;

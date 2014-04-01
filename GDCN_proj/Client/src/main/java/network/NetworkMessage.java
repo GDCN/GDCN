@@ -4,6 +4,8 @@ import java.io.Serializable;
 
 /**
  * Created by Leif on 2014-03-24.
+ *
+ * General purpose class used for any message passing.
  */
 public class NetworkMessage implements Serializable {
 

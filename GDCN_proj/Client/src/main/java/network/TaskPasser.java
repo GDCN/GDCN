@@ -96,7 +96,9 @@ public class TaskPasser extends Passer {
     }
 
     /**
-     * Dummy method. Remove with actual work
+     * Works on this task until finished. Calls job owner when done or when failed.
+     * @param jobOwner Peer to send result to
+     * @param replicaBox Task (replica) to work on
      */
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         //TODO project name?
@@ -132,6 +134,9 @@ public class TaskPasser extends Passer {
         return Solution.solve(challenge);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     synchronized protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
@@ -178,6 +183,9 @@ public class TaskPasser extends Passer {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     synchronized protected void handleNoReply(PeerAddress sender, Object messageContent) {
         TaskMessage taskMessage = check(messageContent);
@@ -210,6 +218,9 @@ public class TaskPasser extends Passer {
         return (TaskMessage) messageContent;
     }
 
+    /**
+     * Specific enum used for this message passing interface
+     */
     private static enum TaskMessageType{
         REQUEST_CHALLENGE,
         CHALLENGE,
@@ -221,6 +232,11 @@ public class TaskPasser extends Passer {
         HELLO
     }
 
+    /**
+     * Class for encapsulating task messages. It is similar to {@link network.NetworkMessage}
+     * but more specific for this purpose. NetworkMessage can be used for any purpose and will in this case
+     * contain an object of TaskMessage.
+     */
     private static class TaskMessage implements Serializable{
         private final TaskMessageType type;
         private final WorkerID senderID;
