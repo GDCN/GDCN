@@ -60,7 +60,7 @@ public class ReplicaManager implements Serializable{
         try{
             Replica replica = stagedReplicas.removeLast();
             Stack<Replica> skipped = null;
-            while(alreadyGiven.contains(replica.getTaskID())){
+            while(alreadyGiven.contains(replica.getTaskMeta())){
                 if(skipped == null){
                     skipped = new Stack<>();
                 }
@@ -76,7 +76,7 @@ public class ReplicaManager implements Serializable{
             }
 
             replica.setWorker(worker);
-            alreadyGiven.add(replica.getTaskID());
+            alreadyGiven.add(replica.getTaskMeta());
 
             return replica.getReplicaID();
         } catch (NoSuchElementException e){
@@ -92,19 +92,24 @@ public class ReplicaManager implements Serializable{
         }
         replica.setResult(result);
 
-        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(replica.getTaskID());
+        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(replica.getTaskMeta().getTaskName());
         if(returnedReplicas==null){
             //This is the First replica to return for this task
             List<Replica> list = new ArrayList<>();
             list.add(replica);
+            finishedReplicasTaskMap.put(replica.getTaskMeta().getTaskName(), list);
         } else if(returnedReplicas.size()==REPLICAS-1){
             //This is the Last replica to return for this task
-            finishedReplicasTaskMap.remove(replica.getTaskID());
+            finishedReplicasTaskMap.remove(replica.getTaskMeta().getTaskName());
             returnedReplicas.add(replica);
             validateResults(returnedReplicas);
         } else {
             returnedReplicas.add(replica);
         }
+    }
+
+    public synchronized Collection<Replica> pendingReplicas(){
+        return null;
     }
 
     public void validateResults(List<Replica> replicaList){

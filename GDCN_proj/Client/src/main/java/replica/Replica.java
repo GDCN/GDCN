@@ -32,7 +32,7 @@ class Replica implements Serializable{
         return replicaID;
     }
 
-    public TaskMeta getTaskID() {
+    public TaskMeta getTaskMeta() {
         return taskMeta;
     }
 
