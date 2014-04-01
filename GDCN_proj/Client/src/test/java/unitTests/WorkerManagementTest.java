@@ -26,13 +26,13 @@ public class WorkerManagementTest {
     @BeforeClass
     public void setupClass() throws NoSuchAlgorithmException {
         generator = KeyPairGenerator.getInstance("RSA");
+        keyPairA = generator.generateKeyPair();
+        workerA = new WorkerID(keyPairA.getPublic());
     }
 
     @BeforeMethod
     public void setupTest(){
         workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, DEMOTE_REPUTATION);
-        keyPairA = generator.generateKeyPair();
-        workerA = new WorkerID(keyPairA.getPublic());
     }
 
     @Test

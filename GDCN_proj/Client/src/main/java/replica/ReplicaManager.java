@@ -57,9 +57,10 @@ public class ReplicaManager implements Serializable{
             assignedTasks.put(worker, alreadyGiven);
         }
 
+        Stack<Replica> skipped = null;
         try{
             Replica replica = stagedReplicas.removeLast();
-            Stack<Replica> skipped = null;
+
             while(alreadyGiven.contains(replica.getTaskMeta())){
                 if(skipped == null){
                     skipped = new Stack<>();
@@ -67,14 +68,6 @@ public class ReplicaManager implements Serializable{
                 skipped.push(replica);
                 replica = stagedReplicas.removeLast();
             }
-            if(skipped!=null){
-                //Order preserved for skipped replicas
-                while(skipped.size()>0){
-                    Replica r = skipped.pop();
-                    stagedReplicas.addLast(r);
-                }
-            }
-
             replica.setWorker(worker);
             alreadyGiven.add(replica.getTaskMeta());
 
@@ -82,6 +75,14 @@ public class ReplicaManager implements Serializable{
         } catch (NoSuchElementException e){
             //Deque is empty
             return null;
+        } finally {
+            if(skipped!=null){
+                //Order preserved for skipped replicas
+                while(skipped.size()>0){
+                    Replica r = skipped.pop();
+                    stagedReplicas.addLast(r);
+                }
+            }
         }
     }
 
@@ -109,6 +110,7 @@ public class ReplicaManager implements Serializable{
     }
 
     public synchronized Collection<Replica> pendingReplicas(){
+        //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
         return null;
     }
 
