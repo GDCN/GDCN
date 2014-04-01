@@ -25,11 +25,15 @@ public class WorkerNodeManager implements Serializable{
 
     private final Map<WorkerID, Integer> registeredWorkers = new HashMap<>();
 
+    /**
+     * Create new WorkerNodeManager with default action REMOVE.
+     */
+    public WorkerNodeManager(){
+        this(DisciplinaryAction.REMOVE, 3);
+    }
+
     public WorkerNodeManager(DisciplinaryAction standardAction, int removeSoManyPoints) {
         this.standardAction = standardAction;
-        if(standardAction==DisciplinaryAction.REMOVE && removeSoManyPoints <= 0){
-            throw new IllegalArgumentException("If use REMOVE, one must subtract points, not give points, on failure.");
-        }
         this.removeSoManyPoints = removeSoManyPoints;
     }
 
@@ -69,11 +73,18 @@ public class WorkerNodeManager implements Serializable{
      * @param action Action to take on misbehavior
      */
     public void reportWorker(WorkerID worker, DisciplinaryAction action){
+        if(!registeredWorkers.containsKey(worker)){
+            throw new IllegalArgumentException("Worker doesn't exist");
+        }
+
         switch (action){
             case REMOVE:
                 registeredWorkers.remove(worker);
                 break;
             case DEMOTE:
+                if(removeSoManyPoints <= 0){
+                    throw new IllegalArgumentException("If use REMOVE, one must subtract points, not give points, on failure.");
+                }
                 Integer reputation = registeredWorkers.get(worker);
                 registeredWorkers.put(worker, reputation-removeSoManyPoints);
                 break;
@@ -85,6 +96,10 @@ public class WorkerNodeManager implements Serializable{
      * @param worker Worker node
      */
     public void promoteWorker(WorkerID worker){
+        if(!registeredWorkers.containsKey(worker)){
+            throw new IllegalArgumentException("Worker doesn't exist");
+        }
+
         Integer reputation = registeredWorkers.get(worker);
         registeredWorkers.put(worker, reputation+1);
     }
