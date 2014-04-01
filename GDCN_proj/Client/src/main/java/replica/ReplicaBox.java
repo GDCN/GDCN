@@ -45,6 +45,14 @@ public class ReplicaBox implements Serializable {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "ReplicaBox{" +
+                "replicaID='" + replicaID + '\'' +
+                ", taskMeta=" + taskMeta.toString() +
+                '}';
+    }
+
     public String getReplicaID() {
         return replicaID;
     }

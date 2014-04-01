@@ -234,7 +234,7 @@ public class TaskPasser extends Passer {
 
         @Override
         public String toString() {
-            return "TaskM{ " + type +
+            return "TaskMsg{ " + type +
                     ", " + actualContent +
                     '}';
         }

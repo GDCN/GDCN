@@ -41,6 +41,11 @@ public class TaskMeta implements Serializable {
         return result;
     }
 
+    @Override
+    public String toString() {
+        return "Meta{"+taskName+"}";
+    }
+
     public String getTaskName() {
         return taskName;
     }
