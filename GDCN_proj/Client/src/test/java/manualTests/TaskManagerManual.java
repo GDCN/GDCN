@@ -1,14 +1,18 @@
 package manualTests;
 
+import com.google.gson.Gson;
 import command.communicationToUI.ClientInterface;
 import control.PeerOwner;
 import control.TaskManager;
 import files.ResultListener;
+import files.TaskMeta;
+import files.TaskMetaDataException;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 import taskbuilder.fileManagement.PathManager;
 
+import java.io.*;
 import java.util.concurrent.Semaphore;
 
 /**
@@ -115,9 +119,58 @@ public class TaskManagerManual {
         pathManager.deleteBinaries();
 
         TaskManager manager = new TaskManager(mainTaskListener);
-        manager.startTask("Primes", taskName, client);
+        TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
+        manager.startTask("Primes", taskMeta, client);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();
     }
+
+    /**
+     *
+     * @param taskName Name of task, ie without ".json"
+     * @param pathManager Pathmanager to correct directory
+     * @return TaskMeta of this task (replica)
+     * @throws TaskMetaDataException
+     */
+    public static TaskMeta resolveMetaFile(String taskName, PathManager pathManager) throws TaskMetaDataException {
+        final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
+        if(file.exists()){
+            System.out.println("Downloader: YAY file exist!");
+            try {
+                return readMetaFile(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
+    }
+
+    /**
+     * Parses file for MetaData of Task
+     *
+     * @param file Path to meta data file
+     * @return Representation of meta data content
+     * @throws FileNotFoundException if file isn't found
+     */
+    private static TaskMeta readMetaFile(File file) throws FileNotFoundException {
+
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)));
+
+            Gson gson = new Gson();
+            return gson.fromJson(reader, TaskMeta.class);
+
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 }

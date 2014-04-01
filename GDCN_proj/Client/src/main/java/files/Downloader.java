@@ -18,18 +18,21 @@ import java.util.concurrent.Semaphore;
  */
 public class Downloader extends AbstractFileMaster {
 
-    private Downloader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
-        super(taskMeta, client, taskListener, CommandWord.GET, pathManager);
+    public Downloader(TaskMeta taskMeta, String projectName, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
+        super(taskMeta, client, taskListener, CommandWord.GET, PathManager.worker(projectName));
     }
 
-    public static Downloader create(String projectName, String taskName, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
-
-        PathManager manager = PathManager.worker(projectName);
-        TaskMeta taskMeta = resolveMetaFile(taskName, client, taskListener, manager);
-
-        return new Downloader(manager, taskMeta, client, taskListener);
-    }
-
+    /**
+     * @deprecated
+     * TODO remove this method if not needed...
+     *
+     * @param taskName Name of task
+     * @param client Client
+     * @param taskListener Listener
+     * @param pathManager Pathmanager
+     * @return TaskMeta
+     * @throws TaskMetaDataException
+     */
     private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
         final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
         if(file.exists()){
@@ -55,7 +58,7 @@ public class Downloader extends AbstractFileMaster {
                 if(event.getCommandWord() != CommandWord.GET){
                     return;
                 }
-                if(event.getOperation().getKey() != key){
+                if(! event.getOperation().getKey().equals(key) ){
                     return;
                 }
                 if(event.getOperation().isSuccess()){
@@ -134,7 +137,7 @@ public class Downloader extends AbstractFileMaster {
         File parent = file.getParentFile();
         parent.mkdirs();
 
-        //TODO use Box class and do checksum
+        //TODO use Box class and do checksum, or shall we?
         BufferedOutputStream outputStream = null;
         try {
             outputStream = new BufferedOutputStream(new FileOutputStream(file));

@@ -259,8 +259,17 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
+    //TODO refactor method signature...
     public void work(String projectName, String taskName) {
-        taskManager.startTask(projectName, taskName, this);
+//        taskManager.startTask(projectName, taskName, this);
+        //TODO might want to continue on already downloaded task?
+        //TODO supply with real job owner
+        PeerAddress jobOwner = getNeighbours().get(0);
+        if(jobOwner == null){
+            System.out.println("Sorry, no job owner is online. Will try to work on your own tasks instead");
+            jobOwner = peer.getPeerAddress();
+        }
+        taskPasser.requestWork(jobOwner);
     }
 
     @Override
