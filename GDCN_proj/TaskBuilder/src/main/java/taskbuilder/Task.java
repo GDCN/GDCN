@@ -108,13 +108,12 @@ public class Task implements Runnable{
         command.add(pathManager.taskResourcesDir() + taskName + ".result");
         command.addAll(initDataPaths);
 
+        //TODO remove this output?
         System.out.println("\nRun command:");
         for(String c : command){
             System.out.print(c + " ");
         }
         System.out.println("\n");
-        //TODO fix bug, says cannot open binary file that actually exists...
-        //If run these commands in bash, they work... :P
 
         Process proc = null;
 
@@ -132,7 +131,7 @@ public class Task implements Runnable{
 //                outputStdErr(IOUtils.toString(proc.getErrorStream()));
 //                outputStdErr(fromInstream(proc.getErrorStream()));
 
-                // TODO Currently haskell doesn't print any to stderr...
+                // Currently haskell doesn't print anything to stderr...
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
                 outputStdErr(writer.toString());
@@ -199,8 +198,9 @@ public class Task implements Runnable{
 
     private static void outputStdErr(String output){
         //TODO output in more general fashion
-        System.out.println("-- StdErr:");
+        System.out.println("\n-- StdErr:");
         System.out.println(output);
+        System.out.println("-- end of StdErr.");
     }
 
 //    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
