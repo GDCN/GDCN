@@ -6,11 +6,8 @@ import files.ResultListener;
 import files.TaskMetaDataException;
 import files.Uploader;
 import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
 
 import java.io.FileNotFoundException;
-import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-02-28.
@@ -19,34 +16,11 @@ import java.util.concurrent.Semaphore;
  */
 public class TaskManager{
 
-//    private final Map<String,Thread> runningTasks = new HashMap<>();
-
     private final TaskListener taskListener;
-//    private final TaskListener localListener = new TaskListener() {
-//        @Override
-//        public void taskFinished(String taskName) {
-//            runningTasks.remove(taskName);
-//            //TODO do something other than pass along signal?
-//
-//            taskListener.taskFinished(taskName);
-//        }
-//
-//        @Override
-//        public void taskFailed(String taskName, String reason) {
-//            runningTasks.remove(taskName);
-//            //TODO do something other than pass along signal?
-//
-//            taskListener.taskFailed(taskName, reason);
-//        }
-//    };
 
     public TaskManager(TaskListener taskListener) {
         this.taskListener = taskListener;
     }
-
-//    public int numberOfRunningTasks(){
-//        return runningTasks.size();
-//    }
 
     //TODO use worker pool instead of new Threads
 
@@ -66,8 +40,6 @@ public class TaskManager{
 
                     Thread taskThread = new Thread(downloader.buildTask(taskListener));
                     taskThread.setDaemon(true);
-
-//                    runningTasks.put(taskName, thread);
                     taskThread.start();
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
