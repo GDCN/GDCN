@@ -20,7 +20,7 @@ public class HashCash {
      *            which can be generated with KeyGenerator.getInstance("HmacSHA256").generateKey()
      */
     public HashCash(Key key) throws InvalidKeyException {
-        this(key,1,2); //TODO Insert real numbers for easy and hard difficulties.
+        this(key,20,30); //TODO Insert real numbers for easy and hard difficulties.
     }
 
     /**
