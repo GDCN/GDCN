@@ -79,6 +79,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     public PeerOwner() {
 
+        //TODO Make it possible to have a test replicaManager
         ReplicaManager replicaManager1;
         dataFilesManager = new DataFilesManager();
         replicaManager1 = dataFilesManager.getReplicaManager();
@@ -324,6 +325,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     public void deleteKeyFile() {
         if(dataFilesManager != null) {
             dataFilesManager.removeKeyFile();
+        }
+    }
+
+    public void deleteReplicaManager() {
+        if(dataFilesManager != null) {
+            dataFilesManager.removeReplicaManagerFile();
         }
     }
 

@@ -14,19 +14,17 @@ public class DataFilesManager {
 
     private File keyPairLocation;
 
+    private File replicaManagerLocation;
+
     private String filepath;
 
     private String keyFileName;
 
+    private String replicaManagerName;
+
     public DataFilesManager() {
 
-        PathManager.loadDefaultLocation();
-
-        keyFileName = "keypair";
-
-        filepath = PathManager.getSettingsPath();
-
-        keyPairLocation = new File(filepath + keyFileName);
+        this("");
 
     }
 
@@ -37,9 +35,15 @@ public class DataFilesManager {
 
         keyFileName = "keypair";
 
+        replicaManagerName = "replicaManager";
+
         filepath = PathManager.getSettingsPath() + subpart;
 
         keyPairLocation = new File(filepath + keyFileName);
+
+        replicaManagerLocation = new File(filepath + replicaManagerLocation);
+
+
 
     }
 
@@ -94,14 +98,45 @@ public class DataFilesManager {
 
     public void saveReplicaManager(ReplicaManager rm) {
 
+        try {
+            FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
+            ObjectOutputStream oos = new ObjectOutputStream(fous);
+
+            oos.writeObject(rm);
+
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
 
     public ReplicaManager getReplicaManager() {
-        return null;
+        try {
+            FileInputStream fis = new FileInputStream(replicaManagerLocation);
+
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            ReplicaManager replicaManager = (ReplicaManager) ois.readObject();
+
+            ois.close();
+
+            return replicaManager;
+
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void removeReplicaManagerFile() {
 
+        replicaManagerLocation.delete();
     }
 
     //WORKERNODEMANAGER METHODS
