@@ -8,7 +8,7 @@ import command.communicationToUI.Operation;
 import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
-import files.JobUploader;
+import files.FileUtils;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -158,7 +158,7 @@ public class TaskPasser extends Passer {
                 //TODO sign result with private key...
                 byte[] result = null;
                 try {
-                    result = JobUploader.fromFile(new File(stringHolder.getString()));
+                    result = FileUtils.fromFile(new File(stringHolder.getString()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     taskFailed(taskName, e.getMessage());

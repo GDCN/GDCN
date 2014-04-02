@@ -8,9 +8,6 @@ import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
-import java.security.DigestInputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +67,7 @@ public class JobUploader extends AbstractFileMaster{
 
         try {
             System.out.println("Put " + pathTo(fileDep));
-            client.put(fileDep.getDhtKey(), new Data(fromFile(file)));
+            client.put(fileDep.getDhtKey(), new Data(FileUtils.fromFile(file)));
         } catch (IOException e) {
             e.printStackTrace();
             //TODO better output?
@@ -90,36 +87,6 @@ public class JobUploader extends AbstractFileMaster{
         System.out.println("Successfully put " + fileDep.getFileName());
         super.fileDependencyResolved(fileDep);
     }
-
-    public static byte[] fromFile(File file) throws IOException {
-
-        InputStream inputStream = null;
-
-        try {
-            //TODO Possibly use MD5 instead, if SHA-1 is too slow
-            MessageDigest digest = MessageDigest.getInstance("SHA-1");
-
-            inputStream = new BufferedInputStream(new FileInputStream(file));
-            DigestInputStream digestInputStream = new DigestInputStream(inputStream, digest);
-
-            byte[] data = new byte[(int) file.length()];
-
-            //TODO actually use digest
-            digestInputStream.read(data);
-            byte[] digestArray = digest.digest();
-
-            return data;
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                inputStream.close();
-            }
-        }
-        return null;
-    }
-
 
 
 }
