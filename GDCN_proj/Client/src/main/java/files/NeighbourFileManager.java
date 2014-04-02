@@ -1,4 +1,4 @@
-package control;
+package files;
 
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -13,7 +13,7 @@ import java.util.Set;
 /**
  * Created by Niklas on 2014-04-01.
  */
-public class NeighbourManager {
+public class NeighbourFileManager {
 
     //List containing the addresses which are in the neighbour file
     private Set<PeerAddress> fileNeighbours = new HashSet<>();
@@ -55,7 +55,7 @@ public class NeighbourManager {
         }
     };
 
-    public NeighbourManager () {
+    public NeighbourFileManager() {
         pathManager = PathManager.jobOwner("settings");
 
         PathManager.loadDefaultLocation();

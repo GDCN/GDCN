@@ -4,6 +4,8 @@ import command.communicationToUI.CommandWord;
 import command.communicationToUI.ErrorCode;
 import command.communicationToUI.Operation.OperationBuilder;
 import command.communicationToUI.OperationFinishedSupport;
+import files.DataFilesManager;
+import files.NeighbourFileManager;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
@@ -13,7 +15,6 @@ import net.tomp2p.p2p.builder.GetBuilder;
 import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
 import network.TaskPasser;
 import taskbuilder.communicationToClient.TaskListener;
@@ -26,10 +27,8 @@ import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by Leif on 2014-02-17
@@ -40,9 +39,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
 
-    private SettingsManager settingsManager;
+    private DataFilesManager dataFilesManager;
 
-    private NeighbourManager neighbourManager;
+    private NeighbourFileManager neighbourFileManager;
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -84,8 +83,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 //        Good to use if testing multiple peers locally
 //        fileName = fileName + port;
 
-        neighbourManager = new NeighbourManager();
-        settingsManager = new SettingsManager();
+        neighbourFileManager = new NeighbourFileManager();
+        dataFilesManager = new DataFilesManager();
 
         try {
 
@@ -97,7 +96,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             //Reads the old neighbours which have been saved to file
 
-            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourManager.getPeerMapListener());
+            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
 
             taskPasser = new TaskPasser(peer);
 
@@ -227,7 +226,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void reBootstrap() {
 
-        HashSet<PeerAddress> fileNeighbours =  neighbourManager.getFileNeighbours();
+        HashSet<PeerAddress> fileNeighbours =  neighbourFileManager.getFileNeighbours();
 
         for(PeerAddress p : fileNeighbours) {
             bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
@@ -283,17 +282,17 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void setNeighbourFile(String file){
-        neighbourManager.changeNeighbourFileName(file);
+        neighbourFileManager.changeNeighbourFileName(file);
     }
 
     @Override
     public void clearNeighbourFile(){
-        neighbourManager.clearNeighbourFile();
+        neighbourFileManager.clearNeighbourFile();
     }
 
     @Override
     public void deleteNeighbourFile(){
-        neighbourManager.deleteNeighbourFile();
+        neighbourFileManager.deleteNeighbourFile();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package control;
+package files;
 
 import taskbuilder.fileManagement.PathManager;
 
@@ -8,13 +8,13 @@ import java.security.KeyPair;
 /**
  * Created by Niklas on 2014-04-01.
  */
-public class SettingsManager {
+public class DataFilesManager {
 
     private PathManager pathManager;
 
     private File keyPairLocation;
 
-    public SettingsManager() {
+    public DataFilesManager() {
 
         pathManager = PathManager.jobOwner("settings");
 
