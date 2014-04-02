@@ -264,18 +264,31 @@ public class TaskPasser extends Passer {
         }
     }
 
-    private void resultUploaded(String replicaID){
+    private void resultUploaded(final String replicaID){
         System.out.println("Apparently some task was completed");
+
         final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
         //TODO download result.
         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
             @Override
             protected void operationFinished(Operation operation) {
-                //TODO
+                if(operation.isSuccess()){
+                    Data resultData = (Data) operation.getResult();
+                    try {
+                        byte[] resultArray = (byte[]) resultData.getObject();
+                        replicaManager.replicaFinished(replicaID, resultArray);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("DownloadOperation failed! "+operation.getErrorCode()+"\n\t"+operation.getReason());
+                }
             }
         });
         client.get(resultKey);
-        replicaManager.replicaFinished(replicaID, "TODO Put downloaded result here...");
+
     }
 
     private static TaskMessage check(Object messageContent){
