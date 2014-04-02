@@ -1,8 +1,10 @@
 package files;
 
+import replica.ReplicaManager;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.security.KeyPair;
 
 /**
@@ -18,6 +20,8 @@ public class DataFilesManager {
 
     public DataFilesManager() {
 
+        PathManager.loadDefaultLocation();
+
         keyFileName = "keypair";
 
         filepath = PathManager.getSettingsPath();
@@ -26,7 +30,10 @@ public class DataFilesManager {
 
     }
 
+    //Used when testing
     public DataFilesManager(String subpart) {
+
+        PathManager.loadDefaultLocation();
 
         keyFileName = "keypair";
 
@@ -34,8 +41,10 @@ public class DataFilesManager {
 
         keyPairLocation = new File(filepath + keyFileName);
 
-
     }
+
+    //KEYPAIR METHODS
+    //********************************************\\
 
     public void saveKeyPair(KeyPair keyPair) {
 
@@ -49,8 +58,6 @@ public class DataFilesManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
 
     }
 
@@ -76,12 +83,42 @@ public class DataFilesManager {
             e.printStackTrace();
             return null;
         }
-
     }
 
     public void removeKeyFile() {
         keyPairLocation.delete();
     }
+
+    //REPLICAMANAGER METHODS
+    //********************************************\\
+
+    public void saveReplicaManager(ReplicaManager rm) {
+
+    }
+
+    public ReplicaManager getReplicaManager() {
+        return null;
+    }
+
+    public void removeReplicaManagerFile() {
+
+    }
+
+    //WORKERNODEMANAGER METHODS
+    //********************************************\\
+
+    public void saveWorkerNodeManager(ReplicaManager rm) {
+
+    }
+
+    public ReplicaManager getWorkerNodeManager() {
+        return null;
+    }
+
+    public void removeWorkerNodeManagerFile() {
+
+    }
+
 
 
 }

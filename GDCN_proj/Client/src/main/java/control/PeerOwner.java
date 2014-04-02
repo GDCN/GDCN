@@ -30,6 +30,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 /**
  * Created by Leif on 2014-02-17
@@ -39,11 +42,13 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager replicaManager = new ReplicaManager(3);
+    private final ReplicaManager replicaManager;
 
     private DataFilesManager dataFilesManager;
 
     private NeighbourFileManager neighbourFileManager;
+
+    private Timer timer;
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -72,6 +77,22 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         notifier.removeListener(listener);
     }
 
+    public PeerOwner() {
+
+        ReplicaManager replicaManager1;
+        dataFilesManager = new DataFilesManager();
+        replicaManager1 = dataFilesManager.getReplicaManager();
+
+        if(replicaManager1 == null) {
+            replicaManager = new ReplicaManager(3);
+
+        } else {
+            replicaManager = replicaManager1;
+        }
+
+        timer = new Timer();
+
+    }
 
     @Override
     public void start(int port){
@@ -82,7 +103,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         }
 
         neighbourFileManager = new NeighbourFileManager();
-        dataFilesManager = new DataFilesManager();
 
         try {
 
@@ -100,6 +120,16 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
 
             taskPasser = new TaskPasser(peer, replicaManager, taskManager);
+
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dataFilesManager.saveReplicaManager(replicaManager);
+                    System.out.println("TIMER TIME");
+
+                }
+            }, 1000 * 120, 1000 * 120);
+
 
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
@@ -162,6 +192,10 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             peer.shutdown();
 
             notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
+
+            timer.cancel();
+
+            dataFilesManager.saveReplicaManager(replicaManager);
         }
     }
 
