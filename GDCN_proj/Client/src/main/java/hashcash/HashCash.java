@@ -8,71 +8,81 @@ import java.security.*;
  */
 public class HashCash {
     public final static String HASH_ALGORITHM = "SHA-1";
-
+    
+    public final int hardDifficulty, easyDifficulty;
     private final SecureRandom random;
     private final Key key;
 
     /**
-     * Creates a new HashCash-cookie instance. The supplied key is used to validate solutions.
+     * Creates a new HashCash-cookie instance with standard difficulties.
+     * The supplied key is used to validate solutions.
      * @param key A key for MACing, must be compatible with javax.crypto.Mac. At least SHA-256 is recommended,
      *            which can be generated with KeyGenerator.getInstance("HmacSHA256").generateKey()
      */
     public HashCash(Key key) throws InvalidKeyException {
+        this(key,1,2); //TODO Insert real numbers for easy and hard difficulties.
+    }
+
+    /**
+     * Creates a new HashCash-cookie instance with custom difficulties.
+     * The supplied key is used to validate solutions.
+     * @param key A key for MACing, must be compatible with javax.crypto.Mac. At least SHA-256 is recommended,
+     *            which can be generated with KeyGenerator.getInstance("HmacSHA256").generateKey()
+     * @param easy The difficulty of easy challenges.
+     * @param hard The difficulty of hard challenges.
+     */
+    public HashCash(Key key, int easy, int hard) {
         this.key = key;
+        hardDifficulty = hard;
+        easyDifficulty = easy;
         random = new SecureRandom();
     }
 
-    public Challenge generateChallenge(String seed, int difficulty) throws UnsupportedEncodingException {
+    public Challenge generateChallenge(String seed, int difficulty) {
         try {
             return new Challenge(randomHash(seed), difficulty, key);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             //TODO Tell the user that the key supplied to the HashCash is invalid.
             return null;
-        }
-    }
-
-    public Challenge generateChallenge(String id, String seed, int difficulty) throws UnsupportedEncodingException {
-        try {
-            return new Challenge(id.getBytes("UTF-8"), randomHash(seed), difficulty, key);
-        } catch (InvalidKeyException e) {
+        } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            //TODO Tell the user that the key supplied to the HashCash is invalid.
+            //TODO Tell the user that UTF-8 is needed.
             return null;
         }
     }
 
-    public Challenge generateEasyChallenge(String jobOwner, String worker, String task) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        StringBuilder sb = new StringBuilder(jobOwner);
-        sb.append(worker);
-        sb.append(task);
+    public Challenge generateChallenge(String purpose, String seed, int difficulty) {
+        try {
+            return new Challenge(purpose, randomHash(seed), difficulty, key);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            //TODO Tell the user that the key supplied to the HashCash is invalid.
+            return null;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+            //TODO Tell the user that UTF-8 is needed.
+            return null;
+        }
+    }
 
-        return generateChallenge(sb.toString(), 20);
+    public Challenge generateEasyChallenge(String jobOwner, String worker, String task) {
+        return generateChallenge(jobOwner + worker + task, easyDifficulty);
         //TODO insert real difficulty
     }
 
-    public Challenge generateEasyChallenge(String challengeId, String jobOwner, String worker, String task) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        StringBuilder sb = new StringBuilder(jobOwner);
-        sb.append(worker);
-        sb.append(task);
-
-        return generateChallenge(challengeId, sb.toString(), 20);
+    public Challenge generateEasyChallenge(String purpose, String jobOwner, String worker, String task) {
+        return generateChallenge(purpose, jobOwner + worker + task, easyDifficulty);
         //TODO insert real difficulty
     }
 
-    public Challenge generateHardChallenge(String jobOwner, String worker) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        StringBuilder sb = new StringBuilder(jobOwner);
-        sb.append(worker);
-
-        return generateChallenge(sb.toString(), 100);
+    public Challenge generateHardChallenge(String jobOwner, String worker) {
+        return generateChallenge(jobOwner + worker, hardDifficulty);
         //TODO insert real difficulty
     }
 
-    public Challenge generateHardChallenge(String challengeId, String jobOwner, String worker) throws UnsupportedEncodingException, NoSuchAlgorithmException, InvalidKeyException {
-        StringBuilder sb = new StringBuilder(jobOwner);
-        sb.append(worker);
-
-        return generateChallenge(challengeId, sb.toString(), 100);
+    public Challenge generateHardChallenge(String purpose, String jobOwner, String worker) {
+        return generateChallenge(purpose, jobOwner + worker, hardDifficulty);
         //TODO insert real difficulty
     }
 
