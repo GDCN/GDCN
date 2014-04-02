@@ -90,53 +90,16 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             replicaManager = replicaManager1;
         }
 
-        timer = new Timer();
-
     }
 
     @Override
     public void start(int port){
 
-        //Stops the peer if it is running to free the port
-        if(peer != null) {
-            stop();
+        if(neighbourFileManager == null) {
+            neighbourFileManager = new NeighbourFileManager();
         }
 
-        neighbourFileManager = new NeighbourFileManager();
-
-        try {
-
-            //Initiates the peer
-            KeyPair keyPair = dataFilesManager.getKeypair();
-
-            if(keyPair == null) {
-                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-                keyPair = generator.generateKeyPair();
-                dataFilesManager.saveKeyPair(keyPair);
-            }
-
-            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
-
-            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
-
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
-
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    dataFilesManager.saveReplicaManager(replicaManager);
-                    System.out.println("TIMER TIME");
-
-                }
-            }, 1000 * 120, 1000 * 120);
-
-
-        } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
-        }
-
-        notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<Integer>(peer != null).setResult(port).create());
+        startInitiate(port);
     }
 
     /**
@@ -146,38 +109,11 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
      */
     public void testStart(int port){
 
-        //Stops the peer if it is running to free the port
-        if(peer != null) {
-            stop();
-
-        }
-
         neighbourFileManager = new NeighbourFileManager(port + "");
         dataFilesManager = new DataFilesManager(port + "");
 
-        try {
+        startInitiate(port);
 
-            //Initiates the peer
-            KeyPair keyPair = dataFilesManager.getKeypair();
-
-            if(keyPair == null) {
-                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-                keyPair = generator.generateKeyPair();
-                dataFilesManager.saveKeyPair(keyPair);
-            }
-
-            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
-
-            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
-
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
-
-        } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
-        }
-
-        notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<Integer>(peer != null).setResult(port).create());
     }
 
     @Override
@@ -397,5 +333,49 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         taskPasser.requestWork(getNeighbours().get(index%N));
     }
 
+
+    private void startInitiate(int port) {
+
+        //Stops the peer if it is running to free the port
+        if(peer != null) {
+            stop();
+        }
+
+        try {
+
+            //Initiates the peer
+            KeyPair keyPair = dataFilesManager.getKeypair();
+
+            if(keyPair == null) {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                keyPair = generator.generateKeyPair();
+                dataFilesManager.saveKeyPair(keyPair);
+            }
+
+            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
+
+            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
+
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
+
+            timer = new Timer();
+
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dataFilesManager.saveReplicaManager(replicaManager);
+
+                }
+            }, 1000 * 120, 1000 * 120);
+
+
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+        notifier.fireOperationFinished(CommandWord.START,
+                new OperationBuilder<Integer>(peer != null).setResult(port).create());
+
+    }
 
 }
