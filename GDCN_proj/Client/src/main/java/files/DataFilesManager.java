@@ -10,8 +10,6 @@ import java.security.KeyPair;
  */
 public class DataFilesManager {
 
-    private PathManager pathManager;
-
     private File keyPairLocation;
 
     private String filepath;
@@ -69,10 +67,12 @@ public class DataFilesManager {
 
             return keypair;
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (FileNotFoundException e) {
             return null;
         } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }

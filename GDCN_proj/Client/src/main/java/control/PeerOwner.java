@@ -119,6 +119,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         //Stops the peer if it is running to free the port
         if(peer != null) {
             stop();
+
         }
 
         neighbourFileManager = new NeighbourFileManager(port + "");
@@ -345,11 +346,15 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void deleteNeighbourFile(){
-        neighbourFileManager.deleteNeighbourFile();
+        if(neighbourFileManager != null) {
+            neighbourFileManager.deleteNeighbourFile();
+        }
     }
 
-    public void removeKeyFile() {
-        dataFilesManager.removeKeyFile();
+    public void deleteKeyFile() {
+        if(dataFilesManager != null) {
+            dataFilesManager.removeKeyFile();
+        }
     }
 
     @Override
@@ -357,5 +362,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         int N = getNeighbours().size();
         taskPasser.requestWork(getNeighbours().get(index%N));
     }
+
 
 }
