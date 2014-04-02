@@ -27,6 +27,13 @@ public class TaskPasser extends Passer {
 
     private final WorkerID myWorkerID;
 
+    /**
+     * Message passer for sending messages regarding tasks. OBS! Only ONE Passer may be present for a Peer.
+     *
+     * @param peer This peer
+     * @param replicaManager Manager to ask for Replicas that are sent to workers
+     * @param taskManager Manager to run a task (replica) that was received
+     */
     public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager) {
         super(peer);
         this.replicaManager = replicaManager;
@@ -105,6 +112,9 @@ public class TaskPasser extends Passer {
         taskManager.startTask("Primes", replicaBox.getTaskMeta(), new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
+
+
+                //TODO Upload result of task here!
                 System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                 sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
             }

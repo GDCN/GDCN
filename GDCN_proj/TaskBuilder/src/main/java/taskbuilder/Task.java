@@ -105,7 +105,8 @@ public class Task implements Runnable{
     public void execute(){
         List<String> command = new ArrayList<String>();
         command.add(compiledModule());
-        command.add(pathManager.taskResourcesDir() + taskName + ".result");
+        final String resultFile = pathManager.taskResourcesDir() + taskName + ".result";
+        command.add(resultFile);
         command.addAll(initDataPaths);
 
         //TODO remove this output?

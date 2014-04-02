@@ -6,6 +6,7 @@ import files.TaskMeta;
 import files.TaskMetaDataException;
 import files.Uploader;
 import replica.ReplicaManager;
+import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.FileNotFoundException;
@@ -71,7 +72,9 @@ public class TaskManager{
                         return;
                     }
 
-                    Thread taskThread = new Thread(downloader.buildTask(TaskManager.this.taskListener));
+                    Task task = downloader.buildTask(TaskManager.this.taskListener);
+
+                    Thread taskThread = new Thread(task);
                     taskThread.setDaemon(true);
                     taskThread.start();
                 } catch (TaskMetaDataException e) {
