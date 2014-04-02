@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.NetworkInterface;
 import command.communicationToUI.OperationFinishedEvent;
-import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.fileManagement.PathManager;
 
 import java.beans.PropertyChangeEvent;
@@ -28,7 +28,7 @@ abstract class AbstractFileMaster{
     protected final PathManager pathManager;
     protected final NetworkInterface client;
 
-    private final TaskListener taskListener;
+    private final TaskFailureListener taskFailureListener;
     private final CommandWord expectedOperation;
 
     private final Lock lock = new ReentrantLock();
@@ -45,17 +45,17 @@ abstract class AbstractFileMaster{
      *
      * @param taskMeta Dependencies to be solved
      * @param client Client for downloading files from network (DHT)
-     * @param taskListener Listener to learn about failures such as unresolved dependencies.
+     * @param taskFailureListener Listener to learn about failures such as unresolved dependencies.
      * @param expectedOperation What kind of operation this object will wait for
      * @param pathManager PathManager to correct directory
      * @throws files.TaskMetaDataException if meta-file is not found. Path to search on is derived from projectName and taskName.
      */
-    public AbstractFileMaster(TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener,
+    public AbstractFileMaster(TaskMeta taskMeta, NetworkInterface client, TaskFailureListener taskFailureListener,
                               CommandWord expectedOperation, PathManager pathManager) throws TaskMetaDataException {
 
         this.taskMeta = taskMeta;
         this.client = client;
-        this.taskListener = taskListener;
+        this.taskFailureListener = taskFailureListener;
         this.expectedOperation = expectedOperation;
         this.pathManager = pathManager;
 
@@ -159,7 +159,7 @@ abstract class AbstractFileMaster{
             System.out.println("Test monitor condition before exit loop...");
         }
 
-        //Alternatively, ignore await() model and use TaskListener instead...
+        //Alternatively, ignore await() model and use TaskFailureListener instead...
         return true;
     }
 
@@ -251,7 +251,7 @@ abstract class AbstractFileMaster{
 
         } else {
             operationFailed = true;
-            taskListener.taskFailed(taskMeta.getTaskName(), "Failed to resolve file with name " +  fileDep.getFileName());
+            taskFailureListener.taskFailed(taskMeta.getTaskName(), "Failed to resolve file with name " + fileDep.getFileName());
             allDependenciesComplete.signalAll();
         }
 

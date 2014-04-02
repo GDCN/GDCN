@@ -123,6 +123,7 @@ public class TaskPasser extends Passer {
             public void taskFinished(final String taskName) {
 
                 final Number160 resultKey = replicaBox.getResultKey();
+                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
 
                 client.addListener(new PropertyChangeListener() {
                     @Override
@@ -135,8 +136,14 @@ public class TaskPasser extends Passer {
                             return;
                         }
                         if(event.getOperation().getKey().equals(resultKey.toString())){
-                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                            sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+                            if(event.getOperation().isSuccess()){
+                                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+                            } else {
+                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID,
+                                        new FailMessage("Couldn't upload result to DHT :P", replicaBox.getReplicaID())));
+                            }
+
                             client.removeListener(this);
                         }
                     }
@@ -148,7 +155,8 @@ public class TaskPasser extends Passer {
             @Override
             public void taskFailed(String taskName, String reason) {
                 System.out.println("Task "+taskName+" failed. Job owner notified if still online. Reason: "+reason);
-                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID, new FailMessage(reason, replicaBox.getReplicaID())));
+                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID,
+                        new FailMessage(reason, replicaBox.getReplicaID())));
             }
         });
 

@@ -5,6 +5,7 @@ import command.communicationToUI.NetworkInterface;
 import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.storage.Data;
 import taskbuilder.Task;
+import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.PathManager;
 
@@ -18,8 +19,8 @@ import java.util.concurrent.Semaphore;
  */
 public class Downloader extends AbstractFileMaster {
 
-    public Downloader(TaskMeta taskMeta, String projectName, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
-        super(taskMeta, client, taskListener, CommandWord.GET, PathManager.worker(projectName));
+    public Downloader(TaskMeta taskMeta, String projectName, NetworkInterface client, TaskFailureListener taskFailureListener) throws TaskMetaDataException {
+        super(taskMeta, client, taskFailureListener, CommandWord.GET, PathManager.worker(projectName));
     }
 
     /**
