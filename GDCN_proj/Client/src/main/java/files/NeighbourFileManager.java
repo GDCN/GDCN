@@ -21,6 +21,8 @@ public class NeighbourFileManager {
     //The name of the neighbour file
     private String fileName = "neighbours";
 
+    private String filePath;
+
     //The actual neighbour file
     private File neighbourFile;
 

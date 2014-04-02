@@ -81,21 +81,21 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             stop();
         }
 
-//        Good to use if testing multiple peers locally
-//        fileName = fileName + port;
-
         neighbourFileManager = new NeighbourFileManager();
         dataFilesManager = new DataFilesManager();
 
         try {
 
             //Initiates the peer
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            KeyPair keyPair = generator.generateKeyPair();
+            KeyPair keyPair = dataFilesManager.getKeypair();
+
+            if(keyPair == null) {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                keyPair = generator.generateKeyPair();
+                dataFilesManager.saveKeyPair(keyPair);
+            }
 
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
-
-            //Reads the old neighbours which have been saved to file
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
 
