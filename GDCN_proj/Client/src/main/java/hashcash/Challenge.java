@@ -1,6 +1,7 @@
 package hashcash;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -26,7 +27,6 @@ public class Challenge implements Serializable {
         this.seed = seed.clone();
         this.difficulty = difficulty;
         this.mac = mac.clone();
-        this.identifiable = !(id.length == 1 && id[0] == -1);
         this.identifiable = !purpose.isEmpty();
     }
 
@@ -144,7 +144,7 @@ public class Challenge implements Serializable {
 
     /**
      * Checks if the given token solves the challenge
-     * @param token
+     * @param token The token to be checked against the Challenge.
      * @return True if the token is a solution to the challenge, false otherwise.
      */
     public boolean isCorrectToken(byte[] token) {
