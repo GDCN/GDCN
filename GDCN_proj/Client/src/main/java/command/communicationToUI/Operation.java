@@ -9,7 +9,7 @@ public class Operation<E>{
     private final ErrorCode errorCode;
     private final Object key;
 
-    public Operation(boolean success, E result, ErrorCode errorCode, Object key) {
+    private Operation(boolean success, E result, ErrorCode errorCode, Object key) {
         this.success = success;
         this.result = result;
         this.errorCode = errorCode;
@@ -54,6 +54,10 @@ public class Operation<E>{
             return this;
         }
 
+        /**
+         * @param key Typically String or Number160
+         * @return Builder
+         */
         public OperationBuilder<E> setKey(Object key) {
             this.key = key;
             return this;

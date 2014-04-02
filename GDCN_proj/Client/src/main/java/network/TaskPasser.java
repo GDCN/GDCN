@@ -4,7 +4,8 @@ import challenge.Challenge;
 import challenge.Solution;
 import command.communicationToUI.ClientInterface;
 import command.communicationToUI.CommandWord;
-import command.communicationToUI.OperationFinishedEvent;
+import command.communicationToUI.Operation;
+import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
 import files.JobUploader;
@@ -16,8 +17,6 @@ import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -143,27 +142,16 @@ public class TaskPasser extends Passer {
                 final Number160 resultKey = replicaBox.getResultKey();
                 System.out.println("Task "+taskName+" finished. Attempt to upload and notify job owner.");
 
-                client.addListener(new PropertyChangeListener() {
+                client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
                     @Override
-                    public void propertyChange(PropertyChangeEvent evt) {
-                        if(!(evt instanceof OperationFinishedEvent)){
-                            return;
-                        }
-                        OperationFinishedEvent event = (OperationFinishedEvent) evt;
-                        if( event.getCommandWord() != CommandWord.PUT){
-                            return;
-                        }
-                        if(event.getOperation().getKey().equals(resultKey)){
-                            if(event.getOperation().isSuccess()){
+                    protected void operationFinished(Operation operation) {
+                            if(operation.isSuccess()){
                                 System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                                 sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
                                         replicaBox.getReplicaID()));
                             } else {
                                 taskFailed(taskName, "Couldn't upload result to DHT :P");
                             }
-
-                            client.removeListener(this);
-                        }
                     }
                 });
                 //TODO Upload result of task here! not null!
@@ -278,8 +266,15 @@ public class TaskPasser extends Passer {
 
     private void resultUploaded(String replicaID){
         System.out.println("Apparently some task was completed");
-        Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
+        final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
         //TODO download result.
+        client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
+            @Override
+            protected void operationFinished(Operation operation) {
+                //TODO
+            }
+        });
+        client.get(resultKey);
         replicaManager.replicaFinished(replicaID, "TODO Put downloaded result here...");
     }
 
