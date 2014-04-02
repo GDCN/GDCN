@@ -41,6 +41,7 @@ public class HashCashTest {
         assert challenge.solve().isValid(key);
     }
 
+    @Test
     public void testEasyIdSolution() throws Exception {
         String id = randomString();
         Challenge challenge = hc.generateEasyChallenge(id,randomString(),randomString(),randomString());
@@ -48,13 +49,15 @@ public class HashCashTest {
 
         assert solution.isValid(key) && solution.getId().equals(id.getBytes("UTF-8"));
     }
-    
+
+    @Test
     public void testHardSolution() throws Exception {
         Challenge challenge = hc.generateHardChallenge(randomString(),randomString());
 
         assert challenge.solve().isValid(key);
     }
 
+    @Test
     public void testHardIdSolution() throws Exception {
         String id = randomString();
         Challenge challenge = hc.generateHardChallenge(id,randomString(),randomString());
@@ -63,6 +66,23 @@ public class HashCashTest {
         assert solution.isValid(key) && solution.getId().equals(id.getBytes("UTF-8"));
     }
 
+    @Test
+    public void testInvalidSolution() throws Exception {
+        Challenge challenge = hc.generateChallenge(randomString(), 2);
+        Solution invalidSolution = new Solution(randomString().getBytes("UTF-8"),challenge);
+
+        assert !invalidSolution.isValid(key);
+    }
+/*
+    @Test
+    public void testNonAuthenticSolution() throws Exception {
+        byte[] seed = randomString().getBytes("UTF-8");
+        Challenge actualChallenge = new Challenge(seed,20,key);
+        Challenge falseChallenge = new Challenge(seed,10,key);
+
+
+    }
+*/
     private String randomString() {
         return new BigInteger(130, random).toString(32);
     }
