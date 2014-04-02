@@ -20,8 +20,8 @@ public class Solution implements Serializable {
      * Gets the identity of the challenge this solution claims to solve.
      * @return The identity of the challenge if it exists, null otherwise.
      */
-    public byte[] getId() {
-        return challenge.getId();
+    public String getPurpose() {
+        return challenge.getPurpose();
     }
 
     //TODO Remove, this is only used for testing purposes...
