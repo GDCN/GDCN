@@ -52,7 +52,7 @@ public class PathManager {
         this.isWorker = isWorker;
     }
 
-    private void check(){
+    private static void check(){
         if(dataPath == null || headerLocation == null || jobPath == null || settingsPath == null){
             throw new AssertionError("Paths has not been read properly!");
         }
@@ -62,7 +62,7 @@ public class PathManager {
      *
      * @return Path to settings folder
      */
-    public String getSettingsPath() {
+    public static String getSettingsPath() {
         check();
         return settingsPath;
     }
