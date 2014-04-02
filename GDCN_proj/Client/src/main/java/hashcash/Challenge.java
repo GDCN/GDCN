@@ -19,6 +19,20 @@ public class Challenge implements Serializable {
     private final int difficulty;
     private final boolean identifiable;
 
+    //TODO Remove this, it is only used for testing purposes!
+    public Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
+        this.id = new byte[]{-1};
+        this.seed = seed.clone();
+        this.difficulty = difficulty;
+        this.mac = mac.clone();
+        this.identifiable = !(id.length == 1 && id[0] == -1);
+    }
+
+    //TODO Remove this, it is only used for testing purposes!
+    public byte[] getMAC() {
+        return mac.clone();
+    }
+
     /**
      * Creates a new anonymous Challenge.
      * @param seed The seed of the Challenge. Should not be reused!

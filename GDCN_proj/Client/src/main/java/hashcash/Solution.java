@@ -24,6 +24,11 @@ public class Solution implements Serializable {
         return challenge.getId();
     }
 
+    //TODO Remove, this is only used for testing purposes...
+    public byte[] getToken() {
+        return token.clone();
+    }
+
     /**
      * Checks whether the solution is a valid solution to the challenge it claims to solve.
      * @param key The key used when creating the challenge.
