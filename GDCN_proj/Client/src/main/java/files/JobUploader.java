@@ -27,6 +27,17 @@ public class JobUploader extends AbstractFileMaster{
         this.taskFailureListener = taskFailureListener;
     }
 
+    /**
+     *
+     * @param jobName Name of directory for this job
+     * @param client Client that handles network operations
+     * @param taskFailureListener Listener that notifies on failures
+     * @param replicaManager ReplicaManager that makes replicas of read tasks
+     * @return JobUploader that pushes all job files to DHT
+     *
+     * @throws FileNotFoundException
+     * @throws TaskMetaDataException
+     */
     public static JobUploader create(String jobName, NetworkInterface client, TaskFailureListener taskFailureListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
@@ -66,6 +77,9 @@ public class JobUploader extends AbstractFileMaster{
         return new JobUploader(manager, totalJobMeta, client, taskFailureListener);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void ifFileExist(FileDep fileDep) {
         File file = super.pathTo(fileDep);
@@ -83,11 +97,17 @@ public class JobUploader extends AbstractFileMaster{
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
         taskFailureListener.taskFailed(taskMeta.getTaskName(), "Unable to resolve "+pathTo(fileDep));
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
         System.out.println("Successfully put " + fileDep.getFileName());

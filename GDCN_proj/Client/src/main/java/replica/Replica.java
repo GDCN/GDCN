@@ -16,6 +16,15 @@ class Replica implements Serializable{
     private Object result = null;
 
 
+    /**
+     * Replica is the object that job owner holds to keep track of who worked on this replica
+     * and what the result of it is before it has been canonized.
+     *
+     * Generates a ReplicaBox that will be sent to a specific worker node.
+     *
+     * @param taskMeta TaskMeta for this replica
+     * @param index Index used to generate replicaID
+     */
     Replica(TaskMeta taskMeta, int index) {
         replicaBox = new ReplicaBox(taskMeta, index);
     }

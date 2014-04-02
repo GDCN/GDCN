@@ -114,6 +114,9 @@ public class TaskPasser extends Passer {
         });
     }
 
+    /**
+     * Class used for holding a String. Not really good architecture but it works.
+     */
     public static class StringHolder{
         private String string = null;
 
@@ -177,6 +180,9 @@ public class TaskPasser extends Passer {
 
     }
 
+    /**
+     * Just a serializable message that contains a reason for the failure.
+     */
     private static class FailMessage implements Serializable{
         private final String reason;
         private final String ID;
@@ -263,6 +269,10 @@ public class TaskPasser extends Passer {
         }
     }
 
+    /**
+     * Called when the job owner has been notified that a certain result has been uploaded.
+     * @param replicaID ID of the replica who's result was uploaded
+     */
     private void resultUploaded(final String replicaID){
         System.out.println("Apparently some task was completed");
 

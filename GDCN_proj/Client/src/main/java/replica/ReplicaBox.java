@@ -17,6 +17,12 @@ public class ReplicaBox implements Serializable {
     private final TaskMeta taskMeta;
     private final Number160 resultKey;
 
+    /**
+     * ReplicaBox is the serialized object that is sent to a Worker in a message.
+     *
+     * @param taskMeta TaskMeta for this replica
+     * @param index Index used to generate replicaID
+     */
     public ReplicaBox(TaskMeta taskMeta, int index) {
         this.resultKey = Number160.createHash(random.nextLong());
         this.taskMeta = taskMeta;
