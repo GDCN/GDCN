@@ -2,7 +2,7 @@
 .idea/*
 
 Client/target/*
-Taskbuilder/target/*
+TaskBuilder/target/*
 UI/target/*
 
 tmpa/*
