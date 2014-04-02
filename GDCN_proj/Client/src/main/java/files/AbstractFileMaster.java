@@ -77,7 +77,7 @@ abstract class AbstractFileMaster{
             unresolvedFiles.put(fileDep.getDhtKey(), fileDep);
         }
         if(taskMeta.getModule() != null){
-            //is currently null when coming from Uploader class
+            //is currently null when coming from JobUploader class
             unresolvedFiles.put(taskMeta.getModule().getDhtKey(), taskMeta.getModule());
         }
     }

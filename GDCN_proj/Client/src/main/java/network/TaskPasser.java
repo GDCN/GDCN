@@ -2,14 +2,20 @@ package network;
 
 import challenge.Challenge;
 import challenge.Solution;
+import command.communicationToUI.ClientInterface;
+import command.communicationToUI.CommandWord;
+import command.communicationToUI.OperationFinishedEvent;
 import control.TaskManager;
 import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
+import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +30,7 @@ public class TaskPasser extends Passer {
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
+    private final ClientInterface client;
 
     private final WorkerID myWorkerID;
 
@@ -33,12 +40,14 @@ public class TaskPasser extends Passer {
      * @param peer This peer
      * @param replicaManager Manager to ask for Replicas that are sent to workers
      * @param taskManager Manager to run a task (replica) that was received
+     * @param client
      */
-    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager) {
+    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+        this.client = client;
     }
 
     //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
@@ -111,12 +120,29 @@ public class TaskPasser extends Passer {
         //TODO project name?
         taskManager.startTask("Primes", replicaBox.getTaskMeta(), new TaskListener() {
             @Override
-            public void taskFinished(String taskName) {
+            public void taskFinished(final String taskName) {
 
+                final Number160 resultKey = replicaBox.getResultKey();
 
-                //TODO Upload result of task here!
-                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+                client.addListener(new PropertyChangeListener() {
+                    @Override
+                    public void propertyChange(PropertyChangeEvent evt) {
+                        if(!(evt instanceof OperationFinishedEvent)){
+                            return;
+                        }
+                        OperationFinishedEvent event = (OperationFinishedEvent) evt;
+                        if( event.getCommandWord() != CommandWord.PUT){
+                            return;
+                        }
+                        if(event.getOperation().getKey().equals(resultKey.toString())){
+                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                            sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+                            client.removeListener(this);
+                        }
+                    }
+                });
+                //TODO Upload result of task here! not null!
+                client.put(resultKey, null);
             }
 
             @Override

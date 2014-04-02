@@ -19,13 +19,13 @@ import java.util.Set;
 /**
  * Created by HalfLeif on 2014-03-05.
  */
-public class Uploader extends AbstractFileMaster{
+public class JobUploader extends AbstractFileMaster{
 
-    private Uploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
+    private JobUploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
         super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
     }
 
-    public static Uploader create(String jobName, NetworkInterface client, TaskListener taskListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
+    public static JobUploader create(String jobName, NetworkInterface client, TaskListener taskListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());
@@ -61,7 +61,7 @@ public class Uploader extends AbstractFileMaster{
 
         TaskMeta totalJobMeta = new TaskMeta("Upload"+jobName, null, new ArrayList<>(allFileDependencies));
 
-        return new Uploader(manager, totalJobMeta, client, taskListener);
+        return new JobUploader(manager, totalJobMeta, client, taskListener);
     }
 
     @Override

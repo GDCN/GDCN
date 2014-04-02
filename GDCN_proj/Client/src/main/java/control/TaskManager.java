@@ -2,9 +2,9 @@ package control;
 
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
+import files.JobUploader;
 import files.TaskMeta;
 import files.TaskMetaDataException;
-import files.Uploader;
 import replica.ReplicaManager;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskListener;
@@ -100,8 +100,8 @@ public class TaskManager{
             @Override
             public void run() {
                 try {
-                    Uploader uploader = Uploader.create(jobName, client, taskListener, replicaManager);
-                    boolean success = uploader.runAndAwait();
+                    JobUploader jobUploader = JobUploader.create(jobName, client, taskListener, replicaManager);
+                    boolean success = jobUploader.runAndAwait();
 
                     if(!success){
                         taskListener.taskFailed(jobName, "Unresolved dependencies");

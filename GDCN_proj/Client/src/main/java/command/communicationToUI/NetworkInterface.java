@@ -1,5 +1,6 @@
 package command.communicationToUI;
 
+import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 
@@ -22,6 +23,8 @@ public interface NetworkInterface {
     void bootstrap(String host, int port);
 
     void put(String name, Data value);
+
+    void put(Number160 key, Data value);
 
     void get(String name);
 
