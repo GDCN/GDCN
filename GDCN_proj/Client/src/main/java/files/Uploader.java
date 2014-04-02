@@ -37,6 +37,9 @@ public class Uploader extends AbstractFileMaster{
         Set<FileDep> allFileDependencies = new HashSet<>();
         List<FileDep> dependencyTasks = new ArrayList<>();
         for(String task:tasks){
+            if(task.equals(".DS_Store")){
+                continue;
+            }
             System.out.println("\t"+task);
             FileDep fileDep = new FileDep(task, "tasks", task, true, 0);
             dependencyTasks.add(fileDep);
