@@ -120,7 +120,7 @@ public class TaskManagerManual {
 
         TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-        manager.startTask("Primes", taskMeta, null);
+        manager.startTask("Primes", taskMeta, null, null);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

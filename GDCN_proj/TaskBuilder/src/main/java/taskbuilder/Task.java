@@ -99,6 +99,10 @@ public class Task implements Runnable{
         }
     }
 
+    public String getResultFilePath(){
+        return pathManager.taskResourcesDir() + taskName + ".result";
+    }
+
     /**
      * Executes a task
      */

@@ -5,6 +5,7 @@ import files.Downloader;
 import files.JobUploader;
 import files.TaskMeta;
 import files.TaskMetaDataException;
+import network.TaskPasser;
 import replica.ReplicaManager;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskFailureListener;
@@ -39,9 +40,11 @@ public class TaskManager{
      * Work on this task
      * @param projectName Name of working directory that contains /resources etc
      * @param taskMeta Meta information of the task
+     * @param resultFileNameHolder Holder that will contain the absolute path of the future result file of this task.
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
-    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskListener subjectListener){
+    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskPasser.StringHolder resultFileNameHolder,
+                          final TaskListener subjectListener){
 
         Thread downloaderThread = new Thread(new Runnable() {
             @Override
@@ -81,6 +84,9 @@ public class TaskManager{
                             taskListener.taskFailed(taskName, reason);
                         }
                     });
+
+                    final String resultPath = task.getResultFilePath();
+                    resultFileNameHolder.setString(resultPath);
 
                     Thread taskThread = new Thread(task);
                     taskThread.setDaemon(true);

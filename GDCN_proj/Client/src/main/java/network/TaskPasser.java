@@ -7,6 +7,7 @@ import command.communicationToUI.CommandWord;
 import command.communicationToUI.OperationFinishedEvent;
 import control.TaskManager;
 import control.WorkerNodeManager;
+import files.JobUploader;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -17,6 +18,7 @@ import taskbuilder.communicationToClient.TaskListener;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
@@ -113,6 +115,18 @@ public class TaskPasser extends Passer {
         });
     }
 
+    public static class StringHolder{
+        private String string = null;
+
+        public synchronized String getString() {
+            return string;
+        }
+
+        public synchronized void setString(String string) {
+            this.string = string;
+        }
+    }
+
     /**
      * Works on this task until finished. Calls job owner when done or when failed.
      * @param jobOwner Peer to send result to
@@ -120,7 +134,9 @@ public class TaskPasser extends Passer {
      */
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         //TODO project name?
-        taskManager.startTask("Primes", replicaBox.getTaskMeta(), new TaskListener() {
+        final StringHolder stringHolder = new StringHolder();
+
+        taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
             @Override
             public void taskFinished(final String taskName) {
 
@@ -151,11 +167,16 @@ public class TaskPasser extends Passer {
                     }
                 });
                 //TODO Upload result of task here! not null!
+                //TODO sign result with private key...
+                byte[] result = null;
                 try {
-                    client.put(resultKey, new Data("NullEmptyResult"));
+                    result = JobUploader.fromFile(new File(stringHolder.getString()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     taskFailed(taskName, e.getMessage());
+                }
+                if(result != null){
+                    client.put(resultKey, new Data(result));
                 }
             }
 

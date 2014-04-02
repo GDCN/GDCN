@@ -2,6 +2,8 @@ package files;
 
 /**
  * Created by HalfLeif on 2014-03-25.
+ *
+ * TODO remove entirely?
  */
 public interface ResultListener {
 
