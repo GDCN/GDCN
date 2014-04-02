@@ -31,10 +31,8 @@ public class Validifier {
      * Runs a validity test of a result
      * @param program the testing program
      * @param result the result file
-     * @param worker the worker identity who produced this result
-     * @param taskName the task name this is a result of
      */
-    public void testResult(String program, String result, WorkerID worker, String taskName) {
+    public void testResult(String program, String result) {
         String[] command = {program, result};
         Process proc = null;
 
@@ -50,21 +48,21 @@ public class Validifier {
                 Matcher matcher = pattern.matcher(writer.toString().toLowerCase());
                 if (matcher.matches()) {
                     // Result accepted
-                    listener.validityOk(worker, taskName);
+                    listener.validityOk();
                 }
                 else {
                     // Result is corrupt
-                    listener.validityCorrupt(worker, taskName);
+                    listener.validityCorrupt();
                 }
             } else {
                 // Program error
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getErrorStream(), writer, null);
-                listener.validityError(worker, taskName, writer.toString());
+                listener.validityError(writer.toString());
             }
         }
         catch (IOException | InterruptedException e) {
-            listener.validityError(worker, taskName, e.toString());
+            listener.validityError(e.toString());
         }
         finally {
             if (proc != null)
@@ -75,22 +73,22 @@ public class Validifier {
     public static void main(String[] args) {
         ValidityListener vl = new ValidityListener() {
             @Override
-            public void validityOk(WorkerID worker, String taskName) {
+            public void validityOk() {
                 System.out.println("Validity Ok");
             }
 
             @Override
-            public void validityCorrupt(WorkerID worker, String taskName) {
+            public void validityCorrupt() {
                 System.out.println("Validity corrupt");
             }
 
             @Override
-            public void validityError(WorderID worker, String taskName, String reason) {
+            public void validityError(String reason) {
                 System.out.println("Validity error: " + reason);
             }
         };
 
         Validifier v = new Validifier(vl);
-        v.testResult("someProgram", "someResultFile", null, null);
+        v.testResult("someProgram", "someResultFile");
     }
 }
