@@ -140,12 +140,15 @@ public class Challenge implements Serializable {
             }
         }
 
+        byte b = 1;
+
         for (int j = 0; j < difficulty%8; j++) {
             if ((hash[i] & 2^j) != 0) {
                 return false;
             }
-	    b = b << 1;
+            b = (byte) (b << 1);
         }
+
         return true;
     }
 }
