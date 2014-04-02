@@ -4,7 +4,7 @@ import command.communicationToUI.CommandWord;
 import command.communicationToUI.NetworkInterface;
 import net.tomp2p.storage.Data;
 import replica.ReplicaManager;
-import taskbuilder.communicationToClient.TaskListener;
+import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
@@ -21,11 +21,11 @@ import java.util.Set;
  */
 public class JobUploader extends AbstractFileMaster{
 
-    private JobUploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskListener taskListener) throws TaskMetaDataException {
-        super(taskMeta, client, taskListener, CommandWord.PUT, pathManager);
+    private JobUploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskFailureListener taskFailureListener) throws TaskMetaDataException {
+        super(taskMeta, client, taskFailureListener, CommandWord.PUT, pathManager);
     }
 
-    public static JobUploader create(String jobName, NetworkInterface client, TaskListener taskListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
+    public static JobUploader create(String jobName, NetworkInterface client, TaskFailureListener taskFailureListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());
@@ -61,7 +61,7 @@ public class JobUploader extends AbstractFileMaster{
 
         TaskMeta totalJobMeta = new TaskMeta("Upload"+jobName, null, new ArrayList<>(allFileDependencies));
 
-        return new JobUploader(manager, totalJobMeta, client, taskListener);
+        return new JobUploader(manager, totalJobMeta, client, taskFailureListener);
     }
 
     @Override

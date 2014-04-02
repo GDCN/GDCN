@@ -10,12 +10,14 @@ import control.WorkerNodeManager;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.storage.Data;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -123,7 +125,7 @@ public class TaskPasser extends Passer {
             public void taskFinished(final String taskName) {
 
                 final Number160 resultKey = replicaBox.getResultKey();
-                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                System.out.println("Task "+taskName+" finished. Attempt to upload and notify job owner.");
 
                 client.addListener(new PropertyChangeListener() {
                     @Override
@@ -138,10 +140,10 @@ public class TaskPasser extends Passer {
                         if(event.getOperation().getKey().equals(resultKey.toString())){
                             if(event.getOperation().isSuccess()){
                                 System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
+                                        replicaBox.getReplicaID()));
                             } else {
-                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID,
-                                        new FailMessage("Couldn't upload result to DHT :P", replicaBox.getReplicaID())));
+                                taskFailed(taskName, "Couldn't upload result to DHT :P");
                             }
 
                             client.removeListener(this);
@@ -149,7 +151,12 @@ public class TaskPasser extends Passer {
                     }
                 });
                 //TODO Upload result of task here! not null!
-                client.put(resultKey, null);
+                try {
+                    client.put(resultKey, new Data("NullEmptyResult"));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    taskFailed(taskName, e.getMessage());
+                }
             }
 
             @Override
