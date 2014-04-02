@@ -14,11 +14,27 @@ public class DataFilesManager {
 
     private File keyPairLocation;
 
+    private String filepath;
+
+    private String keyFileName;
+
     public DataFilesManager() {
 
-        pathManager = PathManager.jobOwner("settings");
+        keyFileName = "keypair";
 
-        keyPairLocation = new File(pathManager.getSettingsPath() + "keyPair");
+        filepath = PathManager.getSettingsPath();
+
+        keyPairLocation = new File(filepath + keyFileName);
+
+    }
+
+    public DataFilesManager(String subpart) {
+
+        keyFileName = "keypair";
+
+        filepath = PathManager.getSettingsPath() + subpart;
+
+        keyPairLocation = new File(filepath + keyFileName);
 
 
     }
@@ -61,6 +77,10 @@ public class DataFilesManager {
             return null;
         }
 
+    }
+
+    public void removeKeyFile() {
+        keyPairLocation.delete();
     }
 
 

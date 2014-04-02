@@ -26,8 +26,6 @@ public class NeighbourFileManager {
     //The actual neighbour file
     private File neighbourFile;
 
-    private PathManager pathManager;
-
     //Listener used by PeerOwner to know when the addressmap changes in the Peer
     private final PeerMapChangeListener peerMapChangeListener = new PeerMapChangeListener() {
         @Override
@@ -58,15 +56,31 @@ public class NeighbourFileManager {
     };
 
     public NeighbourFileManager() {
-        pathManager = PathManager.jobOwner("settings");
 
         PathManager.loadDefaultLocation();
 
-        neighbourFile = new File(pathManager.getSettingsPath()+fileName);
+        filePath = PathManager.getSettingsPath();
+
+        neighbourFile = new File(filePath+fileName);
 
         fileNeighbours.addAll(readNeighbours());
 
     }
+
+    public NeighbourFileManager (String subpart) {
+
+        PathManager.loadDefaultLocation();
+
+        filePath = PathManager.getSettingsPath() + subpart;
+
+        neighbourFile = new File(filePath+fileName);
+
+        fileNeighbours.clear();
+
+        fileNeighbours.addAll(readNeighbours());
+
+    }
+
 
     public PeerMapChangeListener getPeerMapListener() {
         return peerMapChangeListener;
@@ -192,4 +206,5 @@ public class NeighbourFileManager {
         neighbourFile.renameTo(new File(fileName));
 
     }
+
 }

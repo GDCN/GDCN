@@ -109,6 +109,46 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
     }
 
+    /**
+     * Only used by tests.
+     *
+     *
+     */
+    public void testStart(int port){
+
+        //Stops the peer if it is running to free the port
+        if(peer != null) {
+            stop();
+        }
+
+        neighbourFileManager = new NeighbourFileManager(port + "");
+        dataFilesManager = new DataFilesManager(port + "");
+
+        try {
+
+            //Initiates the peer
+            KeyPair keyPair = dataFilesManager.getKeypair();
+
+            if(keyPair == null) {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                keyPair = generator.generateKeyPair();
+                dataFilesManager.saveKeyPair(keyPair);
+            }
+
+            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
+
+            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
+
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
+
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+        notifier.fireOperationFinished(CommandWord.START,
+                new OperationBuilder<Integer>(peer != null).setResult(port).create());
+    }
+
     @Override
     public void stop(){
         //If it can't stop, Will not be any effects
@@ -306,6 +346,10 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void deleteNeighbourFile(){
         neighbourFileManager.deleteNeighbourFile();
+    }
+
+    public void removeKeyFile() {
+        dataFilesManager.removeKeyFile();
     }
 
     @Override
