@@ -10,21 +10,32 @@ import java.util.regex.Pattern;
 
 /**
  * Created by joakim on 2014-04-01.
+ *
+ * Class for validating results of tasks
  */
 public class Validifier {
 
     private static final String ACCEPT_WORD = "ok.*";
 
-    private final String program;
     private final ValidityListener listener;
 
-    public Validifier(String program, ValidityListener listener) {
-        this.program = program;
+    /**
+     * Creates a validifier instance
+     * @param listener listens for validity results
+     */
+    public Validifier(ValidityListener listener) {
         this.listener = listener;
     }
 
-    public void testResult(String worker, String taskName, String file) {
-        String[] command = {program, file};
+    /**
+     * Runs a validity test of a result
+     * @param program the testing program
+     * @param result the result file
+     * @param worker the worker identity who produced this result
+     * @param taskName the task name this is a result of
+     */
+    public void testResult(String program, String result, WorkerID worker, String taskName) {
+        String[] command = {program, result};
         Process proc = null;
 
         try {
@@ -54,6 +65,7 @@ public class Validifier {
         }
         catch (IOException | InterruptedException e) {
             e.printStackTrace();
+            listener.validityError(worker, taskName, e.toString());
         }
         finally {
             if (proc != null)
@@ -64,22 +76,22 @@ public class Validifier {
     public static void main(String[] args) {
         ValidityListener vl = new ValidityListener() {
             @Override
-            public void validityOk(String worker, String taskName) {
+            public void validityOk(WorkerID worker, String taskName) {
                 System.out.println("Validity Ok");
             }
 
             @Override
-            public void validityCorrupt(String worker, String taskName) {
+            public void validityCorrupt(WorkerID worker, String taskName) {
                 System.out.println("Validity corrupt");
             }
 
             @Override
-            public void validityError(String worker, String taskName, String reason) {
+            public void validityError(WorderID worker, String taskName, String reason) {
                 System.out.println("Validity error: " + reason);
             }
         };
 
-        Validifier v = new Validifier("someProgram", vl);
-        v.testResult("", "", "someResultFile");
+        Validifier v = new Validifier(vl);
+        v.testResult("someProgram", "someResultFile", null, null);
     }
 }
