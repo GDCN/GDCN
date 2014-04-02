@@ -7,9 +7,9 @@ public class Operation<E>{
     private final boolean success;
     private final E result;
     private final ErrorCode errorCode;
-    private final String key;
+    private final Object key;
 
-    public Operation(boolean success, E result, ErrorCode errorCode, String key) {
+    public Operation(boolean success, E result, ErrorCode errorCode, Object key) {
         this.success = success;
         this.result = result;
         this.errorCode = errorCode;
@@ -28,7 +28,7 @@ public class Operation<E>{
         return errorCode;
     }
 
-    public String getKey() {
+    public Object getKey() {
         return key;
     }
 
@@ -38,7 +38,7 @@ public class Operation<E>{
 
         private E result = null;
         private ErrorCode errorCode = null;
-        private String key = "";
+        private Object key = "";
 
         public OperationBuilder(boolean success){
             this.success = success;
@@ -54,7 +54,7 @@ public class Operation<E>{
             return this;
         }
 
-        public OperationBuilder<E> setKey(String key) {
+        public OperationBuilder<E> setKey(Object key) {
             this.key = key;
             return this;
         }

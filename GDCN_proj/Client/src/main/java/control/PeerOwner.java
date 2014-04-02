@@ -240,7 +240,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             public void operationComplete(FutureDHT future) throws Exception {
                 boolean success = future.isSuccess();
 
-                notifier.fireOperationFinished(CommandWord.PUT, new OperationBuilder<Data>(success).setResult(value).setKey(key.toString()).create());
+                notifier.fireOperationFinished(CommandWord.PUT, new OperationBuilder<Data>(success).setResult(value).setKey(key).create());
             }
         });
     }
@@ -257,6 +257,19 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             }
         });
 
+    }
+
+    @Override
+    public void get(final Number160 key) {
+        FutureDHT futureDHT = peer.get(key).start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                boolean success = future.isSuccess();
+                notifier.fireOperationFinished(CommandWord.GET,
+                        new OperationBuilder<Data>(success).setKey(key.toString()).setResult(future.getData()).create());
+            }
+        });
     }
 
     @Override

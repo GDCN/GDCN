@@ -234,7 +234,7 @@ abstract class AbstractFileMaster{
             return;
         }
 
-        String key = event.getOperation().getKey();
+        String key = event.getOperation().getKey().toString();
 
         if(!unresolvedFiles.containsKey(key)){
             //TODO redirect output?

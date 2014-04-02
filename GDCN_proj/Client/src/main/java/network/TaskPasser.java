@@ -153,7 +153,7 @@ public class TaskPasser extends Passer {
                         if( event.getCommandWord() != CommandWord.PUT){
                             return;
                         }
-                        if(event.getOperation().getKey().equals(resultKey.toString())){
+                        if(event.getOperation().getKey().equals(resultKey)){
                             if(event.getOperation().isSuccess()){
                                 System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                                 sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
@@ -278,6 +278,7 @@ public class TaskPasser extends Passer {
 
     private void resultUploaded(String replicaID){
         System.out.println("Apparently some task was completed");
+        Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
         //TODO download result.
         replicaManager.replicaFinished(replicaID, "TODO Put downloaded result here...");
     }

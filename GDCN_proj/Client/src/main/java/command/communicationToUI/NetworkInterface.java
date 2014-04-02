@@ -28,6 +28,8 @@ public interface NetworkInterface {
 
     void get(String name);
 
+    void get(Number160 key);
+
     List<PeerAddress> getNeighbours();
 
     List<PeerAddress> getOldNeighbours();

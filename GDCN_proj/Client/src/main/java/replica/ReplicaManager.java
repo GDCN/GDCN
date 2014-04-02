@@ -1,6 +1,7 @@
 package replica;
 
 import files.TaskMeta;
+import net.tomp2p.peers.Number160;
 import network.WorkerID;
 
 import java.io.Serializable;
@@ -13,6 +14,8 @@ import java.util.*;
  * //TODO in order to save object to file, Replicas result "object" must be Serializable!
  *
  * //TODO reissue replicas after timeout time
+ *
+ * //TODO reader-writer synchronization instead of common mutex?
  */
 public class ReplicaManager implements Serializable{
 
@@ -83,6 +86,14 @@ public class ReplicaManager implements Serializable{
                 }
             }
         }
+    }
+
+    public synchronized Number160 getReplicaResultKey(String replicaID){
+        final Replica replica = replicaMap.get(replicaID);
+        if(replica == null){
+            throw new IllegalStateException("Error: Replica was not found!");
+        }
+        return replica.getReplicaBox().getResultKey();
     }
 
     /**
