@@ -1,13 +1,16 @@
 package network;
 
 import hashcash.Challenge;
+import hashcash.HashCash;
 import hashcash.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 
+import javax.crypto.KeyGenerator;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -17,10 +20,23 @@ import java.util.Map;
 public class TaskPasser extends Passer {
     public TaskPasser(Peer peer) {
         super(peer);
+
+        try {
+            secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
+            hashCash = new HashCash(secretKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
     //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
-    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
+//    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
+
+    //TODO Key should probably be stored in a better place, please move it if you know where! It is needed *only* for HashCash, is not the same as the private key and should not be shared with *anyone*.
+    private Key secretKey = null;
+    private HashCash hashCash = null;
 
     /**
      * Debug message. Just sends a request that is answered.
@@ -102,7 +118,7 @@ public class TaskPasser extends Passer {
     private Solution challengeReceived(Object challengeData){
         // TODO real challenge, not just mock up challenge
         Challenge challenge = (Challenge) challengeData;
-        return Solution.solve(challenge);
+        return challenge.solve();
     }
 
     @Override
@@ -116,8 +132,8 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Challenge");
 
                 //TODO if Worker is not registered, generate HARD challenge instead!
-                Challenge challenge = Challenge.generate();
-                pendingChallenges.put(challenge.getSeed(), challenge);
+                Challenge challenge = hashCash.generateEasyChallenge("1","JobOwner",sender.getID().toString(),"taskID");
+                //TODO Insert real seed values. (The first argument is an optional id, which should probably be the id of a replica or "REGISTRATION")
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
             case REQUEST_TASK:
@@ -125,16 +141,22 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
 
                 Solution solution = (Solution) taskMessage.actualContent;
-                Challenge originalChallenge = pendingChallenges.remove(solution.getSeed());
-                if(originalChallenge != null && originalChallenge.solvedBy(solution)){
-                    //TODO register Peer in list of workers if not is there already
-                    //TODO give actual task information
-                    return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
-                } else {
-                    if(originalChallenge == null){
-                        return new TaskMessage(TaskMessageType.FAIL, "Provided solution didn't match any challenge!");
+
+                try {
+                    if(solution.isValid(secretKey)){
+                        String id = solution.getPurpose();
+
+                        if(id.equals("REGISTRATION")) {
+                            //TODO register Peer in list of workers if not is there already
+                        } else {
+                            //TODO give actual task information. The replica we should send probably has the same id as above.
+                            return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
+                        }
+                    } else {
+                        return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
                     }
-                    return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
                 }
 
             case HELLO:
