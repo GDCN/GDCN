@@ -9,6 +9,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import javax.crypto.Mac;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Random;
 
 /**
@@ -152,22 +153,12 @@ public class Challenge implements Serializable {
     }
 
     private boolean checkZeros(byte[] hash) {
-        int i;
-        for (i = 0; i < difficulty/8; i++) {
-            if (hash[i] != 0) {
-                return false;
-            }
-        }
+        BitSet hashBits = BitSet.valueOf(hash);
+        BitSet zeros = new BitSet(difficulty);
 
-        byte b = 1;
+        zeros.clear();
+        zeros.or(hashBits);
 
-        for (int j = 0; j < difficulty%8; j++) {
-            if ((hash[i] & 2^j) != 0) {
-                return false;
-            }
-            b = (byte) (b << 1);
-        }
-
-        return true;
+        return zeros.get(0,difficulty-1).isEmpty();
     }
 }
