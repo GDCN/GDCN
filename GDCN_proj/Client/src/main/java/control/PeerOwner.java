@@ -40,7 +40,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
 
-
+    private SettingsManager settingsManager;
 
     private NeighbourManager neighbourManager;
 
@@ -85,12 +85,14 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 //        fileName = fileName + port;
 
         neighbourManager = new NeighbourManager();
+        settingsManager = new SettingsManager();
 
         try {
 
             //Initiates the peer
             KeyPairGenerator generator = KeyPairGenerator.getInstance("DSA");
             KeyPair keyPair = generator.generateKeyPair();
+
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
 
             //Reads the old neighbours which have been saved to file

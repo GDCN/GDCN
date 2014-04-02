@@ -60,8 +60,6 @@ public class NeighbourManager {
 
         PathManager.loadDefaultLocation();
 
-        System.out.println(pathManager.getSettingsPath());
-
         neighbourFile = new File(pathManager.getSettingsPath()+fileName);
 
         fileNeighbours.addAll(readNeighbours());
