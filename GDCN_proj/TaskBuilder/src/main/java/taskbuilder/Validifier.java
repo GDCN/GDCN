@@ -64,7 +64,6 @@ public class Validifier {
             }
         }
         catch (IOException | InterruptedException e) {
-            e.printStackTrace();
             listener.validityError(worker, taskName, e.toString());
         }
         finally {
