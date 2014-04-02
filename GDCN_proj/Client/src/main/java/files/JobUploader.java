@@ -7,7 +7,9 @@ import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.fileManagement.PathManager;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -18,8 +20,11 @@ import java.util.Set;
  */
 public class JobUploader extends AbstractFileMaster{
 
+    private final TaskFailureListener taskFailureListener;
+
     private JobUploader(PathManager pathManager, TaskMeta taskMeta, NetworkInterface client, TaskFailureListener taskFailureListener) throws TaskMetaDataException {
         super(taskMeta, client, taskFailureListener, CommandWord.PUT, pathManager);
+        this.taskFailureListener = taskFailureListener;
     }
 
     public static JobUploader create(String jobName, NetworkInterface client, TaskFailureListener taskFailureListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
@@ -67,19 +72,20 @@ public class JobUploader extends AbstractFileMaster{
 
         try {
             System.out.println("Put " + pathTo(fileDep));
-            client.put(fileDep.getDhtKey(), new Data(FileUtils.fromFile(file)));
+            Data data = new Data(FileUtils.fromFile(file));
+            client.put(fileDep.getDhtKey(), data);
+            //Handling OperationFinished is done in AbstractFileMaster
+
         } catch (IOException e) {
             e.printStackTrace();
-            //TODO better output?
-            System.out.println("Failed to put " + pathTo(fileDep) + "\n"+e.getMessage());
+            taskFailureListener.taskFailed(taskMeta.getTaskName(), "Failed to serialize: " + pathTo(fileDep) +
+                    "\n"+e.getMessage());
         }
     }
 
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
-        //TODO better output?
-        System.out.println("Didn't find file " + pathTo(fileDep));
-        //TODO fail task and abort
+        taskFailureListener.taskFailed(taskMeta.getTaskName(), "Unable to resolve "+pathTo(fileDep));
     }
 
     @Override

@@ -37,6 +37,7 @@ public class Downloader extends AbstractFileMaster {
         //TODO better output?
         System.out.println("Didn't find file " + pathTo(fileDep));
         client.get(fileDep.getDhtKey());
+        //Handling OperationFinished is done in AbstractFileMaster
     }
 
     /**

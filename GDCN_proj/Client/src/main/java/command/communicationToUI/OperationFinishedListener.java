@@ -9,7 +9,7 @@ import java.beans.PropertyChangeListener;
 
 public abstract class OperationFinishedListener implements PropertyChangeListener {
 
-    private final ClientInterface client;
+    private final NetworkInterface client;
     private final Object resultKey;
     private final CommandWord commandWord;
 
@@ -20,7 +20,7 @@ public abstract class OperationFinishedListener implements PropertyChangeListene
      * @param resultKey Key to listen for
      * @param commandWord CommandWord to listen for
      */
-    public OperationFinishedListener(ClientInterface client, Object resultKey, CommandWord commandWord) {
+    public OperationFinishedListener(NetworkInterface client, Object resultKey, CommandWord commandWord) {
         this.client = client;
         this.resultKey = resultKey;
         this.commandWord = commandWord;

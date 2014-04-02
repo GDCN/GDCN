@@ -154,7 +154,6 @@ public class TaskPasser extends Passer {
                             }
                     }
                 });
-                //TODO Upload result of task here! not null!
                 //TODO sign result with private key...
                 byte[] result = null;
                 try {
@@ -268,7 +267,6 @@ public class TaskPasser extends Passer {
         System.out.println("Apparently some task was completed");
 
         final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
-        //TODO download result.
         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
             @Override
             protected void operationFinished(Operation operation) {
