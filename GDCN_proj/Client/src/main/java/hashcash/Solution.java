@@ -17,7 +17,7 @@ public class Solution implements Serializable {
     }
 
     /**
-     * Gets the identity of the challenge this solution claims to solve.
+     * Gets the purpose of the challenge this solution claims to solve.
      * @return The identity of the challenge if it exists, null otherwise.
      */
     public String getPurpose() {

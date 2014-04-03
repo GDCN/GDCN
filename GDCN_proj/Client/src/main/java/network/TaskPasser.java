@@ -31,9 +31,6 @@ public class TaskPasser extends Passer {
         }
     }
 
-    //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
-//    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
-
     //TODO Key should probably be stored in a better place, please move it if you know where! It is needed *only* for HashCash, is not the same as the private key and should not be shared with *anyone*.
     private Key secretKey = null;
     private HashCash hashCash = null;
@@ -133,7 +130,7 @@ public class TaskPasser extends Passer {
 
                 //TODO if Worker is not registered, generate HARD challenge instead!
                 Challenge challenge = hashCash.generateEasyChallenge("1","JobOwner",sender.getID().toString(),"taskID");
-                //TODO Insert real seed values. (The first argument is an optional id, which should probably be the id of a replica or "REGISTRATION")
+                //TODO Insert real seed values. (The first argument is an optional purpose, which should probably either be the id of a replica or "REGISTRATION")
                 return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
 
             case REQUEST_TASK:
@@ -144,9 +141,9 @@ public class TaskPasser extends Passer {
 
                 try {
                     if(solution.isValid(secretKey)){
-                        String id = solution.getPurpose();
+                        String purpose = solution.getPurpose();
 
-                        if(id.equals("REGISTRATION")) {
+                        if(purpose.equals("REGISTRATION")) {
                             //TODO register Peer in list of workers if not is there already
                         } else {
                             //TODO give actual task information. The replica we should send probably has the same id as above.
