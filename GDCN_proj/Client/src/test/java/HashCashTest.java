@@ -1,9 +1,11 @@
 import hashcash.*;
+import network.WorkerID;
 import org.testng.annotations.Test;
 
 import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.math.BigInteger;
-import java.security.Key;
+import java.security.KeyPairGenerator;
 import java.util.BitSet;
 import java.util.Random;
 
@@ -11,7 +13,8 @@ import java.util.Random;
  * Created by Leif on 2014-03-29.
  */
 public class HashCashTest {
-    private final Key key1, key2;
+    private final SecretKey key1, key2;
+    private final KeyPairGenerator keygen = KeyPairGenerator.getInstance("RSA");
     private final HashCash hc;
     private final Random random;
 
@@ -91,43 +94,24 @@ public class HashCashTest {
 
     @Test
     public void testPurposeCustomSolution() throws Exception {
-        String purpose = randomString();
-        Challenge challenge = hc.generateChallenge(purpose,randomString(),20);
+        Challenge challenge = hc.generateChallenge(HashCash.Purpose.NONE,randomString(),20);
         Solution solution = challenge.solve();
 
-        assert solution.isValid(key1) && solution.getPurpose().equals(purpose);
+        assert solution.isValid(key1) && solution.getPurpose().equals(HashCash.Purpose.NONE);
     }
 
     @Test
-    public void testEasySolution() throws Exception {
-        Challenge challenge = hc.generateEasyChallenge(randomString(),randomString(),randomString());
+    public void testAuthSolution() throws Exception {
+        Challenge challenge = hc.generateAuthenticationChallenge(randomWorkerID(), randomWorkerID());
 
         assert challenge.solve().isValid(key1);
     }
 
     @Test
-    public void testPurposeEasySolution() throws Exception {
-        String purpose = randomString();
-        Challenge challenge = hc.generateEasyChallenge(purpose,randomString(),randomString(),randomString());
-        Solution solution = challenge.solve();
-
-        assert solution.isValid(key1) && solution.getPurpose().equals(purpose);
-    }
-
-    @Test
-    public void testHardSolution() throws Exception {
-        Challenge challenge = hc.generateHardChallenge(randomString(),randomString());
+    public void testRegSolution() throws Exception {
+        Challenge challenge = hc.generateRegistrationChallenge(randomWorkerID(), randomWorkerID());
 
         assert challenge.solve().isValid(key1);
-    }
-
-    @Test
-    public void testPurposeHardSolution() throws Exception {
-        String purpose = randomString();
-        Challenge challenge = hc.generateHardChallenge(purpose,randomString(),randomString());
-        Solution solution = challenge.solve();
-
-        assert solution.isValid(key1) && solution.getPurpose().equals(purpose);
     }
 
     @Test
@@ -151,5 +135,9 @@ public class HashCashTest {
 
     private String randomString() {
         return new BigInteger(130, random).toString(32);
+    }
+
+    private WorkerID randomWorkerID() {
+        return new WorkerID(keygen.generateKeyPair().getPublic());
     }
 }

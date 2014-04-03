@@ -17,18 +17,16 @@ import java.util.Random;
  *
  */
 public class Challenge implements Serializable {
-    private final String purpose;
+    public final HashCash.Purpose purpose;
     private final byte[] seed, mac;
     private final int difficulty;
-    private final boolean identifiable;
 
     //TODO Remove this, it is only used for testing purposes!
     public Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
-        this.purpose = "";
+        this.purpose = HashCash.Purpose.NONE;
         this.seed = seed.clone();
         this.difficulty = difficulty;
         this.mac = mac.clone();
-        this.identifiable = !purpose.isEmpty();
     }
 
     //TODO Remove this, it is only used for testing purposes!
@@ -43,7 +41,7 @@ public class Challenge implements Serializable {
      * @param key The key which should be used to authenticate the solution. (Must be compatible with javax.crypto.Mac)
      */
     public Challenge(byte[] seed, int difficulty, Key key) throws InvalidKeyException {
-        this("",seed,difficulty,key);
+        this(HashCash.Purpose.NONE,seed,difficulty,key);
     }
 
     /**
@@ -53,24 +51,19 @@ public class Challenge implements Serializable {
      * @param difficulty The difficulty of the Challenge.
      * @param key The key which should be used to authenticate the solution. (Must be compatible with javax.crypto.Mac)
      */
-    public Challenge(String purpose, byte[] seed, int difficulty, Key key) throws InvalidKeyException {
+    public Challenge(HashCash.Purpose purpose, byte[] seed, int difficulty, Key key) throws InvalidKeyException {
         this.purpose = purpose;
         this.seed = seed.clone();
         this.difficulty = difficulty;
         this.mac = generateMAC(key);
-        this.identifiable = !purpose.isEmpty();
     }
 
     /**
      * Gets the identity of the challenge
      * @return The identity if it exists, null otherwise.
      */
-    public String getPurpose() {
-        if(identifiable) {
-            return purpose;
-        } else {
-            return null;
-        }
+    public HashCash.Purpose getPurpose() {
+        return purpose;
     }
 
     private byte[] generateMAC(Key key) throws InvalidKeyException {
@@ -78,7 +71,7 @@ public class Challenge implements Serializable {
         try {
             macGen = Mac.getInstance(key.getAlgorithm());
             macGen.init(key);
-            macGen.update(purpose.getBytes("UTF-8"));
+            macGen.update(purpose.toString().getBytes("UTF-8"));
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             //TODO Something went really wrong here, present it to the user in some way?

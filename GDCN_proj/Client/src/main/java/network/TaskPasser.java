@@ -20,9 +20,9 @@ import taskbuilder.communicationToClient.TaskListener;
 import java.io.File;
 import java.io.IOException;
 import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
-import java.security.Key;
 import java.security.NoSuchAlgorithmException;
 
 /**
@@ -38,7 +38,7 @@ public class TaskPasser extends Passer {
     private final ClientInterface client;
 
     //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
-    private Key secretKey = null;
+    private SecretKey secretKey = null;
     private HashCash hashCash = null;
 
     private final WorkerID myWorkerID;
@@ -228,7 +228,7 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Challenge");
 
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
-                        hashCash.generateAuthenticationChallenge(myWorkerID,workerID)
+                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
                         : hashCash.generateRegistrationChallenge(myWorkerID,workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
@@ -240,7 +240,7 @@ public class TaskPasser extends Passer {
 
                 try {
                     if(solution.isValid(secretKey)) {
-                        if(solution.getPurpose().equals("REGISTRATION")) {
+                        if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
                             workerNodeManager.registerWorker(workerID);
                         }
 
