@@ -1,5 +1,7 @@
 package hashcash;
 
+import network.WorkerID;
+
 import java.io.UnsupportedEncodingException;
 import java.security.*;
 
@@ -68,23 +70,28 @@ public class HashCash {
 
     public Challenge generateEasyChallenge(String jobOwner, String worker, String task) {
         return generateChallenge(jobOwner + worker + task, easyDifficulty);
-        //TODO insert real difficulty
     }
 
     public Challenge generateEasyChallenge(String purpose, String jobOwner, String worker, String task) {
         return generateChallenge(purpose, jobOwner + worker + task, easyDifficulty);
-        //TODO insert real difficulty
     }
 
     public Challenge generateHardChallenge(String jobOwner, String worker) {
         return generateChallenge(jobOwner + worker, hardDifficulty);
-        //TODO insert real difficulty
     }
 
     public Challenge generateHardChallenge(String purpose, String jobOwner, String worker) {
         return generateChallenge(purpose, jobOwner + worker, hardDifficulty);
-        //TODO insert real difficulty
     }
+
+    public Challenge generateRegistrationChallenge(WorkerID jobOwner, WorkerID worker) {
+        return generateChallenge("REGISTER", jobOwner.toString() + worker.toString(), hardDifficulty);
+    }
+
+    public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker) {
+        return generateChallenge("AUTHENTICATE", jobOwner.toString() + worker.toString(), easyDifficulty);
+    }
+
 
     private byte[] randomHash(String message) throws UnsupportedEncodingException {
         MessageDigest md = null;
