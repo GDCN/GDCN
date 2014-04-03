@@ -1,5 +1,6 @@
 package network;
 
+<<<<<<< HEAD
 import challenge.Challenge;
 import challenge.Solution;
 import command.communicationToUI.ClientInterface;
@@ -9,6 +10,11 @@ import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
 import files.FileUtils;
+=======
+import hashcash.Challenge;
+import hashcash.HashCash;
+import hashcash.Solution;
+>>>>>>> hashcash
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -17,11 +23,16 @@ import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
+<<<<<<< HEAD
 import java.io.File;
 import java.io.IOException;
+=======
+import javax.crypto.KeyGenerator;
+>>>>>>> hashcash
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -47,14 +58,27 @@ public class TaskPasser extends Passer {
      */
     public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client) {
         super(peer);
+<<<<<<< HEAD
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
         this.client = client;
+=======
+
+        try {
+            secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
+            hashCash = new HashCash(secretKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+>>>>>>> hashcash
     }
 
-    //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
-    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
+    //TODO Key should probably be stored in a better place, please move it if you know where! It is needed *only* for HashCash, is not the same as the private key and should not be shared with *anyone*.
+    private Key secretKey = null;
+    private HashCash hashCash = null;
 
     /**
      * Debug message. Just sends a request that is answered.
@@ -196,7 +220,7 @@ public class TaskPasser extends Passer {
     private Solution challengeReceived(Object challengeData){
         // TODO real challenge, not just mock up challenge
         Challenge challenge = (Challenge) challengeData;
-        return Solution.solve(challenge);
+        return challenge.solve();
     }
 
     /**
@@ -213,16 +237,24 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
+<<<<<<< HEAD
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
                         Challenge.generate() : Challenge.generateHard();
                 pendingChallenges.put(challenge.getKey(), challenge);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
+=======
+                //TODO if Worker is not registered, generate HARD challenge instead!
+                Challenge challenge = hashCash.generateEasyChallenge("1","JobOwner",sender.getID().toString(),"taskID");
+                //TODO Insert real seed values. (The first argument is an optional purpose, which should probably either be the id of a replica or "REGISTRATION")
+                return new TaskMessage(TaskMessageType.CHALLENGE, challenge);
+>>>>>>> hashcash
 
             case REQUEST_TASK:
 
                 System.out.println("Received request for a Task");
 
                 Solution solution = (Solution) taskMessage.actualContent;
+<<<<<<< HEAD
                 Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
 
                 if(originalChallenge != null && originalChallenge.isSolution(solution)){
@@ -237,6 +269,24 @@ public class TaskPasser extends Passer {
                         return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution didn't match any challenge!");
                     }
                     return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
+=======
+
+                try {
+                    if(solution.isValid(secretKey)){
+                        String purpose = solution.getPurpose();
+
+                        if(purpose.equals("REGISTRATION")) {
+                            //TODO register Peer in list of workers if not is there already
+                        } else {
+                            //TODO give actual task information. The replica we should send probably has the same id as above.
+                            return new TaskMessage(TaskMessageType.TASK, "An actual serialized TaskMeta here please");
+                        }
+                    } else {
+                        return new TaskMessage(TaskMessageType.FAIL, "Provided solution was FALSE!");
+                    }
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
+>>>>>>> hashcash
                 }
 
             case HELLO:
