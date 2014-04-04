@@ -5,7 +5,6 @@ import command.communicationToUI.ErrorCode;
 import command.communicationToUI.Operation.OperationBuilder;
 import command.communicationToUI.OperationFinishedSupport;
 import files.DataFilesManager;
-import files.NeighbourFileManager;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
@@ -46,9 +45,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     private DataFilesManager dataFilesManager;
 
-    private NeighbourFileManager neighbourFileManager;
-
     private Timer timer;
+
+    private String testPath = File.separator + "TEST";
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -96,9 +95,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void start(int port){
 
-        if(neighbourFileManager == null) {
-            neighbourFileManager = new NeighbourFileManager();
-        }
+        dataFilesManager = new DataFilesManager();
 
         startInitiate(port);
     }
@@ -110,8 +107,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
      */
     public void testStart(int port){
 
-        neighbourFileManager = new NeighbourFileManager(port + "");
-        dataFilesManager = new DataFilesManager(port + "");
+
+        dataFilesManager = new DataFilesManager(testPath, port + "");
+
 
         startInitiate(port);
 
@@ -251,7 +249,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void reBootstrap() {
 
-        HashSet<PeerAddress> fileNeighbours =  neighbourFileManager.getFileNeighbours();
+        HashSet<PeerAddress> fileNeighbours =  dataFilesManager.getFileNeighbours();
 
         for(PeerAddress p : fileNeighbours) {
             bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
@@ -307,18 +305,18 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void setNeighbourFile(String file){
-        neighbourFileManager.changeNeighbourFileName(file);
+        //dataFilesManager.changeNeighbourFileName(file);
     }
 
     @Override
     public void clearNeighbourFile(){
-        neighbourFileManager.clearNeighbourFile();
+        //neighbourFileManager.clearNeighbourFile();
     }
 
     @Override
     public void deleteNeighbourFile(){
-        if(neighbourFileManager != null) {
-            neighbourFileManager.deleteNeighbourFile();
+        if(dataFilesManager != null) {
+            dataFilesManager.removeNeighbourFile();
         }
     }
 
@@ -334,12 +332,17 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         }
     }
 
+    public void deleteTestDir() {
+        if(dataFilesManager != null) {
+            dataFilesManager.deleteTestDir();
+        }
+    }
+
     @Override
     public void requestWork(int index) {
         int N = getNeighbours().size();
         taskPasser.requestWork(getNeighbours().get(index%N));
     }
-
 
     private void startInitiate(int port) {
 
@@ -361,7 +364,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
 
-            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
+            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
 
             taskPasser = new TaskPasser(peer, replicaManager, taskManager);
 
@@ -384,5 +387,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
     }
+
 
 }

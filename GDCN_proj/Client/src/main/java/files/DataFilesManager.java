@@ -1,11 +1,14 @@
 package files;
 
+import control.WorkerNodeManager;
+import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.peers.PeerMapChangeListener;
 import replica.ReplicaManager;
 import taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
-import java.nio.file.Path;
 import java.security.KeyPair;
+import java.util.HashSet;
 
 /**
  * Created by Niklas on 2014-04-01.
@@ -16,11 +19,15 @@ public class DataFilesManager {
 
     private File replicaManagerLocation;
 
-    private String filepath;
+    private String filePath;
 
     private String keyFileName;
 
-    private String replicaManagerName;
+    private String replicaManagerFileName;
+
+    private String testDirectory;
+
+    private NeighbourFileManager neighbourFileManager;
 
     public DataFilesManager() {
 
@@ -28,24 +35,45 @@ public class DataFilesManager {
 
     }
 
+    public DataFilesManager(String dir) {
+
+        this(dir, "");
+    }
+
     //Used when testing
-    public DataFilesManager(String subpart) {
+    public DataFilesManager(String dir, String subpart) {
 
         PathManager.loadDefaultLocation();
 
+        testDirectory = PathManager.getSettingsPath() + File.separator + dir;
+
+        neighbourFileManager = new NeighbourFileManager(dir, subpart);
+
         keyFileName = "keypair";
 
-        replicaManagerName = "replicaManager";
+        replicaManagerFileName = "replicaManager";
 
-        filepath = PathManager.getSettingsPath() + subpart;
+        File pathDir = new File(testDirectory);
 
-        keyPairLocation = new File(filepath + keyFileName);
+        pathDir.mkdirs();
 
-        replicaManagerLocation = new File(filepath + replicaManagerLocation);
+        filePath = testDirectory + File.separator + subpart;
 
+        keyPairLocation = new File(filePath + keyFileName);
+
+        replicaManagerLocation = new File(filePath + replicaManagerFileName);
 
 
     }
+
+    public void deleteTestDir() {
+
+        File file = new File(testDirectory);
+
+        System.out.println("Directory was deleted: " + file.delete());
+    }
+
+
 
     //KEYPAIR METHODS
     //********************************************\\
@@ -142,16 +170,32 @@ public class DataFilesManager {
     //WORKERNODEMANAGER METHODS
     //********************************************\\
 
-    public void saveWorkerNodeManager(ReplicaManager rm) {
+    public void saveWorkerNodeManager(WorkerNodeManager workerNodeManager) {
 
     }
 
-    public ReplicaManager getWorkerNodeManager() {
+    public WorkerNodeManager getWorkerNodeManager() {
         return null;
     }
 
     public void removeWorkerNodeManagerFile() {
 
+    }
+
+    //NEIGHBOURMANAGER METHODS
+    //********************************************\\
+
+
+    public HashSet<PeerAddress> getFileNeighbours() {
+        return neighbourFileManager.getFileNeighbours();
+    }
+
+    public void removeNeighbourFile() {
+        neighbourFileManager.deleteNeighbourFile();
+    }
+
+    public PeerMapChangeListener getPeerMapListener() {
+        return neighbourFileManager.getPeerMapListener();
     }
 
 

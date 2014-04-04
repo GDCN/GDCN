@@ -19,9 +19,11 @@ public class NeighbourFileManager {
     private Set<PeerAddress> fileNeighbours = new HashSet<>();
 
     //The name of the neighbour file
-    private String fileName = "neighbours";
+    private String fileName;
 
     private String filePath;
+
+    private String testDirectory;
 
     //The actual neighbour file
     private File neighbourFile;
@@ -57,25 +59,25 @@ public class NeighbourFileManager {
 
     public NeighbourFileManager() {
 
-        PathManager.loadDefaultLocation();
-
-        filePath = PathManager.getSettingsPath();
-
-        neighbourFile = new File(filePath+fileName);
-
-        fileNeighbours.addAll(readNeighbours());
+        this("", "");
 
     }
 
-    public NeighbourFileManager (String subpart) {
+    public NeighbourFileManager(String dir) {
+        this(dir, "");
+    }
 
-        PathManager.loadDefaultLocation();
+    public NeighbourFileManager (String dir, String subpart) {
 
-        filePath = PathManager.getSettingsPath() + subpart;
+        testDirectory = PathManager.getSettingsPath() + File.separator + dir;
+
+        filePath = testDirectory + File.separator + subpart;
+
+        fileName = "neighbours";
 
         neighbourFile = new File(filePath+fileName);
 
-        fileNeighbours.clear();
+//        fileNeighbours.clear();
 
         fileNeighbours.addAll(readNeighbours());
 

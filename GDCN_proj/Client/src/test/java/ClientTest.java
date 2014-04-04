@@ -4,6 +4,7 @@ import command.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.AfterMethod;
+import org.testng.annotations.AfterTest;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.Assert;
@@ -170,6 +171,12 @@ public class ClientTest {
 
         stopPeer(peer);
         stopPeer(bootstrapNode);
+
+    }
+
+    @AfterTest
+    public void deleteTestDir() {
+        peer.deleteTestDir();
 
     }
 
@@ -396,6 +403,7 @@ public class ClientTest {
 
         peer.deleteNeighbourFile();
         peer.deleteKeyFile();
+        peer.deleteReplicaManager();
 
         Assert.assertTrue(success);
 
@@ -562,9 +570,11 @@ public class ClientTest {
 
     public void stopPeer(PeerOwner p) {
 
+        p.stop();
+
         p.deleteKeyFile();
         p.deleteNeighbourFile();
-        p.stop();
+        p.deleteReplicaManager();
 
     }
 
