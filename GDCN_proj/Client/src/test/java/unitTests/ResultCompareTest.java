@@ -1,7 +1,7 @@
 package unitTests;
 
 import org.testng.annotations.Test;
-import replica.tester.ResultCompare;
+import replica.ResultCompare;
 
 import java.util.ArrayList;
 import java.util.List;
