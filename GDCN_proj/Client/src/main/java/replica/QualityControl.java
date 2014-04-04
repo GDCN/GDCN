@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Created by joakim on 4/2/14.
  */
-public class ResultCompare {
+public class QualityControl {
 
     public Map<Replica, Object> compareQuality(List<Replica> replicas) {
         int bestQuality = 0;
@@ -20,18 +20,6 @@ public class ResultCompare {
             validifier.testResult("TODO", "TODO");
         }
         return null;
-    }
-
-    public boolean compareResults(List<Replica> replicas) {
-        byte[] prev = null;
-        for (Replica replica : replicas) {
-            byte[] curr = replica.getResult();
-            if (prev != null && !Arrays.equals(curr, prev)) {
-                return false;
-            }
-            prev = curr;
-        }
-        return true;
     }
 
     private class Listener implements ValidityListener {

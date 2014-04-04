@@ -1,7 +1,7 @@
 package unitTests;
 
 import org.testng.annotations.Test;
-import replica.ResultCompare;
+import replica.EqualityControl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,11 +9,11 @@ import java.util.List;
 /**
  * Created by joakim on 4/3/14.
  */
-public class ResultCompareTest {
+public class EqualityControlTest {
 
     @Test
     public void compareEqual() {
-        ResultCompare resultCompare = new ResultCompare();
+        EqualityControl resultCompare = new EqualityControl();
         List<byte[]> list = new ArrayList<>();
 
         byte[] d1 = {1, 2, 3, 4};
@@ -25,12 +25,12 @@ public class ResultCompareTest {
         list.add(d2);
         list.add(d3);
 
-        assert resultCompare.compareResults(list);
+        assert resultCompare.compareData(list);
     }
 
     @Test
     public void compareInequal() {
-        ResultCompare resultCompare = new ResultCompare();
+        EqualityControl resultCompare = new EqualityControl();
         List<byte[]> list = new ArrayList<>();
 
         byte[] d1 = {1, 2, 3, 4};
@@ -39,6 +39,6 @@ public class ResultCompareTest {
         list.add(d1);
         list.add(d2);
 
-        assert !resultCompare.compareResults(list);
+        assert !resultCompare.compareData(list);
     }
 }
