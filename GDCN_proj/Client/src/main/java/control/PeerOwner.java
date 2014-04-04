@@ -129,6 +129,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             timer.cancel();
 
+            taskPasser.stopTimer();
+
             dataFilesManager.saveReplicaManager(replicaManager);
         }
     }
@@ -379,9 +381,6 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             stop();
         }
 
-        taskPasser = new TaskPasser(peer, replicaManager, taskManager, this);
-
-
         try {
 
             //Initiates the peer
@@ -397,7 +396,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
 
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this);
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
 
             timer = new Timer();
 
@@ -405,6 +404,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 @Override
                 public void run() {
                     dataFilesManager.saveReplicaManager(replicaManager);
+
+                    System.out.println("saving replicaManager");
 
                 }
             }, 1000 * 120, 1000 * 120);
@@ -418,6 +419,4 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
     }
-
-
 }

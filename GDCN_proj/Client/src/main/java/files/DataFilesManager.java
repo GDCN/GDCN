@@ -6,6 +6,7 @@ import net.tomp2p.peers.PeerMapChangeListener;
 import replica.ReplicaManager;
 import taskbuilder.fileManagement.PathManager;
 
+import javax.crypto.SecretKey;
 import java.io.*;
 import java.security.KeyPair;
 import java.util.HashSet;
@@ -19,11 +20,18 @@ public class DataFilesManager {
 
     private File replicaManagerLocation;
 
+    private File secretKeyLocation;
+
+    private File workerNodeMangerLocation;
+
+
     private String filePath;
 
-    private String keyFileName;
+    private String keyFileName = "keypair";
 
-    private String replicaManagerFileName;
+    private String replicaManagerFileName = "replicaManager";
+    private String seretKeyFileName = "secretKey";
+    private String workerNodeManagerFileName = "workerNodeManager";
 
     private String testDirectory;
 
@@ -49,19 +57,15 @@ public class DataFilesManager {
 
         neighbourFileManager = new NeighbourFileManager(dir, subpart);
 
-        keyFileName = "keypair";
-
-        replicaManagerFileName = "replicaManager";
-
         File pathDir = new File(testDirectory);
-
         pathDir.mkdirs();
 
         filePath = testDirectory + File.separator + subpart;
 
         keyPairLocation = new File(filePath + keyFileName);
-
         replicaManagerLocation = new File(filePath + replicaManagerFileName);
+        secretKeyLocation = new File(filePath + seretKeyFileName);
+        workerNodeMangerLocation = new File(filePath + workerNodeManagerFileName);
 
 
     }
@@ -170,17 +174,96 @@ public class DataFilesManager {
     //WORKERNODEMANAGER METHODS
     //********************************************\\
 
-    public void saveWorkerNodeManager(WorkerNodeManager workerNodeManager) {
+    public void saveWorkerNodeManager(WorkerNodeManager wm) {
+
+        try {
+            FileOutputStream fous = new FileOutputStream(workerNodeMangerLocation);
+            ObjectOutputStream oos = new ObjectOutputStream(fous);
+
+            oos.writeObject(wm);
+
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
     public WorkerNodeManager getWorkerNodeManager() {
-        return null;
+        try {
+            FileInputStream fis = new FileInputStream(workerNodeMangerLocation);
+
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            WorkerNodeManager workerNodeManager = (WorkerNodeManager) ois.readObject();
+
+            ois.close();
+
+            return workerNodeManager;
+
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public void removeWorkerNodeManagerFile() {
+        workerNodeMangerLocation.delete();
 
     }
+
+    //SECRETKEY METHODS
+    //********************************************\\
+    public void saveSecretKey(SecretKey secretKey) {
+
+
+        try {
+            FileOutputStream fous = new FileOutputStream(secretKeyLocation);
+            ObjectOutputStream oos = new ObjectOutputStream(fous);
+
+            oos.writeObject(secretKey);
+
+            oos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public SecretKey getSecretKey() {
+        try {
+            FileInputStream fis = new FileInputStream(secretKeyLocation);
+
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            SecretKey sk = (SecretKey) ois.readObject();
+
+            ois.close();
+
+            return sk;
+
+        } catch (FileNotFoundException e) {
+            return null;
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+    }
+
+    public void removeSecretKeyFile() {
+        secretKeyLocation.delete();
+
+    }
+
 
     //NEIGHBOURMANAGER METHODS
     //********************************************\\

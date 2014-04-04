@@ -6,6 +6,7 @@ import command.communicationToUI.Operation;
 import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
+import files.DataFilesManager;
 import files.FileUtils;
 import hashcash.Challenge;
 import hashcash.HashCash;
@@ -24,6 +25,8 @@ import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -32,10 +35,13 @@ import java.security.NoSuchAlgorithmException;
  */
 public class TaskPasser extends Passer {
 
-    private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
+    private final WorkerNodeManager workerNodeManager;
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final ClientInterface client;
+
+    private DataFilesManager dataFilesManager;
+    private Timer timer;
 
     //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
     private SecretKey secretKey = null;
@@ -51,21 +57,51 @@ public class TaskPasser extends Passer {
      * @param taskManager Manager to run a task (replica) that was received
      * @param client
      */
-    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client) {
+    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client, DataFilesManager dm) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
         this.client = client;
+        this.dataFilesManager = dm;
 
+        secretKey = dataFilesManager.getSecretKey();
+
+        if(secretKey == null) {
+            try {
+                secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
+                dataFilesManager.saveSecretKey(secretKey);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
         try {
-            secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
             hashCash = new HashCash(secretKey);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }
+
+        WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
+
+        if (workerNodeManager1 == null) {
+            workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
+        } else {
+            workerNodeManager = workerNodeManager1;
+        }
+
+        timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+
+                System.out.println("Saving workerNodeManager");
+
+            }
+        }, 1000 * 120, 1000 * 120);
+
+
     }
 
 
@@ -157,18 +193,18 @@ public class TaskPasser extends Passer {
             public void taskFinished(final String taskName) {
 
                 final Number160 resultKey = replicaBox.getResultKey();
-                System.out.println("Task "+taskName+" finished. Attempt to upload and notify job owner.");
+                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
 
                 client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
                     @Override
                     protected void operationFinished(Operation operation) {
-                            if(operation.isSuccess()){
-                                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
-                                        replicaBox.getReplicaID()));
-                            } else {
-                                taskFailed(taskName, "Couldn't upload result to DHT :P");
-                            }
+                        if(operation.isSuccess()){
+                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                            sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
+                                    replicaBox.getReplicaID()));
+                        } else {
+                            taskFailed(taskName, "Couldn't upload result to DHT :P");
+                        }
                     }
                 });
                 //TODO sign result with private key...
@@ -229,7 +265,7 @@ public class TaskPasser extends Passer {
 
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
                         hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
-                        : hashCash.generateRegistrationChallenge(myWorkerID,workerID);
+                        : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
             case REQUEST_TASK:
@@ -262,6 +298,7 @@ public class TaskPasser extends Passer {
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
         }
+
     }
 
     /**
@@ -296,7 +333,7 @@ public class TaskPasser extends Passer {
         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
             @Override
             protected void operationFinished(Operation operation) {
-                if(operation.isSuccess()){
+                if (operation.isSuccess()) {
                     Data resultData = (Data) operation.getResult();
                     try {
                         byte[] resultArray = (byte[]) resultData.getObject();
@@ -307,7 +344,7 @@ public class TaskPasser extends Passer {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("DownloadOperation failed! "+operation.getErrorCode()+"\n\t"+operation.getReason());
+                    System.out.println("DownloadOperation failed! " + operation.getErrorCode() + "\n\t" + operation.getReason());
                 }
             }
         });
@@ -359,5 +396,9 @@ public class TaskPasser extends Passer {
                     ", " + actualContent +
                     '}';
         }
+    }
+
+    public void stopTimer() {
+        timer.cancel();
     }
 }
