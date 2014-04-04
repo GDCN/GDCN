@@ -2,10 +2,7 @@ package network;
 
 import challenge.Challenge;
 import challenge.Solution;
-import command.communicationToUI.ClientInterface;
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.Operation;
-import command.communicationToUI.OperationFinishedListener;
+import command.communicationToUI.*;
 import control.TaskManager;
 import control.WorkerNodeManager;
 import files.FileUtils;
@@ -33,7 +30,7 @@ public class TaskPasser extends Passer {
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
-    private final ClientInterface client;
+    private final NetworkInterface client;
 
     private final WorkerID myWorkerID;
 
@@ -43,9 +40,9 @@ public class TaskPasser extends Passer {
      * @param peer This peer
      * @param replicaManager Manager to ask for Replicas that are sent to workers
      * @param taskManager Manager to run a task (replica) that was received
-     * @param client
+     * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client) {
+    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
