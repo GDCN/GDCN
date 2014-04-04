@@ -16,11 +16,14 @@ main :: IO ()
 main = do args <- getArgs
           case args of
               [resultFile] -> do result <- BS.readFile resultFile
-                                 ns <- catch (evaluate (decode result :: [Integer])) (\e -> (e :: ErrorCall) `seq` exitSuccess)
+                                 ns <- catch (evaluate (decode result :: [Integer]))
+                                             (\e -> (e :: ErrorCall) `seq` do putStrLn "BAD!"
+                                                                              exitSuccess)
                                  let ns' = prime 2 (last ns + 1) [] []
                                  if ns `isInfixOf` ns'
-                                     then do putStrLn "Ok"
+                                     then do putStrLn (show $ length ns)
                                              exitSuccess
-                                     else exitSuccess
+                                     else do putStrLn "BAD!"
+                                             exitSuccess
               _ -> exitFailure
 

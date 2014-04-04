@@ -7,13 +7,15 @@ public class Operation<E>{
     private final boolean success;
     private final E result;
     private final ErrorCode errorCode;
-    private final String key;
+    private final Object key;
+    private final String reason;
 
-    public Operation(boolean success, E result, ErrorCode errorCode, String key) {
+    private Operation(boolean success, E result, ErrorCode errorCode, Object key, String reason) {
         this.success = success;
         this.result = result;
         this.errorCode = errorCode;
         this.key = key;
+        this.reason = reason;
     }
 
     public boolean isSuccess() {
@@ -28,8 +30,12 @@ public class Operation<E>{
         return errorCode;
     }
 
-    public String getKey() {
+    public Object getKey() {
         return key;
+    }
+
+    public String getReason() {
+        return reason;
     }
 
     public static class OperationBuilder<E>{
@@ -38,7 +44,8 @@ public class Operation<E>{
 
         private E result = null;
         private ErrorCode errorCode = null;
-        private String key = "";
+        private Object key = "";
+        private String reason = "";
 
         public OperationBuilder(boolean success){
             this.success = success;
@@ -54,13 +61,21 @@ public class Operation<E>{
             return this;
         }
 
-        public OperationBuilder<E> setKey(String key) {
+        /**
+         * @param key Typically String or Number160
+         * @return Builder
+         */
+        public OperationBuilder<E> setKey(Object key) {
             this.key = key;
             return this;
         }
 
+        public void setReason(String reason) {
+            this.reason = reason;
+        }
+
         public Operation<E> create(){
-            return new Operation<E>(success, result, errorCode, key);
+            return new Operation<E>(success, result, errorCode, key, reason);
         }
     }
 }

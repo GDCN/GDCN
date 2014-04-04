@@ -1,18 +1,29 @@
 package network;
 
-import challenge.Challenge;
-import challenge.Solution;
+import command.communicationToUI.ClientInterface;
+import command.communicationToUI.CommandWord;
+import command.communicationToUI.Operation;
+import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
+import files.FileUtils;
+import hashcash.Challenge;
+import hashcash.HashCash;
+import hashcash.Solution;
 import net.tomp2p.p2p.Peer;
+import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.storage.Data;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
-
+import java.io.File;
+import java.io.IOException;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -24,18 +35,40 @@ public class TaskPasser extends Passer {
     private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
+    private final ClientInterface client;
+
+    //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
+    private SecretKey secretKey = null;
+    private HashCash hashCash = null;
 
     private final WorkerID myWorkerID;
 
-    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager) {
+    /**
+     * Message passer for sending messages regarding tasks. OBS! Only ONE Passer may be present for a Peer.
+     *
+     * @param peer This peer
+     * @param replicaManager Manager to ask for Replicas that are sent to workers
+     * @param taskManager Manager to run a task (replica) that was received
+     * @param client
+     */
+    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, ClientInterface client) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+        this.client = client;
+
+        try {
+            secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
+            hashCash = new HashCash(secretKey);
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
     }
 
-    //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
-    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
+
 
     /**
      * Debug message. Just sends a request that is answered.
@@ -96,28 +129,74 @@ public class TaskPasser extends Passer {
     }
 
     /**
+     * Class used for holding a String. Not really good architecture but it works.
+     */
+    public static class StringHolder{
+        private String string = null;
+
+        public synchronized String getString() {
+            return string;
+        }
+
+        public synchronized void setString(String string) {
+            this.string = string;
+        }
+    }
+
+    /**
      * Works on this task until finished. Calls job owner when done or when failed.
      * @param jobOwner Peer to send result to
      * @param replicaBox Task (replica) to work on
      */
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         //TODO project name?
-        taskManager.startTask("Primes", replicaBox.getTaskMeta(), new TaskListener() {
+        final StringHolder stringHolder = new StringHolder();
+
+        taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
             @Override
-            public void taskFinished(String taskName) {
-                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID, replicaBox.getReplicaID()));
+            public void taskFinished(final String taskName) {
+
+                final Number160 resultKey = replicaBox.getResultKey();
+                System.out.println("Task "+taskName+" finished. Attempt to upload and notify job owner.");
+
+                client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
+                    @Override
+                    protected void operationFinished(Operation operation) {
+                            if(operation.isSuccess()){
+                                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
+                                        replicaBox.getReplicaID()));
+                            } else {
+                                taskFailed(taskName, "Couldn't upload result to DHT :P");
+                            }
+                    }
+                });
+                //TODO sign result with private key...
+                byte[] result = null;
+                try {
+                    result = FileUtils.fromFile(new File(stringHolder.getString()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    taskFailed(taskName, e.getMessage());
+                }
+                if(result != null){
+                    client.put(resultKey, new Data(result));
+                }
             }
 
             @Override
             public void taskFailed(String taskName, String reason) {
                 System.out.println("Task "+taskName+" failed. Job owner notified if still online. Reason: "+reason);
-                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID, new FailMessage(reason, replicaBox.getReplicaID())));
+                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.TASK_FAIL, myWorkerID,
+                        new FailMessage(reason, replicaBox.getReplicaID())));
             }
         });
 
     }
 
+    /**
+     * Just a serializable message that contains a reason for the failure.
+     */
     private static class FailMessage implements Serializable{
         private final String reason;
         private final String ID;
@@ -131,7 +210,7 @@ public class TaskPasser extends Passer {
     private Solution challengeReceived(Object challengeData){
         // TODO real challenge, not just mock up challenge
         Challenge challenge = (Challenge) challengeData;
-        return Solution.solve(challenge);
+        return challenge.solve();
     }
 
     /**
@@ -149,8 +228,8 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Challenge");
 
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
-                        Challenge.generate() : Challenge.generateHard();
-                pendingChallenges.put(challenge.getKey(), challenge);
+                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
+                        : hashCash.generateRegistrationChallenge(myWorkerID,workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
             case REQUEST_TASK:
@@ -158,20 +237,22 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
 
                 Solution solution = (Solution) taskMessage.actualContent;
-                Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
 
-                if(originalChallenge != null && originalChallenge.isSolution(solution)){
-                    workerNodeManager.registerWorker(workerID);
+                try {
+                    if(solution.isValid(secretKey)) {
+                        if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
+                            workerNodeManager.registerWorker(workerID);
+                        }
 
-                    ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
-                    return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
+                        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
+                        return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
-                } else {
-                    workerNodeManager.reportWorker(workerID);
-                    if(originalChallenge == null){
-                        return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution didn't match any challenge!");
+                    } else {
+                        workerNodeManager.reportWorker(workerID);
+                        return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
                     }
-                    return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
                 }
 
             case HELLO:
@@ -204,10 +285,34 @@ public class TaskPasser extends Passer {
         }
     }
 
-    private void resultUploaded(String replicaID){
+    /**
+     * Called when the job owner has been notified that a certain result has been uploaded.
+     * @param replicaID ID of the replica who's result was uploaded
+     */
+    private void resultUploaded(final String replicaID){
         System.out.println("Apparently some task was completed");
-        //TODO download result.
-        replicaManager.replicaFinished(replicaID, "TODO Put downloaded result here...");
+
+        final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
+        client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
+            @Override
+            protected void operationFinished(Operation operation) {
+                if(operation.isSuccess()){
+                    Data resultData = (Data) operation.getResult();
+                    try {
+                        byte[] resultArray = (byte[]) resultData.getObject();
+                        replicaManager.replicaFinished(replicaID, resultArray);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    System.out.println("DownloadOperation failed! "+operation.getErrorCode()+"\n\t"+operation.getReason());
+                }
+            }
+        });
+        client.get(resultKey);
+
     }
 
     private static TaskMessage check(Object messageContent){

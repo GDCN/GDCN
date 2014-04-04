@@ -53,8 +53,14 @@ public class ReplicaTest {
     }
 
     @Test
-    public void replicaTest(){
-        //TODO implement test. Depends on how much information is sent and how much is stored.
+    public void keyTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        assert ! replicaBoxA.getResultKey().equals(replicaBoxB.getResultKey());
+        assert replicaBoxA.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxA.getReplicaID()));
+        assert replicaBoxB.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxB.getReplicaID()));
     }
 
     @Test

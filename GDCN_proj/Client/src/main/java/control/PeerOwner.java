@@ -99,7 +99,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
 
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager);
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this);
 
         } catch (NoSuchAlgorithmException | IOException e) {
             e.printStackTrace();
@@ -167,6 +167,8 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void put(final String name, final Data value){
+        //TODO this method might not be used by TaskPasser at all when uploading files...
+        //TODO Remove entirely? Good for debug and is used by JobUploader.
         FutureDHT futureDHT = peer.put(Number160.createHash(name)).setData(value).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
 
@@ -175,6 +177,20 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
                 boolean success = future.isSuccess();
 
                 notifier.fireOperationFinished(CommandWord.PUT, new OperationBuilder<Data>(success).setResult(value).setKey(name).create());
+            }
+        });
+    }
+
+    @Override
+    public void put(final Number160 key, final Data value) {
+        FutureDHT futureDHT = peer.put(key).setData(value).start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                boolean success = future.isSuccess();
+
+                notifier.fireOperationFinished(CommandWord.PUT, new OperationBuilder<Data>(success).setResult(value).setKey(key).create());
             }
         });
     }
@@ -191,6 +207,19 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             }
         });
 
+    }
+
+    @Override
+    public void get(final Number160 key) {
+        FutureDHT futureDHT = peer.get(key).start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                boolean success = future.isSuccess();
+                notifier.fireOperationFinished(CommandWord.GET,
+                        new OperationBuilder<Data>(success).setKey(key.toString()).setResult(future.getData()).create());
+            }
+        });
     }
 
     @Override

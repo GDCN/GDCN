@@ -2,7 +2,7 @@ package manualTests;
 
 import command.communicationToUI.ClientInterface;
 import control.PeerOwner;
-import files.Uploader;
+import files.JobUploader;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
@@ -39,8 +39,8 @@ public class UploaderManual {
         client.start(8056);
 
         try {
-            Uploader uploader = Uploader.create("Job1", client, mainTaskListener, new ReplicaManager(1));
-            boolean success = uploader.runAndAwait();
+            JobUploader jobUploader = JobUploader.create("Job1", client, mainTaskListener, new ReplicaManager(1));
+            boolean success = jobUploader.runAndAwait();
 
             if(success){
                 System.out.println("Seems to work :D");

@@ -2,10 +2,13 @@ package control;
 
 import command.communicationToUI.ClientInterface;
 import files.Downloader;
+import files.JobUploader;
 import files.TaskMeta;
 import files.TaskMetaDataException;
-import files.Uploader;
+import network.TaskPasser;
 import replica.ReplicaManager;
+import taskbuilder.Task;
+import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.FileNotFoundException;
@@ -37,33 +40,26 @@ public class TaskManager{
      * Work on this task
      * @param projectName Name of working directory that contains /resources etc
      * @param taskMeta Meta information of the task
+     * @param resultFileNameHolder Holder that will contain the absolute path of the future result file of this task.
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
-    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskListener subjectListener){
-        final TaskListener combinedTaskListener = new TaskListener() {
-            @Override
-            public void taskFinished(String taskName) {
-                if(subjectListener != null){
-                    subjectListener.taskFinished(taskName);
-                }
-                taskListener.taskFinished(taskName);
-            }
-
-            @Override
-            public void taskFailed(String taskName, String reason) {
-                if(subjectListener != null){
-                    subjectListener.taskFailed(taskName, reason);
-                }
-                taskListener.taskFailed(taskName, reason);
-            }
-        };
+    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskPasser.StringHolder resultFileNameHolder,
+                          final TaskListener subjectListener){
 
         Thread downloaderThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to client (ie PeerOwner). Makes call to his listeners
                 try {
-                    Downloader downloader = new Downloader(taskMeta, projectName, client, combinedTaskListener);
+                    Downloader downloader = new Downloader(taskMeta, projectName, client, new TaskFailureListener() {
+                        @Override
+                        public void taskFailed(String taskName, String reason) {
+                            if(subjectListener != null){
+                                subjectListener.taskFailed(taskName, reason);
+                            }
+                            taskListener.taskFailed(taskName, reason);
+                        }
+                    });
                     boolean success = downloader.runAndAwait();
 
                     if(!success){
@@ -71,7 +67,28 @@ public class TaskManager{
                         return;
                     }
 
-                    Thread taskThread = new Thread(downloader.buildTask(TaskManager.this.taskListener));
+                    Task task = downloader.buildTask(new TaskListener() {
+                        @Override
+                        public void taskFinished(String taskName) {
+                            if(subjectListener != null){
+                                subjectListener.taskFinished(taskName);
+                            }
+                            taskListener.taskFinished(taskName);
+                        }
+
+                        @Override
+                        public void taskFailed(String taskName, String reason) {
+                            if(subjectListener != null){
+                                subjectListener.taskFailed(taskName, reason);
+                            }
+                            taskListener.taskFailed(taskName, reason);
+                        }
+                    });
+
+                    final String resultPath = task.getResultFilePath();
+                    resultFileNameHolder.setString(resultPath);
+
+                    Thread taskThread = new Thread(task);
                     taskThread.setDaemon(true);
                     taskThread.start();
                 } catch (TaskMetaDataException e) {
@@ -97,8 +114,8 @@ public class TaskManager{
             @Override
             public void run() {
                 try {
-                    Uploader uploader = Uploader.create(jobName, client, taskListener, replicaManager);
-                    boolean success = uploader.runAndAwait();
+                    JobUploader jobUploader = JobUploader.create(jobName, client, taskListener, replicaManager);
+                    boolean success = jobUploader.runAndAwait();
 
                     if(!success){
                         taskListener.taskFailed(jobName, "Unresolved dependencies");

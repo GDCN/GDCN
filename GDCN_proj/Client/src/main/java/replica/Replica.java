@@ -13,9 +13,18 @@ class Replica implements Serializable{
     private final ReplicaBox replicaBox;
 
     private WorkerID worker = null;
-    private Object result = null;
+    private byte[] result = null;
 
 
+    /**
+     * Replica is the object that job owner holds to keep track of who worked on this replica
+     * and what the result of it is before it has been canonized.
+     *
+     * Generates a ReplicaBox that will be sent to a specific worker node.
+     *
+     * @param taskMeta TaskMeta for this replica
+     * @param index Index used to generate replicaID
+     */
     Replica(TaskMeta taskMeta, int index) {
         replicaBox = new ReplicaBox(taskMeta, index);
     }
@@ -45,7 +54,7 @@ class Replica implements Serializable{
         return worker;
     }
 
-    public Object getResult() {
+    public byte[] getResult() {
         return result;
     }
 
@@ -53,7 +62,7 @@ class Replica implements Serializable{
         this.worker = worker;
     }
 
-    public void setResult(Object result) {
+    public void setResult(byte[] result) {
         this.result = result;
     }
 
