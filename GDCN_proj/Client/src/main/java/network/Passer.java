@@ -79,7 +79,7 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encryptAndSign() ).setRequestP2PConfiguration(requestConfiguration).start();
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -108,7 +108,7 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.NO_REPLY);
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encryptAndSign() ).setRequestP2PConfiguration(requestConfiguration).start();
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {

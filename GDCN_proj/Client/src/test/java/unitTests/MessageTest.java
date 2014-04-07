@@ -1,5 +1,6 @@
 package unitTests;
 
+import network.Crypto;
 import network.NetworkMessage;
 import org.testng.annotations.Test;
 
@@ -12,8 +13,8 @@ public class MessageTest {
     public void encryptDecryptMessage(){
         NetworkMessage message = new NetworkMessage("SomeData", NetworkMessage.Type.REQUEST);
 
-        Object encrypted = message.encryptAndSign();
-        NetworkMessage decrypted = NetworkMessage.decryptAndVerify(encrypted);
+        Object encrypted = message.signAndEncrypt();
+        NetworkMessage decrypted = Crypto.decryptAndVerify(encrypted);
 
         assert decrypted.getType() == message.getType();
         assert decrypted.getObject().equals(message.getObject());
