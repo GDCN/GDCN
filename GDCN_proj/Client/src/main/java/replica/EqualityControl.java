@@ -1,6 +1,5 @@
 package replica;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -8,11 +7,23 @@ import java.util.List;
  */
 public class EqualityControl {
 
-    public boolean compareData(List<byte[]> data) {
+    public static boolean compareData(List<byte[]> data) {
         byte[] prev = null;
         for (byte[] curr : data) {
-            if (prev != null && !Arrays.equals(curr, prev)) {
+            if (prev != null && curr.length != prev.length) {
                 return false;
+            }
+            prev = curr;
+        }
+
+        prev = null;
+        for (byte[] curr : data) {
+            if (prev != null) {
+                for (int i = 0; i < curr.length; i++) {
+                    if (curr[i] != prev[i]) {
+                        return false;
+                    }
+                }
             }
             prev = curr;
         }
