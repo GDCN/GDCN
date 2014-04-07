@@ -47,11 +47,20 @@ public class Crypto {
      * @throws IllegalBlockSizeException
      * @throws IOException
      */
-    public static Serializable decrypt(SealedObject data, PrivateKey key) throws InvalidKeyException, ClassNotFoundException, BadPaddingException, IllegalBlockSizeException, IOException {
+    public static Serializable decrypt(SealedObject data, PrivateKey key) throws InvalidKeyException, IOException {
         synchronized (cipher) {
             cipher.init(Cipher.DECRYPT_MODE,key);
 
-            return (Serializable) data.getObject(cipher);
+            try {
+                return (Serializable) data.getObject(cipher);
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            } catch (IllegalBlockSizeException|BadPaddingException e) {
+                //We should never get here using RSA...
+                e.printStackTrace();
+            }
+
+            return null;
         }
     }
 
@@ -91,8 +100,8 @@ public class Crypto {
      * @param otherKey The PublicKey with which to encrypt the object.
      * @return encrypted message
      */
-    public static SealedObject signAndEncrypt(Serializable data, PrivateKey myKey, PublicKey otherKey) throws IOException, InvalidKeyException, SignatureException {
-        SignedObject signedObject = sign(data,myKey);
+    public static SealedObject signAndEncrypt(Serializable data, PrivateKey myKey, PublicKey otherKey) throws InvalidKeyException, IOException, SignatureException {
+        SignedObject signedObject = sign(data, myKey);
         return encrypt(signedObject, otherKey);
     }
 
@@ -104,17 +113,17 @@ public class Crypto {
      * @return The decrypted object.
      * @throws Exception
      */
-    public static Serializable decryptAndVerify(SealedObject data, PrivateKey myKey, PublicKey otherKey) throws Exception {
+    public static Serializable decryptAndVerify(SealedObject data, PrivateKey myKey, PublicKey otherKey) throws IOException, InvalidKeyException, InvalidParameterException, SignatureException, ClassNotFoundException {
         Object decrypted = decrypt(data,myKey);
         SignedObject signedData;
 
         if (decrypted.getClass() == SignedObject.class) {
             signedData = (SignedObject) decrypted;
         } else {
-            throw new Exception("Wrong class!");
+            throw new InvalidParameterException("The encrypted object was not signed");
         }
 
-        if (Crypto.verify(signedData,otherKey)) {
+        if (verify(signedData,otherKey)) {
             return (Serializable) signedData.getObject();
         } else {
             throw new Exception("ERROR! ERROR! Signature did not match.");
