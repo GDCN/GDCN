@@ -317,6 +317,7 @@ public class TaskPasser extends Passer {
                 resultUploaded((String) taskMessage.actualContent);
                 break;
             case TASK_FAIL:
+                //TODO do this safe!!! Check that the worker was assigned that task etc...
                 FailMessage failMessage = (FailMessage) taskMessage.actualContent;
                 System.out.println("My task failed! Reason: "+failMessage.reason);
                 replicaManager.replicaFailed(failMessage.ID);
