@@ -153,6 +153,32 @@ public class ReplicaTest {
         assert ! replicaManager.isWorkerAssignedReplica(workerA, "SomeID");
     }
 
+    @Test
+    public void replicaOutdatedTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        assert null == replicaManager.giveReplicaToWorker(workerC);
+
+        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
+        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
+
+        assert replicaBoxC != null;
+        String taskA = replicaBoxA.getTaskMeta().getTaskName();
+        String taskB = replicaBoxB.getTaskMeta().getTaskName();
+        String taskC = replicaBoxC.getTaskMeta().getTaskName();
+        assert taskC.equals(taskA);
+        assert taskC.equals(taskB);
+
+        assert ! replicaBoxC.getReplicaID().equals(replicaBoxA.getReplicaID());
+
+        //No exception:
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
+        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
+    }
+
     private void loadMeta(TaskMeta taskMeta){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);

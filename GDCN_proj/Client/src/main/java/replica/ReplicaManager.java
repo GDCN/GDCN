@@ -34,7 +34,6 @@ public class ReplicaManager implements Serializable{
      * @param tasks List of TaskMeta objects
      */
     public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
-        Random random = new Random();
         for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
                 Replica replica = new Replica(task, i);
@@ -42,6 +41,28 @@ public class ReplicaManager implements Serializable{
                 stagedReplicas.addFirst(replica);
             }
         }
+    }
+
+
+    /**
+     * This replica didn't get any answer within given time limit. Create another one.
+     * Doesn't have to report worker, he might still come up with an answer.
+     *
+     * @param replicaID Replica that was outdated
+     */
+    public synchronized void replicaOutdated(String replicaID){
+        Replica oldReplica = replicaMap.get(replicaID);
+        if(oldReplica==null){
+            throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
+        }
+        Random random = new Random();
+        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta(), random.nextInt());
+
+        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
+            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta(), random.nextInt());
+        }
+        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
+        stagedReplicas.addFirst(replica);
     }
 
     /**
@@ -116,6 +137,8 @@ public class ReplicaManager implements Serializable{
 
         replica.setResult(result);
         final String taskName = replica.getReplicaBox().getTaskMeta().getTaskName();
+
+        //TODO what if this return is a late-comer? Ie enough replica results have been given already
 
         List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
         if(returnedReplicas==null){
