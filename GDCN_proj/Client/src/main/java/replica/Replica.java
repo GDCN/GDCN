@@ -13,7 +13,7 @@ class Replica implements Serializable{
     private final ReplicaBox replicaBox;
 
     private WorkerID worker = null;
-    private Object result = null;
+    private byte[] result = null;
 
 
     /**
@@ -54,7 +54,7 @@ class Replica implements Serializable{
         return worker;
     }
 
-    public Object getResult() {
+    public byte[] getResult() {
         return result;
     }
 
@@ -62,7 +62,7 @@ class Replica implements Serializable{
         this.worker = worker;
     }
 
-    public void setResult(Object result) {
+    public void setResult(byte[] result) {
         this.result = result;
     }
 

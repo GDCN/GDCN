@@ -5,6 +5,8 @@ import taskbuilder.ExitFailureException;
 
 import java.io.*;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by HalfLeif on 2014-03-04.
@@ -40,7 +42,7 @@ public class Install {
         rootPath.mkdirs();
 
         File pathDataFile = new File(PATH_DATA);
-    Properties pathData = null;
+        Properties pathData = null;
 
         OutputStream outputStream = null;
         try {
@@ -130,7 +132,12 @@ public class Install {
             if (makeDb.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(makeDb.getErrorStream(), writer, null);
-                throw new ExitFailureException(writer.toString());
+
+                Pattern pattern = Pattern.compile(".*already exists.*", Pattern.DOTALL);
+                Matcher matcher = pattern.matcher(writer.toString().toLowerCase());
+                if (!matcher.matches()) {
+                    throw new ExitFailureException(writer.toString());
+                }
             }
 
             File buildDir = new File(bin_path + HPKG_NAME);

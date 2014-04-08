@@ -1,11 +1,16 @@
 package network;
 
-import challenge.Challenge;
-import challenge.Solution;
-import command.communicationToUI.*;
+import command.communicationToUI.CommandWord;
+import command.communicationToUI.NetworkInterface;
+import command.communicationToUI.Operation;
+import command.communicationToUI.OperationFinishedListener;
 import control.TaskManager;
 import control.WorkerNodeManager;
+import files.DataFilesManager;
 import files.FileUtils;
+import hashcash.Challenge;
+import hashcash.HashCash;
+import hashcash.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
@@ -14,11 +19,15 @@ import replica.ReplicaBox;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -27,10 +36,17 @@ import java.util.Map;
  */
 public class TaskPasser extends Passer {
 
-    private final WorkerNodeManager workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
+    private final WorkerNodeManager workerNodeManager;
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
+
+    private DataFilesManager dataFilesManager;
+    private Timer timer;
+
+    //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
+    private SecretKey secretKey = null;
+    private HashCash hashCash = null;
 
     private final WorkerID myWorkerID;
 
@@ -42,16 +58,54 @@ public class TaskPasser extends Passer {
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client) {
+    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
         this.client = client;
+        this.dataFilesManager = dm;
+
+        secretKey = dataFilesManager.getSecretKey();
+
+        if(secretKey == null) {
+            try {
+                secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
+                dataFilesManager.saveSecretKey(secretKey);
+            } catch (NoSuchAlgorithmException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            hashCash = new HashCash(secretKey);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
+
+        if (workerNodeManager1 == null) {
+            workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
+        } else {
+            workerNodeManager = workerNodeManager1;
+        }
+
+        timer = new Timer();
+
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+
+                System.out.println("Saving workerNodeManager");
+
+            }
+        }, 1000 * 120, 1000 * 120);
+
+
     }
 
-    //This Map is held by JobOwner to remember the current challenges workers and Sybil nodes are solving
-    private final Map<String, Challenge> pendingChallenges = new HashMap<>();
+
 
     /**
      * Debug message. Just sends a request that is answered.
@@ -140,18 +194,18 @@ public class TaskPasser extends Passer {
             public void taskFinished(final String taskName) {
 
                 final Number160 resultKey = replicaBox.getResultKey();
-                System.out.println("Task "+taskName+" finished. Attempt to upload and notify job owner.");
+                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
 
                 client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
                     @Override
                     protected void operationFinished(Operation operation) {
-                            if(operation.isSuccess()){
-                                System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                                sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
-                                        replicaBox.getReplicaID()));
-                            } else {
-                                taskFailed(taskName, "Couldn't upload result to DHT :P");
-                            }
+                        if(operation.isSuccess()){
+                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                            sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
+                                    replicaBox.getReplicaID()));
+                        } else {
+                            taskFailed(taskName, "Couldn't upload result to DHT :P");
+                        }
                     }
                 });
                 //TODO sign result with private key...
@@ -193,7 +247,7 @@ public class TaskPasser extends Passer {
     private Solution challengeReceived(Object challengeData){
         // TODO real challenge, not just mock up challenge
         Challenge challenge = (Challenge) challengeData;
-        return Solution.solve(challenge);
+        return challenge.solve();
     }
 
     /**
@@ -211,8 +265,8 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Challenge");
 
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
-                        Challenge.generate() : Challenge.generateHard();
-                pendingChallenges.put(challenge.getKey(), challenge);
+                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
+                        : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
             case REQUEST_TASK:
@@ -220,20 +274,22 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
 
                 Solution solution = (Solution) taskMessage.actualContent;
-                Challenge originalChallenge = pendingChallenges.remove(solution.getKey());
 
-                if(originalChallenge != null && originalChallenge.isSolution(solution)){
-                    workerNodeManager.registerWorker(workerID);
+                try {
+                    if(solution.isValid(secretKey)) {
+                        if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
+                            workerNodeManager.registerWorker(workerID);
+                        }
 
-                    ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
-                    return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
+                        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
+                        return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
-                } else {
-                    workerNodeManager.reportWorker(workerID);
-                    if(originalChallenge == null){
-                        return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution didn't match any challenge!");
+                    } else {
+                        workerNodeManager.reportWorker(workerID);
+                        return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
                     }
-                    return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
+                } catch (InvalidKeyException e) {
+                    e.printStackTrace();
                 }
 
             case HELLO:
@@ -243,6 +299,7 @@ public class TaskPasser extends Passer {
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
         }
+
     }
 
     /**
@@ -277,7 +334,7 @@ public class TaskPasser extends Passer {
         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
             @Override
             protected void operationFinished(Operation operation) {
-                if(operation.isSuccess()){
+                if (operation.isSuccess()) {
                     Data resultData = (Data) operation.getResult();
                     try {
                         byte[] resultArray = (byte[]) resultData.getObject();
@@ -288,7 +345,7 @@ public class TaskPasser extends Passer {
                         e.printStackTrace();
                     }
                 } else {
-                    System.out.println("DownloadOperation failed! "+operation.getErrorCode()+"\n\t"+operation.getReason());
+                    System.out.println("DownloadOperation failed! " + operation.getErrorCode() + "\n\t" + operation.getReason());
                 }
             }
         });
@@ -340,5 +397,9 @@ public class TaskPasser extends Passer {
                     ", " + actualContent +
                     '}';
         }
+    }
+
+    public void stopTimer() {
+        timer.cancel();
     }
 }

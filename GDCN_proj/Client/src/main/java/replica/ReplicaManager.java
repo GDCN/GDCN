@@ -105,7 +105,7 @@ public class ReplicaManager implements Serializable{
      * @param replicaID ID of a replica
      * @param result Computed result of the replica
      */
-    public synchronized void replicaFinished(String replicaID, Serializable result){
+    public synchronized void replicaFinished(String replicaID, byte[] result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
