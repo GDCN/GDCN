@@ -228,7 +228,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             public void operationComplete(FutureDHT future) throws Exception {
                 boolean success = future.isSuccess();
                 notifier.fireOperationFinished(CommandWord.GET,
-                        new OperationBuilder<Data>(success).setKey(key.toString()).setResult(future.getData()).create());
+                        new OperationBuilder<Data>(success).setKey(key).setResult(future.getData()).create());
             }
         });
     }

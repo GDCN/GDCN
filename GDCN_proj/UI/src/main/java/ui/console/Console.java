@@ -89,8 +89,10 @@ public class Console implements PropertyChangeListener{
                 println("Put " + event.getOperation().getKey() + " " + success);
                 break;
             case GET:
-                println("Got" + event.getOperation().getKey() + " " + success);
+                println("Got " + event.getOperation().getKey() + " " + success);
                 break;
+            case START:
+                println("Start complete.");
             default:
                 println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
                 break;
