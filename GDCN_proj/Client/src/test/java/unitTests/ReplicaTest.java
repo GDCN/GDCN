@@ -2,6 +2,8 @@ package unitTests;
 
 import com.google.gson.Gson;
 import files.TaskMeta;
+import net.tomp2p.peers.Number160;
+import net.tomp2p.storage.Data;
 import network.WorkerID;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -9,6 +11,7 @@ import org.testng.annotations.Test;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
 
+import java.io.IOException;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -102,6 +105,36 @@ public class ReplicaTest {
         assert exceptionThrown2;
 
         replicaManager.replicaFinished(replicaBox.getReplicaID(), new byte[1]);
+    }
+
+    @Test
+    public void serializeManagerTest() throws IOException, ClassNotFoundException {
+        loadMeta(taskMetaA);
+        final ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
+
+        Data serialized = new Data(replicaManager);
+        ReplicaManager replicaManagerCopy = (ReplicaManager) serialized.getObject();
+
+        Number160 originalKey = replicaBox.getResultKey();
+        Number160 firstKey = replicaManager.getReplicaResultKey(replicaBox.getReplicaID());
+        Number160 secondKey = replicaManagerCopy.getReplicaResultKey(replicaBox.getReplicaID());
+        assert originalKey.equals(firstKey);
+        assert originalKey.equals(secondKey);
+
+        replicaManagerCopy.replicaFinished(replicaBox.getReplicaID(), new byte[0]);
+        assert null == replicaManagerCopy.giveReplicaToWorker(workerA);
+        assert null != replicaManagerCopy.giveReplicaToWorker(workerB);
+    }
+
+    @Test
+    public void serializeReplicaBoxTest() throws IOException, ClassNotFoundException {
+        loadMeta(taskMetaA);
+        final ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
+
+        Data serialized = new Data(replicaBox);
+        ReplicaBox boxCopy = (ReplicaBox) serialized.getObject();
+
+        assert replicaBox.equals(boxCopy);
     }
 
     private void loadMeta(TaskMeta taskMeta){

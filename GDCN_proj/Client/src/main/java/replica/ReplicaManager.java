@@ -36,9 +36,10 @@ public class ReplicaManager implements Serializable{
      * @param tasks List of TaskMeta objects
      */
     public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
+        Random random = new Random();
         for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
-                Replica replica = new Replica(task, i);
+                Replica replica = new Replica(task, i, Number160.createHash(""+random.nextLong()+""+random.nextLong()));
                 replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
                 stagedReplicas.addFirst(replica);
             }
