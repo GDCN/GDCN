@@ -32,26 +32,188 @@ public class ProblemTests {
         Boolean[] results = new Boolean[calls];
 
         for(int i = 10; i < calls; i++) {
-            results[i] = masterGoesDown(calls, i);
+            results[i] = masterStaysUp(calls, i);
             System.out.println("number of Sybils: " + i + " number of peers: " + calls +  " Sybils succedded?: " + results[i]);
         }
+//        System.out.println("Number of seconds: " + bothGoesDown());
+
+
+
     }
 
-    private static boolean masterGoesDown(int nP, int nS) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+    private static int masterGoesDown() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
+        initialize(3,6000, 1, 2);
 
-        int peerO = 9;
-        int numberPeers = nP;
-        int numberSybil = nS;
+        FutureDHT futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
 
-        initialize(numberPeers, 4000, numberSybil, peerO);
+        peers[2].shutdown();
+
+        Thread.sleep(1000);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        if(futurePut.isSuccess()) {
+            return 0;
+        }
+
+        long time = System.currentTimeMillis();
+        int number = 0;
+        FutureDHT futureGet;
+
+        while(true) {
+            futurePut =
+                    peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+            futurePut.awaitUninterruptibly();
+
+            futureGet =
+                    peers[1].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+            futureGet.awaitUninterruptibly();
+
+            if("Attack".equals(futureGet.getData().getObject())) {
+                System.out.println(futurePut.isSuccess());
+                shutdown(peers);
+                return number * 10;
+            }
+
+            if((System.currentTimeMillis() - time) /1000 > 1000) {
+                shutdown(peers);
+                return 1;
+            }
+
+            System.out.println("Current time: " + number * 10);
+
+            number++;
+
+            Thread.sleep(1000 * 10);
+
+        }
+
+    }
+
+    private static int uploaderGoesDown() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
+        initialize(3,6010, 1, 2);
+
+        FutureDHT futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        peers[1].shutdown();
+
+        Thread.sleep(1000);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        if(futurePut.isSuccess()) {
+            return 0;
+        }
+
+        long time = System.currentTimeMillis();
+        int number = 0;
+        FutureDHT futureGet;
+
+        while(true) {
+            futurePut =
+                    peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+            futurePut.awaitUninterruptibly();
+
+            futureGet =
+                    peers[2].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+            futureGet.awaitUninterruptibly();
+
+            if("Attack".equals(futureGet.getData().getObject())) {
+                System.out.println(futurePut.isSuccess());
+                shutdown(peers);
+                return number * 10;
+            }
+
+            if((System.currentTimeMillis() - time) /1000 > 1000) {
+                shutdown(peers);
+                return 1;
+            }
+
+            System.out.println("Current time: " + number * 10);
+
+            number++;
+
+            Thread.sleep(1000 * 10);
+
+        }
+
+    }
+
+    private static int bothGoesDown() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
+        initialize(4,6030, 1, 2);
+
+        FutureDHT futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        peers[1].shutdown();
+        peers[2].shutdown();
+
+        Thread.sleep(1000);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        if(futurePut.isSuccess()) {
+            return 0;
+        }
+
+        long time = System.currentTimeMillis();
+        int number = 0;
+        FutureDHT futureGet;
+
+        while(true) {
+            futurePut =
+                    peers[0].put(Number160.ONE).setData( new Data( "Attack" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+            futurePut.awaitUninterruptibly();
+
+            futureGet =
+                    peers[0].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+            futureGet.awaitUninterruptibly();
+
+            if("Attack".equals(futureGet.getData().getObject())) {
+                System.out.println(futurePut.isSuccess());
+                shutdown(peers);
+                return number * 10;
+            }
+
+            if((System.currentTimeMillis() - time) /1000 > 1000) {
+                shutdown(peers);
+                return 1;
+            }
+
+            System.out.println("Current time: " + number * 10);
+
+            number++;
+
+            Thread.sleep(1000 * 10);
+
+        }
+
+    }
+
+    private static boolean masterStaysUp(int nP, int nS) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+
+        int peerO = nP-1;
+
+        initialize(nP, 4000, nS, peerO);
 
         FutureDHT futurePut =
                 peers[peerO].put(Number160.ONE).setData( new Data( "test" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
         futurePut.awaitUninterruptibly();
 
-        if(numberSybil > 0) {
+        if(nS > 0) {
             futurePut =
-                    peers[numberSybil-1].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+                    peers[nS-1].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
             futurePut.awaitUninterruptibly();
         } else {
             futurePut =
@@ -64,7 +226,7 @@ public class ProblemTests {
 
         shutdown(peers);
 
-        return !"test".equals(futureGet.getData().getObject());
+        return "ATTACK".equals(futureGet.getData().getObject());
 
 
     }
