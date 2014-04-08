@@ -39,17 +39,17 @@ public class QualityControl {
         return rewards;
     }
 
-    public synchronized void reward(Replica replica) {
+    private synchronized void reward(Replica replica) {
         rewards.put(replica, Trust.TRUSTWORTHY);
         waitForAll.countDown();
     }
 
-    public synchronized void punish(Replica replica) {
+    private synchronized void punish(Replica replica) {
         rewards.put(replica, Trust.DECEITFUL);
         waitForAll.countDown();
     }
 
-    public synchronized void unknown(Replica replica) {
+    private synchronized void unknown(Replica replica) {
         rewards.put(replica, Trust.UNKNOWN);
         waitForAll.countDown();
     }
@@ -75,11 +75,11 @@ public class QualityControl {
 
     private class ValidifierRunner implements Runnable {
 
+        private final Validifier validifier;
+
         private ValidifierRunner(Validifier validifier) {
             this.validifier = validifier;
         }
-
-        private final Validifier validifier;
 
         @Override
         public void run() {
