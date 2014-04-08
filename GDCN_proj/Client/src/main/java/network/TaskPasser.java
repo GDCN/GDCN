@@ -105,6 +105,9 @@ public class TaskPasser extends Passer {
 
     }
 
+    public void stopTimer() {
+        timer.cancel();
+    }
 
 
     /**
@@ -333,42 +336,21 @@ public class TaskPasser extends Passer {
      * @param replicaID ID of the replica who's result was uploaded
      */
     private void resultUploaded(final String replicaID){
-        System.out.println("Apparently some task was completed: "+replicaID);
+        System.out.println("Replica was completed: "+replicaID);
 
         final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
-        System.out.println("\tResultKey: "+resultKey);
+//        System.out.println("\tResultKey: "+resultKey);
 
         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
             @Override
             protected void operationFinished(Operation operation) {
                 if (operation.isSuccess()) {
-                    System.out.println("RESULT RAW: "+operation.getResult().toString());
+//                    System.out.println("RESULT RAW: "+operation.getResult().toString());
                     Data resultData = (Data) operation.getResult();
 
-                    //TODO clean here
-//                    try {
-//                        Object resultObject = resultData.getObject();
-//                        if(resultObject==null){
-//                            System.out.println("Result null!!!");
-//                            replicaManager.replicaFailed(replicaID);
-//                            return;
-//                        }
-//                        if(!(resultObject instanceof byte[])){
-//                            System.out.println("Result not bytes!!!");
-//                            System.out.println(resultObject.toString());
-//                            replicaManager.replicaFailed(replicaID);
-//                            return;
-//                        }
-
-//                        byte[] resultArray = (byte[]) resultData.getObject();
-                        byte[] resultArray = resultData.getData();
-                        System.out.println("Result downloaded successfully, \n\tresult holds "+resultArray.length+" bytes.");
-                        replicaManager.replicaFinished(replicaID, resultArray);
-//                    } catch (ClassNotFoundException e) {
-//                        e.printStackTrace();
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
+                    byte[] resultArray = resultData.getData();
+                    System.out.println("Result downloaded successfully, \n\tresult holds "+resultArray.length+" bytes.");
+                    replicaManager.replicaFinished(replicaID, resultArray);
                 } else {
                     System.out.println("DownloadOperation failed! " + operation.getErrorCode()
                             + "\n\t" + operation.getReason());
@@ -423,9 +405,5 @@ public class TaskPasser extends Passer {
                     ", " + actualContent +
                     '}';
         }
-    }
-
-    public void stopTimer() {
-        timer.cancel();
     }
 }
