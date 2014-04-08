@@ -23,9 +23,26 @@ public class ReplicaManager implements Serializable{
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
+    private final ReplicaTimer replicaTimer;
 
     public ReplicaManager(int replicas) {
         REPLICAS = replicas;
+        replicaTimer = new ReplicaTimer (new Outdater() {
+            @Override
+            public void replicaOutdated(String replicaID) {
+                replicaOutdated(replicaID);
+            }
+        });
+    }
+
+    /**
+     * Sets a clock to periodically update the expiration of replicas.
+     */
+    public void startTimerThread(){
+        Thread timerThread = new Thread(replicaTimer.createUpdater());
+        timerThread.setDaemon(true);
+
+        timerThread.start();
     }
 
     /**
@@ -42,7 +59,6 @@ public class ReplicaManager implements Serializable{
             }
         }
     }
-
 
     /**
      * This replica didn't get any answer within given time limit. Create another one.
@@ -91,6 +107,7 @@ public class ReplicaManager implements Serializable{
             }
             replica.setWorker(worker);
             alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
+            replicaTimer.add(replica.getReplicaBox().getReplicaID(), replicaDeadline());
 
             return replica.getReplicaBox();
         } catch (NoSuchElementException e){
@@ -105,6 +122,13 @@ public class ReplicaManager implements Serializable{
                 }
             }
         }
+    }
+
+    private static Date replicaDeadline(){
+        //TODO how long time?
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(Calendar.HOUR, 5);
+        return calendar.getTime();
     }
 
     /**
