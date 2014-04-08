@@ -155,7 +155,7 @@ public class TaskPasser extends Passer {
                         switch (taskMessage2.type) {
                             case TASK:
                                 ReplicaBox replicaBox = (ReplicaBox) taskMessage2.actualContent;
-                                System.out.println("Start processing task");
+                                System.out.println("Start processing task, \n\tResultKey: "+replicaBox.getResultKey());
 
                                 workOnTask(jobOwner, replicaBox);
                                 System.out.println("Some Task was received from " + Passer.print(jobOwner));
@@ -289,6 +289,8 @@ public class TaskPasser extends Passer {
                         }
 
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
+                        System.out.println("Gave replica "+replicaBox.getReplicaID()+"\n\tResultKey: "+replicaBox.getResultKey());
+
                         return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
                     } else {

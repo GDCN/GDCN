@@ -121,9 +121,13 @@ public class ReplicaTest {
         assert originalKey.equals(firstKey);
         assert originalKey.equals(secondKey);
 
+        //Throws exception if doesn't remember workerA:
         replicaManagerCopy.replicaFinished(replicaBox.getReplicaID(), new byte[0]);
         assert null == replicaManagerCopy.giveReplicaToWorker(workerA);
         assert null != replicaManagerCopy.giveReplicaToWorker(workerB);
+
+        //It is truly a deep copy, not just a shallow copy
+        assert null != replicaManager.giveReplicaToWorker(workerB);
     }
 
     @Test
@@ -135,6 +139,7 @@ public class ReplicaTest {
         ReplicaBox boxCopy = (ReplicaBox) serialized.getObject();
 
         assert replicaBox.equals(boxCopy);
+        assert replicaBox != boxCopy;
     }
 
     private void loadMeta(TaskMeta taskMeta){
