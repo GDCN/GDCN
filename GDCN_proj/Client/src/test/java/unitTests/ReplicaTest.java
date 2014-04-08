@@ -84,7 +84,7 @@ public class ReplicaTest {
     public void finishReplicaTest(){
         boolean exceptionThrown = false;
         try{
-            replicaManager.replicaFinished("NotARealID", "AnyResult");
+            replicaManager.replicaFinished("NotARealID", new byte[1]);
         } catch (Exception e){
             exceptionThrown = true;
         }
@@ -101,7 +101,7 @@ public class ReplicaTest {
         }
         assert exceptionThrown2;
 
-        replicaManager.replicaFinished(replicaBox.getReplicaID(), "Some result");
+        replicaManager.replicaFinished(replicaBox.getReplicaID(), new byte[1]);
     }
 
     private void loadMeta(TaskMeta taskMeta){
