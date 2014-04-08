@@ -11,18 +11,26 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private List<Replica> replicas;
+    private final List<Replica> replicas;
+    private final String jobName;
+
     private int bestQuality = 0;
-    private CountDownLatch waitForAll = null;
+    private final CountDownLatch waitForAll;
 
     private final Map<Replica, Trust> rewards = new HashMap<>();
 
-    public QualityControl(List<Replica> replicas) {
-        this.replicas = replicas;
+    public static Map<Replica, Trust> compareQuality(String jobName, List<Replica> replicas) {
+        QualityControl qualityControl = new QualityControl(jobName, replicas);
+        return qualityControl.compare();
     }
 
-    public Map<Replica, Trust> compareQuality() {
+    private QualityControl(String jobName, List<Replica> replicas) {
+        this.jobName = jobName;
+        this.replicas = replicas;
         waitForAll = new CountDownLatch(replicas.size());
+    }
+
+    private Map<Replica, Trust> compare() {
         for (Replica replica : replicas) {
             Listener listener = new Listener(replica);
             Validifier validifier = new Validifier(listener);

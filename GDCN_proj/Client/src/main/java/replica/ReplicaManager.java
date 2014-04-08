@@ -26,6 +26,8 @@ public class ReplicaManager implements Serializable{
 
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
 
+    private final Map<String, String> jobNameOfTask = new HashMap<>();
+
     public ReplicaManager(int replicas) {
         REPLICAS = replicas;
     }
@@ -35,8 +37,9 @@ public class ReplicaManager implements Serializable{
      *
      * @param tasks List of TaskMeta objects
      */
-    public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
+    public synchronized void loadTasksAndReplicate(String jobName, List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
+            jobNameOfTask.put(task.getTaskName(), jobName);
             for(int i=0; i<REPLICAS; ++i){
                 Replica replica = new Replica(task, i);
                 replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
@@ -128,7 +131,7 @@ public class ReplicaManager implements Serializable{
             //This is the Last replica to return for this task
             finishedReplicasTaskMap.remove(taskName);
             returnedReplicas.add(replica);
-            validateResults(returnedReplicas);
+            validateResults(taskName, returnedReplicas);
         } else {
             returnedReplicas.add(replica);
         }
@@ -143,7 +146,18 @@ public class ReplicaManager implements Serializable{
         return null;
     }
 
-    public void validateResults(List<Replica> replicaList){
+    public void validateResults(String taskName, List<Replica> replicaList){
+        String jobName = jobNameOfTask.remove(taskName);
+        List<byte[]> results = new ArrayList<>();
+        for (Replica replica : replicaList) {
+
+        }
+        if (EqualityControl.compareData(results)) {
+            //Reward all!
+        }
+        else {
+            QualityControl.compareQuality(jobName, replicaList);
+        }
         //TODO Validate results! Perhaps use interface (ie Strategy pattern)?
     }
 }
