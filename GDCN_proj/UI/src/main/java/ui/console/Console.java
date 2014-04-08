@@ -83,7 +83,10 @@ public class Console implements PropertyChangeListener{
                 println("Bootstrap " + success);
                 break;
             case WORK:
-                println("Work on" + event.getOperation().getKey() + " " + success);
+                println("Work on " + event.getOperation().getKey() + " " + success);
+                break;
+            case PUSH:
+                println("Push job " + event.getOperation().getKey() + " " + success);
                 break;
             case PUT:
                 println("Put " + event.getOperation().getKey() + " " + success);
@@ -93,6 +96,7 @@ public class Console implements PropertyChangeListener{
                 break;
             case START:
                 println("Start complete.");
+                break;
             default:
                 println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
                 break;
