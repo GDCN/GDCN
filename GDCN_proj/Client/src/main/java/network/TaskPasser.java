@@ -119,8 +119,8 @@ public class TaskPasser extends Passer {
         sendRequest(otherPeer, new TaskMessage(TaskMessageType.HELLO, myWorkerID, hello), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
-                TaskMessage taskMessage = check(replyMessageContent);
-                System.out.println(taskMessage.actualContent);
+                TaskMessage taskMessage = TaskMessage.check(replyMessageContent);
+                System.out.println(taskMessage.getActualContent());
             }
         });
     }
@@ -137,12 +137,12 @@ public class TaskPasser extends Passer {
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
             @Override
             public void execute(Object replyMessageContent) {
-                TaskMessage taskMessage = check(replyMessageContent);
-                if (taskMessage.type != TaskMessageType.CHALLENGE) {
+                TaskMessage taskMessage = TaskMessage.check(replyMessageContent);
+                if (taskMessage.getType() != TaskMessageType.CHALLENGE) {
                     throw new IllegalStateException("Should be a Challenge response here!");
                 }
 
-                Challenge challenge = (Challenge) taskMessage.actualContent;
+                Challenge challenge = (Challenge) taskMessage.getActualContent();
                 System.out.println("Challenge received: "+challenge.toString());
 
                 Solution challengeSolution = challenge.solve();
@@ -151,17 +151,17 @@ public class TaskPasser extends Passer {
                 sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, myWorkerID, challengeSolution), new OnReplyCommand() {
                     @Override
                     public void execute(Object replyMessageContent2) {
-                        TaskMessage taskMessage2 = check(replyMessageContent2);
-                        switch (taskMessage2.type) {
+                        TaskMessage taskMessage2 = TaskMessage.check(replyMessageContent2);
+                        switch (taskMessage2.getType()) {
                             case TASK:
-                                ReplicaBox replicaBox = (ReplicaBox) taskMessage2.actualContent;
+                                ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
                                 System.out.println("Start processing task, \n\tResultKey: "+replicaBox.getResultKey());
 
                                 workOnTask(jobOwner, replicaBox);
                                 System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                 break;
                             case CHALLENGE_FAIL:
-                                throw new IllegalStateException("Solution failed: " + taskMessage2.actualContent);
+                                throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
                             default:
                                 throw new IllegalStateException("Should be a Challenge response here!");
                         }
@@ -169,21 +169,6 @@ public class TaskPasser extends Passer {
                 });
             }
         });
-    }
-
-    /**
-     * Class used for holding a String. Not really good architecture but it works.
-     */
-    public static class StringHolder{
-        private String string = null;
-
-        public synchronized String getString() {
-            return string;
-        }
-
-        public synchronized void setString(String string) {
-            this.string = string;
-        }
     }
 
     /**
@@ -238,27 +223,6 @@ public class TaskPasser extends Passer {
 
     }
 
-    /**
-     * Just a serializable message that contains a reason for the failure.
-     */
-    private static class FailMessage implements Serializable{
-        private final String reason;
-        private final String ID;
-
-        private FailMessage(String reason, String ID) {
-            this.reason = reason;
-            this.ID = ID;
-        }
-
-        @Override
-        public String toString() {
-            return "FailMessage{" +
-                    "reason='" + reason + '\'' +
-                    ", ID='" + ID + '\'' +
-                    '}';
-        }
-    }
-
     private Solution challengeReceived(Object challengeData){
         Challenge challenge = (Challenge) challengeData;
         return challenge.solve();
@@ -270,10 +234,10 @@ public class TaskPasser extends Passer {
     @Override
     synchronized protected Serializable handleRequest(PeerAddress sender, Object messageContent) {
 
-        TaskMessage taskMessage = check(messageContent);
-        WorkerID workerID = taskMessage.senderID;
+        TaskMessage taskMessage = TaskMessage.check(messageContent);
+        WorkerID workerID = taskMessage.getSenderID();
 
-        switch(taskMessage.type){
+        switch(taskMessage.getType()){
             case REQUEST_CHALLENGE:
 
                 System.out.println("Received request for a Challenge");
@@ -288,7 +252,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Task");
 
-                Solution solution = (Solution) taskMessage.actualContent;
+                Solution solution = (Solution) taskMessage.getActualContent();
 
                 try {
                     if(solution.isValid(secretKey)) {
@@ -310,11 +274,11 @@ public class TaskPasser extends Passer {
                 }
 
             case HELLO:
-                System.out.println("Received Hello: "+taskMessage.actualContent.toString());
-                return new TaskMessage(TaskMessageType.HELLO, myWorkerID, "Hi, I heard you said "+taskMessage.actualContent);
+                System.out.println("Received Hello: "+taskMessage.getActualContent().toString());
+                return new TaskMessage(TaskMessageType.HELLO, myWorkerID, "Hi, I heard you said "+taskMessage.getActualContent());
 
             default:
-                throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
+                throw new UnsupportedOperationException("Unsupported request: "+taskMessage.getType());
         }
 
     }
@@ -324,20 +288,20 @@ public class TaskPasser extends Passer {
      */
     @Override
     synchronized protected void handleNoReply(PeerAddress sender, Object messageContent) {
-        TaskMessage taskMessage = check(messageContent);
+        TaskMessage taskMessage = TaskMessage.check(messageContent);
 
-        switch (taskMessage.type){
+        switch (taskMessage.getType()){
             case RESULT_UPLOADED:
-                resultUploaded((String) taskMessage.actualContent);
+                resultUploaded((String) taskMessage.getActualContent());
                 break;
             case TASK_FAIL:
                 //TODO do this safe!!! Check that the worker was assigned that task etc...
-                FailMessage failMessage = (FailMessage) taskMessage.actualContent;
-                System.out.println("My task failed! Reason: "+failMessage.reason);
-                replicaManager.replicaFailed(failMessage.ID);
+                FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
+                System.out.println("My task failed! Reason: "+failMessage.getReason());
+                replicaManager.replicaFailed(failMessage.getID());
                 break;
             default:
-                throw new UnsupportedOperationException("Unsupported request: "+taskMessage.type);
+                throw new UnsupportedOperationException("Unsupported request: "+taskMessage.getType());
         }
     }
 
@@ -371,49 +335,4 @@ public class TaskPasser extends Passer {
 
     }
 
-    private static TaskMessage check(Object messageContent){
-        if(!(messageContent instanceof TaskMessage)){
-            throw new IllegalStateException("Message from is not a TaskMessage! "+messageContent.toString());
-        }
-
-        return (TaskMessage) messageContent;
-    }
-
-    /**
-     * Specific enum used for this message passing interface
-     */
-    private static enum TaskMessageType{
-        REQUEST_CHALLENGE,
-        CHALLENGE,
-        REQUEST_TASK,
-        TASK_FAIL,
-        CHALLENGE_FAIL,
-        TASK,
-        RESULT_UPLOADED,
-        HELLO
-    }
-
-    /**
-     * Class for encapsulating task messages. It is similar to {@link network.NetworkMessage}
-     * but more specific for this purpose. NetworkMessage can be used for any purpose and will in this case
-     * contain an object of TaskMessage.
-     */
-    private static class TaskMessage implements Serializable{
-        private final TaskMessageType type;
-        private final WorkerID senderID;
-        private final Object actualContent;
-
-        private TaskMessage(TaskMessageType type, WorkerID senderID, Object actualContent) {
-            this.type = type;
-            this.senderID = senderID;
-            this.actualContent = actualContent;
-        }
-
-        @Override
-        public String toString() {
-            return "TaskMsg{ " + type +
-                    ", " + actualContent +
-                    '}';
-        }
-    }
 }

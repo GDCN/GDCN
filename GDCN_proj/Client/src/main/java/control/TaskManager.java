@@ -5,7 +5,7 @@ import files.Downloader;
 import files.JobUploader;
 import files.TaskMeta;
 import files.TaskMetaDataException;
-import network.TaskPasser;
+import network.StringHolder;
 import replica.ReplicaManager;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskFailureListener;
@@ -43,7 +43,7 @@ public class TaskManager{
      * @param resultFileNameHolder Holder that will contain the absolute path of the future result file of this task.
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
-    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskPasser.StringHolder resultFileNameHolder,
+    public void startTask(final String projectName, final TaskMeta taskMeta, final StringHolder resultFileNameHolder,
                           final TaskListener subjectListener){
 
         Thread downloaderThread = new Thread(new Runnable() {
