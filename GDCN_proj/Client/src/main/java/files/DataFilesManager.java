@@ -134,7 +134,8 @@ public class DataFilesManager {
             FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            oos.writeObject(rm);
+            //OBS Must use the clone of ReplicaManager because of how ReplicaTimer is implemented
+            oos.writeObject(rm.clone());
 
             oos.close();
         } catch (IOException e) {
@@ -153,6 +154,7 @@ public class DataFilesManager {
 
             ois.close();
 
+            replicaManager.resumeTimer();
             return replicaManager;
 
         } catch (FileNotFoundException e) {
@@ -163,6 +165,9 @@ public class DataFilesManager {
         } catch (IOException e) {
             e.printStackTrace();
             return null;
+        } finally {
+            ;
+            //TODO close stream here!
         }
     }
 

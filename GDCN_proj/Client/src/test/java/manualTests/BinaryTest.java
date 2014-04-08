@@ -1,3 +1,5 @@
+package manualTests;
+
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.Operation;
 import command.communicationToUI.OperationFinishedListener;
@@ -13,6 +15,8 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-04-08.
+ *
+ * Test used for making sure that Task results are deserialized correctly from class Data.
  */
 public class BinaryTest {
 
