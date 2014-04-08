@@ -138,9 +138,12 @@ public class TaskPasser extends Passer {
                 if (taskMessage.type != TaskMessageType.CHALLENGE) {
                     throw new IllegalStateException("Should be a Challenge response here!");
                 }
-                Solution challengeSolution = challengeReceived(taskMessage.actualContent);
 
-                System.out.println("Challenge received and solved");
+                Challenge challenge = (Challenge) taskMessage.actualContent;
+                System.out.println("Challenge received: "+challenge.toString());
+
+                Solution challengeSolution = challenge.solve();
+                System.out.println("Challenge solved");
 
                 sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, myWorkerID, challengeSolution), new OnReplyCommand() {
                     @Override
@@ -245,7 +248,6 @@ public class TaskPasser extends Passer {
     }
 
     private Solution challengeReceived(Object challengeData){
-        // TODO real challenge, not just mock up challenge
         Challenge challenge = (Challenge) challengeData;
         return challenge.solve();
     }
@@ -265,7 +267,8 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Challenge");
 
                 Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
-                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
+                        //hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
+                        hashCash.generateChallenge(HashCash.Purpose.REGISTER, myWorkerID.toString() + workerID.toString(), 25)
                         : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
