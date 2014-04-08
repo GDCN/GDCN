@@ -1,7 +1,6 @@
 package replica;
 
 import files.TaskMeta;
-import net.tomp2p.peers.Number160;
 import network.WorkerID;
 
 import java.io.Serializable;
@@ -25,10 +24,9 @@ class Replica implements Serializable{
      *
      * @param taskMeta TaskMeta for this replica
      * @param index Index used to generate replicaID
-     * @param resultKey Key where the result should be stored
      */
-    Replica(TaskMeta taskMeta, int index, Number160 resultKey) {
-        replicaBox = new ReplicaBox(taskMeta, index, resultKey);
+    Replica(TaskMeta taskMeta, int index) {
+        replicaBox = new ReplicaBox(taskMeta, index);
     }
 
     @Override

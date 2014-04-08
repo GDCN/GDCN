@@ -39,7 +39,7 @@ public class ReplicaManager implements Serializable{
         Random random = new Random();
         for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
-                Replica replica = new Replica(task, i, Number160.createHash(""+random.nextLong()+""+random.nextLong()));
+                Replica replica = new Replica(task, i);
                 replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
                 stagedReplicas.addFirst(replica);
             }
