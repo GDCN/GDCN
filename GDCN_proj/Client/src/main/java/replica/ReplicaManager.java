@@ -157,7 +157,8 @@ public class ReplicaManager implements Serializable{
         }
         else {
             QualityControl.compareQuality(jobName, replicaList);
+            //TODO Implement choice of automatic or manual result validation
+            //TODO Implement actual reward and punishment of peers
         }
-        //TODO Validate results! Perhaps use interface (ie Strategy pattern)?
     }
 }

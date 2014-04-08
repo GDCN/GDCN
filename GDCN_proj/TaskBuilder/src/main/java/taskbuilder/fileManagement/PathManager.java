@@ -17,6 +17,7 @@ public class PathManager {
     private final static String CODE_FOLDER_NAME = "code" + File.separator;
     private final static String BIN_FOLDER_NAME = "bin" + File.separator;
     private final static String TEMP_FOLDER_NAME = "temp" + File.separator;
+    private final static String VALID_FOLDER_NAME = "valid" + File.separator;
 
     private static String headerLocation = null;
     private static String dataPath = null;
@@ -146,6 +147,15 @@ public class PathManager {
     public String taskTempDir(String taskName){
         check();
         return projectDir() + TEMP_FOLDER_NAME + taskName;
+    }
+
+    /**
+     *
+     * @return Path to directory for validation program of project
+     */
+    public String projectValidDir(){
+        check();
+        return projectDir() + VALID_FOLDER_NAME;
     }
 
     /**
