@@ -10,8 +10,6 @@ import java.util.*;
 /**
  * Created by Leif on 2014-03-31.
  *
- * //TODO save this object to file on 'exit' and load it from file on startup
- *
  * //TODO reissue replicas after timeout time
  *
  * //TODO reader-writer synchronization instead of common mutex?

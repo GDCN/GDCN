@@ -90,7 +90,7 @@ public class TaskPasser extends Passer {
             workerNodeManager = workerNodeManager1;
         }
 
-        timer = new Timer();
+        timer = new Timer(true);
 
         timer.schedule(new TimerTask() {
             @Override

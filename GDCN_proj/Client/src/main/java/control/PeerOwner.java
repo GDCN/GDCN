@@ -398,7 +398,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
             taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
 
-            timer = new Timer();
+            timer = new Timer(true);
 
             timer.schedule(new TimerTask() {
                 @Override
