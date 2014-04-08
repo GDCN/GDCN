@@ -199,7 +199,7 @@ public class TaskPasser extends Passer {
                         }
                     }
                 });
-                //TODO sign result with private key...
+                //TODO sign result with private key... Might want to use the class 'Box' or similar for signing
                 byte[] result = null;
                 try {
                     result = FileUtils.fromFile(new File(stringHolder.getString()));
@@ -221,11 +221,6 @@ public class TaskPasser extends Passer {
             }
         });
 
-    }
-
-    private Solution challengeReceived(Object challengeData){
-        Challenge challenge = (Challenge) challengeData;
-        return challenge.solve();
     }
 
     /**
@@ -251,7 +246,6 @@ public class TaskPasser extends Passer {
             case REQUEST_TASK:
 
                 System.out.println("Received request for a Task");
-
                 Solution solution = (Solution) taskMessage.getActualContent();
 
                 try {
@@ -259,10 +253,8 @@ public class TaskPasser extends Passer {
                         if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
                             workerNodeManager.registerWorker(workerID);
                         }
-
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
                         System.out.println("Gave replica "+replicaBox.getReplicaID()+"\n\tResultKey: "+replicaBox.getResultKey());
-
                         return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
                     } else {
@@ -295,10 +287,16 @@ public class TaskPasser extends Passer {
                 resultUploaded((String) taskMessage.getActualContent());
                 break;
             case TASK_FAIL:
-                //TODO do this safe!!! Check that the worker was assigned that task etc...
                 FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
-                System.out.println("My task failed! Reason: "+failMessage.getReason());
-                replicaManager.replicaFailed(failMessage.getID());
+                WorkerID worker = taskMessage.getSenderID();
+                //TODO check reputation as well?
+                if(replicaManager.isWorkerAssignedReplica(worker, failMessage.getReplicaID())){
+                    System.out.println("My task failed! Reason: "+failMessage.getReason());
+                    replicaManager.replicaFailed(failMessage.getReplicaID());
+                } else {
+                    System.out.println("Warning! A worker node reported a failure in a task it was not participating in...");
+                    workerNodeManager.reportWorker(worker);
+                }
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported request: "+taskMessage.getType());

@@ -135,6 +135,23 @@ public class ReplicaManager implements Serializable{
         }
     }
 
+    /**
+     *
+     * @param workerID Worker
+     * @param replicaID ID of a replica
+     * @return true only if worker was assigned this replica, otherwise false.
+     */
+    public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, String replicaID){
+        Replica replica = replicaMap.get(replicaID);
+        if(replica == null){
+            return false;
+        }
+        if(! replica.getWorker().equals(workerID)){
+            return false;
+        }
+        return true;
+    }
+
     public synchronized void replicaFailed(String replicaID){
         //TODO implement
     }

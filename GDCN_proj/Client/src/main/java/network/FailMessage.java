@@ -7,26 +7,26 @@ import java.io.Serializable;
  */
 class FailMessage implements Serializable {
     private final String reason;
-    private final String ID;
+    private final String replicaID;
 
-    FailMessage(String reason, String ID) {
+    FailMessage(String reason, String replicaID) {
         this.reason = reason;
-        this.ID = ID;
+        this.replicaID = replicaID;
     }
 
     public String getReason() {
         return reason;
     }
 
-    public String getID() {
-        return ID;
+    public String getReplicaID() {
+        return replicaID;
     }
 
     @Override
     public String toString() {
         return "FailMessage{" +
                 "reason='" + reason + '\'' +
-                ", ID='" + ID + '\'' +
+                ", replicaID='" + replicaID + '\'' +
                 '}';
     }
 }

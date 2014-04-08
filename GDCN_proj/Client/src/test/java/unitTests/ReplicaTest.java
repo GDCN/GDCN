@@ -142,6 +142,17 @@ public class ReplicaTest {
         assert replicaBox != boxCopy;
     }
 
+    @Test
+    public void isAssignedTest(){
+        loadMeta(taskMetaA);
+        assert ! replicaManager.isWorkerAssignedReplica(workerA, "SomeID");
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
+
+        assert replicaManager.isWorkerAssignedReplica(workerA, replicaBox.getReplicaID());
+        assert ! replicaManager.isWorkerAssignedReplica(workerB, replicaBox.getReplicaID());
+        assert ! replicaManager.isWorkerAssignedReplica(workerA, "SomeID");
+    }
+
     private void loadMeta(TaskMeta taskMeta){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);
