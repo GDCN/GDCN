@@ -249,6 +249,14 @@ public class TaskPasser extends Passer {
             this.reason = reason;
             this.ID = ID;
         }
+
+        @Override
+        public String toString() {
+            return "FailMessage{" +
+                    "reason='" + reason + '\'' +
+                    ", ID='" + ID + '\'' +
+                    '}';
+        }
     }
 
     private Solution challengeReceived(Object challengeData){
