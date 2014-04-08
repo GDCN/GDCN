@@ -18,6 +18,9 @@ public class ReplicaManager implements Serializable{
 
     private final int REPLICAS;
 
+    private final int CALENDAR_FIELD;
+    private final int CALENDAR_VALUE;
+
     private final Deque<Replica> stagedReplicas = new ArrayDeque<>();
     private final Map<String, Replica> replicaMap = new HashMap<>();
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
@@ -25,8 +28,25 @@ public class ReplicaManager implements Serializable{
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
     private final ReplicaTimer replicaTimer;
 
+    /**
+     * ReplicaManager
+     * @param replicas Number of replicas per task
+     */
     public ReplicaManager(int replicas) {
+        //TODO how long time?
+        this(replicas, Calendar.HOUR, 5);
+    }
+
+    /**
+     * @param replicas Number of replicas per task
+     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
+     */
+    private ReplicaManager(int replicas, int calendarField, int calendarValue){
         REPLICAS = replicas;
+        CALENDAR_FIELD = calendarField;
+        CALENDAR_VALUE = calendarValue;
+
         replicaTimer = new ReplicaTimer (new Outdater() {
             @Override
             public void replicaOutdated(String replicaID) {
@@ -124,10 +144,9 @@ public class ReplicaManager implements Serializable{
         }
     }
 
-    private static Date replicaDeadline(){
-        //TODO how long time?
+    private Date replicaDeadline(){
         Calendar calendar = new GregorianCalendar();
-        calendar.add(Calendar.HOUR, 5);
+        calendar.add(CALENDAR_FIELD, CALENDAR_VALUE);
         return calendar.getTime();
     }
 

@@ -11,13 +11,24 @@ import java.util.TimerTask;
  */
 public class ReplicaTimer implements Serializable {
 
-    private final static long UPDATE_TIME = 1000*60;
+    private final long UPDATE_TIME;
 
     private final PriorityQueue<ReplicaTimeout> queue = new PriorityQueue<>();
     private final Outdater outdater;
 
     public ReplicaTimer(Outdater outdater) {
         this.outdater = outdater;
+        UPDATE_TIME =  1000*60;
+    }
+
+    /**
+     * This constructor should only be used for testing!
+     * @param outdater Listener
+     * @param updateTime Milliseconds for polling
+     */
+    public ReplicaTimer(Outdater outdater, long updateTime) {
+        this.outdater = outdater;
+        UPDATE_TIME =  updateTime;
     }
 
     /**
@@ -34,7 +45,7 @@ public class ReplicaTimer implements Serializable {
                     public void run() {
                         update();
                     }
-                }, UPDATE_TIME);
+                }, UPDATE_TIME/2, UPDATE_TIME);
             }
         };
     }
@@ -56,8 +67,15 @@ public class ReplicaTimer implements Serializable {
      */
     private synchronized void update(){
         final Date currentTime = new Date();
+        if(queue.peek()==null){
+//            System.out.println("ReplicaTimer: queue empty on update");
+            return;
+        }
+//        long timeDiff = queue.peek().getDate().getTime()-currentTime.getTime();
+//        System.out.println("TimeDiff to next element: "+timeDiff);
         while(queue.peek()!=null && queue.peek().getDate().compareTo(currentTime) < 0){
-            ReplicaTimeout outdated = queue.poll();
+            ReplicaTimeout outdated = queue.remove();
+//            System.out.println("Outdated called!");
             outdater.replicaOutdated(outdated.getReplicaID());
         }
     }
