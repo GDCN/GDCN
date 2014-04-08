@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -179,7 +180,34 @@ public class ReplicaTest {
         replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
     }
 
+
+    @Test
+    public void integrationReplicaTimerTest() throws IOException, ClassNotFoundException {
+        ReplicaManager replicaManager2 = new ReplicaManager(2, Calendar.MILLISECOND, 300, 50L);
+        loadMeta(this.taskMetaA, replicaManager2);
+
+        ReplicaBox replicaBoxA = replicaManager2.giveReplicaToWorker(workerA);
+        Data serialized = new Data(replicaManager2.clone());
+
+        ReplicaManager deserialized = (ReplicaManager) serialized.getObject();
+        assert deserialized.isWorkerAssignedReplica(workerA, replicaBoxA.getReplicaID());
+        assert null != deserialized.giveReplicaToWorker(workerB);
+        assert null == deserialized.giveReplicaToWorker(workerC);
+
+        deserialized.resumeTimer();
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        assert null != deserialized.giveReplicaToWorker(workerC);
+    }
+
     private void loadMeta(TaskMeta taskMeta){
+        loadMeta(taskMeta, this.replicaManager);
+    }
+
+    private static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);
         replicaManager.loadTasksAndReplicate(taskMetas);

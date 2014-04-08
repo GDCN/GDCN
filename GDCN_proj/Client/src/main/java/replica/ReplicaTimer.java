@@ -9,12 +9,19 @@ import java.util.TimerTask;
 /**
  * Created by HalfLeif on 2014-04-08.
  */
-public class ReplicaTimer implements Serializable {
+public class ReplicaTimer implements Serializable, Cloneable {
 
     private final long UPDATE_TIME;
 
     private final PriorityQueue<ReplicaTimeout> queue = new PriorityQueue<>();
-    private final Outdater outdater;
+    private Outdater outdater;
+
+    /**
+     * Creates a ReplicaTimer with outdater null. Use setter.
+     */
+    public ReplicaTimer(){
+        this(null);
+    }
 
     public ReplicaTimer(Outdater outdater) {
         this.outdater = outdater;
@@ -29,6 +36,25 @@ public class ReplicaTimer implements Serializable {
     public ReplicaTimer(Outdater outdater, long updateTime) {
         this.outdater = outdater;
         UPDATE_TIME =  updateTime;
+    }
+
+    /**
+     *
+     * @param outdater ReplicaManager that can accept outdate orders
+     */
+    public void setOutdater(Outdater outdater) {
+        this.outdater = outdater;
+    }
+
+    /**
+     *
+     * @return Clone without "outdater" set
+     */
+    @Override
+    public ReplicaTimer clone() {
+        ReplicaTimer clone = new ReplicaTimer(null, this.UPDATE_TIME);
+        clone.queue.addAll(this.queue);
+        return clone;
     }
 
     /**
@@ -99,8 +125,16 @@ public class ReplicaTimer implements Serializable {
             return date;
         }
 
+        /**
+         *
+         * @param replicaTimeout Other ReplicaTimer
+         * @return comparison
+         */
         @Override
         public int compareTo(ReplicaTimeout replicaTimeout) {
+            if(replicaTimeout==null){
+                return 1;
+            }
             return date.compareTo(replicaTimeout.date);
         }
     }

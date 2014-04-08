@@ -14,7 +14,7 @@ import java.util.*;
  *
  * //TODO reader-writer synchronization instead of common mutex?
  */
-public class ReplicaManager implements Serializable{
+public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     private final int REPLICAS;
 
@@ -26,7 +26,8 @@ public class ReplicaManager implements Serializable{
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
-    private final ReplicaTimer replicaTimer;
+
+    private ReplicaTimer replicaTimer = null;
 
     /**
      * ReplicaManager
@@ -42,27 +43,63 @@ public class ReplicaManager implements Serializable{
      * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
      * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
      */
-    private ReplicaManager(int replicas, int calendarField, int calendarValue){
+    public ReplicaManager(int replicas, int calendarField, int calendarValue){
         REPLICAS = replicas;
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
-        replicaTimer = new ReplicaTimer (new Outdater() {
-            @Override
-            public void replicaOutdated(String replicaID) {
-                replicaOutdated(replicaID);
-            }
-        });
+        replicaTimer = new ReplicaTimer(this);
+        resumeTimer();
     }
 
     /**
-     * Sets a clock to periodically update the expiration of replicas.
+     * Used for testing purposes
+     * @param replicas Number of replicas per task
+     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param updateInterval Milliseconds for clock to update queue
      */
-    public void startTimerThread(){
+    public ReplicaManager(int replicas, int calendarField, int calendarValue, long updateInterval){
+        REPLICAS = replicas;
+        CALENDAR_FIELD = calendarField;
+        CALENDAR_VALUE = calendarValue;
+
+        replicaTimer = new ReplicaTimer(this, updateInterval);
+        resumeTimer();
+    }
+
+    /**
+     * Must be called after being deserialized for the timer to start running!
+     *
+     * Is called in constructor.
+     */
+    public void resumeTimer(){
+        replicaTimer.setOutdater(this);
+
         Thread timerThread = new Thread(replicaTimer.createUpdater());
         timerThread.setDaemon(true);
 
         timerThread.start();
+    }
+
+    /**
+     * This is expensive... Use when serializing.
+     *
+     * Need to use this because ReplicaTimer is only Serializable when its Outdater is null.
+     *
+     * @return Serializable clone of ReplicaManager
+     */
+    @Override
+    public ReplicaManager clone(){
+        ReplicaManager clone = new ReplicaManager(REPLICAS, CALENDAR_FIELD, CALENDAR_VALUE);
+        clone.replicaTimer = this.replicaTimer.clone();
+
+        clone.assignedTasks.putAll(this.assignedTasks);
+        clone.finishedReplicasTaskMap.putAll(this.finishedReplicasTaskMap);
+        clone.replicaMap.putAll(this.replicaMap);
+        clone.stagedReplicas.addAll(this.stagedReplicas);
+
+        return clone;
     }
 
     /**
@@ -86,6 +123,7 @@ public class ReplicaManager implements Serializable{
      *
      * @param replicaID Replica that was outdated
      */
+    @Override
     public synchronized void replicaOutdated(String replicaID){
         Replica oldReplica = replicaMap.get(replicaID);
         if(oldReplica==null){

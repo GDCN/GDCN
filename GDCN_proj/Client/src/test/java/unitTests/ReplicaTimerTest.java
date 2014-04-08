@@ -1,10 +1,12 @@
 package unitTests;
 
+import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import replica.Outdater;
 import replica.ReplicaTimer;
 
+import java.io.IOException;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
@@ -25,6 +27,7 @@ public class ReplicaTimerTest {
 
     private final String replicaA = "id A";
     private final String replicaB = "id B";
+    private final String replicaC = "id C";
 
     private volatile int outdatedCalled;
 
@@ -56,6 +59,56 @@ public class ReplicaTimerTest {
         assert outdatedCalled == 1;
     }
 
+    @Test
+    public void multiUpdateTest(){
+        replicaTimer = new ReplicaTimer(outdater, 50);
+        start(replicaTimer);
+
+        replicaTimer.add(replicaA, futureDate(-1));
+        replicaTimer.add(replicaB, futureDate(150));
+        replicaTimer.add(replicaC, futureDate(150));
+
+        nap(50);
+        assert outdatedCalled == 1;
+
+        nap(130);
+        assert outdatedCalled == 3;
+    }
+
+    @Test
+    public void manyMultiUpdateTest(){
+        replicaTimer = new ReplicaTimer(outdater, 50);
+        start(replicaTimer);
+
+        final int times = 100;
+
+        for(int i=0; i<times; ++i){
+            replicaTimer.add("Id_"+i, futureDate(300+i%5));
+        }
+
+        nap(350);
+        assert outdatedCalled == times;
+    }
+
+    @Test
+    public void deserializeTest() throws IOException, ClassNotFoundException {
+        replicaTimer = new ReplicaTimer(outdater, 50);
+        start(replicaTimer);
+
+        replicaTimer.add(replicaA, futureDate(500));
+        replicaTimer.add(replicaB, futureDate(-1));
+        Data serialized = new Data(replicaTimer.clone());
+
+        ReplicaTimer deserialized = (ReplicaTimer) serialized.getObject();
+        deserialized.setOutdater(outdater);
+        start(deserialized);
+
+        nap(50);
+        assert outdatedCalled == 2;
+        nap(500);
+        assert outdatedCalled == 4;
+    }
+
     private static void nap(int millis){
         try {
             Thread.sleep(millis);
@@ -64,11 +117,12 @@ public class ReplicaTimerTest {
         }
     }
 
-    private static void start(ReplicaTimer replicaTimer){
+    private static Thread start(ReplicaTimer replicaTimer){
         Thread timerThread = new Thread(replicaTimer.createUpdater());
         timerThread.setDaemon(true);
 
         timerThread.start();
+        return timerThread;
     }
 
     private static Date futureDate(int millis){
