@@ -131,11 +131,16 @@ public class ConsoleFactory {
         commandMap.put(CommandWord.WORK.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
-                //TODO check num args
 
-                String projectName = args.get(0);
-                String taskName = args.get(1);
-                client.work(projectName, taskName);
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()>1){
+                    address = args.get(0);
+                    port = Integer.parseInt(args.get(1));
+                }
+
+                client.work(address, port);
             }
         });
 

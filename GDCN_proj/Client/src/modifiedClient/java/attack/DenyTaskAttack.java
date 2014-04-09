@@ -108,8 +108,8 @@ public class DenyTaskAttack {
                         try {
                             InetAddress address = InetAddress.getByName("narrens.olf.sgsnet.se");
                             Collection<PeerAddress> connectedTo = (Collection<PeerAddress>) replyMessageContent;
-                            for(PeerAddress node : connectedTo){
-                                if(node.getInetAddress().equals(address) && node.portUDP() == 4001){
+                            for (PeerAddress node : connectedTo) {
+                                if (node.getInetAddress().equals(address) && node.portUDP() == 4001) {
                                     taskPasserDeny.requestWork(node);
                                     return;
                                 }
@@ -119,7 +119,7 @@ public class DenyTaskAttack {
                             e.printStackTrace();
                             running = false;
                         } finally {
-                            if(!running){
+                            if (!running) {
                                 peer.shutdown();
                             }
                         }

@@ -10,6 +10,6 @@ public interface ClientInterface extends NetworkInterface{
 
     void push(String jobName);
 
-    void work(String projectName, String taskName);
+    void work(String address, int port);
 
 }

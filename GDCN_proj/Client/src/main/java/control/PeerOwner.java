@@ -21,7 +21,8 @@ import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -249,20 +250,32 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    //TODO refactor method signature...
-    public void work(String projectName, String taskName) {
-//        taskManager.startTask(projectName, taskName, this);
+    public void work(String address, int port) {
         //TODO might want to continue on already downloaded task?
-        //TODO supply with real job owner
 
-        PeerAddress jobOwner = null;
-        if (getNeighbours().size()>0){
-            jobOwner = getNeighbours().get(0);
+        if("self".equals(address)){
+            taskPasser.requestWork(peer.getPeerAddress());
         } else {
-            System.out.println("Sorry, no job owner is online. Will try to work on your own tasks instead");
-            jobOwner = peer.getPeerAddress();
+            try {
+                DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
+                discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>(){
+                    @Override
+                    public void operationComplete(FutureDiscover future) throws Exception {
+                        if(!future.isSuccess()){
+                            notifier.fireOperationFinished(CommandWord.WORK,
+                                    new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
+                            return;
+                        }
+                        PeerAddress jobOwner = future.getReporter();
+                        assert ! jobOwner.equals(peer.getPeerAddress());
+
+                        taskPasser.requestWork(jobOwner);
+                    }
+                });
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
-        taskPasser.requestWork(jobOwner);
     }
 
     @Override
@@ -323,9 +336,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
-                String s = future.isSuccess()?"succeeded":"failed";
-                System.out.println("Get2 under "+key+"/"+domain+s);
-                if(future.isSuccess()){
+                String s = future.isSuccess() ? "succeeded" : "failed";
+                System.out.println("Get2 under " + key + "/" + domain + s);
+                if (future.isSuccess()) {
                     System.out.println(future.getData().getObject().toString());
                 }
             }
