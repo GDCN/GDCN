@@ -71,10 +71,48 @@ public class DOSAttackTest {
         assert challengeDiff < peerDiff;
     }
 
-//    public static void main(String[] args){
-//        DOSAttackTest dosAttackTest = new DOSAttackTest();
+    public static void main(String[] args){
+        DOSAttackTest dosAttackTest = new DOSAttackTest();
 //        dosAttackTest.attackTest();
-//    }
+        dosAttackTest.reAttackTest();
+    }
+
+    public void reAttackTest(){
+        Peer peer = createPeer(17677);
+        TaskPasserDOS taskPasserDOS = new TaskPasserDOS(peer);
+        final int messages = 500;
+
+        try {
+            bootstrap(peer, "narrens.olf.sgsnet.se", 4001);
+//            boots.acquireUninterruptibly();
+            Thread.sleep(100);
+
+            final PeerAddress jobOwner = peer.getPeerBean().getPeerMap().getAll().get(0);
+
+            Date beforePeer = new Date();
+            for(int i=0; i<messages; ++i){
+                taskPasserDOS.requestChallenge(jobOwner, challengeReceived);
+            }
+            Date afterPeer = new Date();
+
+            final long peerDiff = afterPeer.getTime()-beforePeer.getTime();
+            System.out.println("\tSend messages: "+peerDiff);
+
+
+            Date beforeChallenge = new Date();
+            challenges.acquireUninterruptibly(messages);
+            Date afterChallenge = new Date();
+
+            final long challengeDiff = afterChallenge.getTime()-beforeChallenge.getTime();
+            System.out.println("\tReceive challenges: "+challengeDiff);
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            peer.shutdown();
+        }
+
+
+    }
 
     public void attackTest(){
         final int sybils = 50;
