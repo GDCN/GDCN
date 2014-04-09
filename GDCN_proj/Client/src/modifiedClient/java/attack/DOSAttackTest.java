@@ -1,12 +1,7 @@
 package attack;
 
 import hashcash.HashCash;
-import net.tomp2p.futures.BaseFutureAdapter;
-import net.tomp2p.futures.FutureBootstrap;
-import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.Peer;
-import net.tomp2p.p2p.builder.BootstrapBuilder;
-import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.PeerAddress;
 import network.DeceitfulNetworkUtils;
 import network.OnReplyCommand;
@@ -15,8 +10,6 @@ import network.WorkerID;
 import org.testng.annotations.Test;
 
 import javax.crypto.KeyGenerator;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -40,6 +33,12 @@ public class DOSAttackTest {
         @Override
         public void execute(Object replyMessageContent) {
             challenges.release();
+        }
+    };
+    final private OnReplyCommand bootstrapDone = new OnReplyCommand() {
+        @Override
+        public void execute(Object replyMessageContent) {
+            boots.release();
         }
     };
 
@@ -81,7 +80,7 @@ public class DOSAttackTest {
         final int messages = 500;
 
         try {
-            bootstrap(peer, "narrens.olf.sgsnet.se", 4001);
+            DeceitfulNetworkUtils.bootstrap(peer, "narrens.olf.sgsnet.se", 4001, bootstrapDone);
 //            boots.acquireUninterruptibly();
             Thread.sleep(100);
 
@@ -123,8 +122,9 @@ public class DOSAttackTest {
                 taskPassers[ix] = new TaskPasserDOS(peers[ix]);
             }
 
+
             for(int ix=0; ix<sybils; ++ix){
-                bootstrap(peers[ix], "narrens.olf.sgsnet.se", 4001);
+                DeceitfulNetworkUtils.bootstrap(peers[ix], "narrens.olf.sgsnet.se", 4001, bootstrapDone);
             }
             System.out.println("\tAwait bootstrap");
 //            boots.acquireUninterruptibly((sybils * 3) / 4);
@@ -152,35 +152,6 @@ public class DOSAttackTest {
             }
         }
 
-    }
-
-    private void bootstrap(final Peer peer, String address, final int port){
-        try {
-            final InetAddress inetAddress = InetAddress.getByName(address);
-
-            DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(inetAddress).setPorts(port);
-            discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>() {
-                @Override
-                public void operationComplete(FutureDiscover future) throws Exception {
-                    if (!future.isSuccess()) {
-                        System.out.println("Bootstrap insuccessful");
-                        boots.release();
-                        return;
-                    }
-
-                    BootstrapBuilder bootstrapBuilder = peer.bootstrap().setInetAddress(inetAddress).setPorts(port);
-                    bootstrapBuilder.start().addListener(new BaseFutureAdapter<FutureBootstrap>() {
-                        @Override
-                        public void operationComplete(FutureBootstrap future) throws Exception {
-                            System.out.println("Bootstrap successful?");
-                            boots.release();
-                        }
-                    });
-                }
-            });
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
     }
 
 }

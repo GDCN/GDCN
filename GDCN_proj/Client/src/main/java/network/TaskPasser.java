@@ -254,6 +254,9 @@ public class TaskPasser extends Passer {
                             workerNodeManager.registerWorker(workerID);
                         }
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
+                        if(replicaBox==null){
+                            return new TaskMessage(TaskMessageType.NO_TASK_AVAILABLE, myWorkerID, "");
+                        }
                         System.out.println("Gave replica "+replicaBox.getReplicaID()+"\n\tResultKey: "+replicaBox.getResultKey());
                         return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 

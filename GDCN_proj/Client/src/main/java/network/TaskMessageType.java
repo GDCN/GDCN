@@ -10,6 +10,7 @@ enum TaskMessageType {
     TASK_FAIL,
     CHALLENGE_FAIL,
     TASK,
+    NO_TASK_AVAILABLE,
     RESULT_UPLOADED,
     HELLO
 }

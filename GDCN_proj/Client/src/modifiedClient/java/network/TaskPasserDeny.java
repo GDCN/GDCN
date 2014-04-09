@@ -14,11 +14,9 @@ import net.tomp2p.storage.Data;
 import replica.ReplicaBox;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -30,8 +28,8 @@ public class TaskPasserDeny extends Passer {
     private final NetworkInterface client;
     private final WorkerID myWorkerID;
 
-    private final Map<String, byte[]> falseResults = new HashMap<>();
-    private final ExecutorService pool = Executors.newFixedThreadPool(4);
+    private final Map<String, byte[]> falseResults;
+    private final ExecutorService pool;
 
     private static final Random random = new Random();
 
@@ -40,9 +38,13 @@ public class TaskPasserDeny extends Passer {
      *
      * @param peer This peer
      * @param client Client to put and get results
+     * @param falseResults
+     * @param pool
      */
-    public TaskPasserDeny(Peer peer, NetworkInterface client) {
+    public TaskPasserDeny(Peer peer, NetworkInterface client, Map<String, byte[]> falseResults, ExecutorService pool) {
         super(peer);
+        this.falseResults = falseResults;
+        this.pool = pool;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
         this.client = client;
     }
@@ -126,7 +128,9 @@ public class TaskPasserDeny extends Passer {
         });
 
         byte[] result = null;
-        synchronized (falseResults){
+        //Uses ConcurrentHashMap so this synchronization is actually not needed?
+        synchronized (falseResults)
+        {
             final String realTask = DeceitfulFileUtils.deduceTask(replicaBox.getTaskMeta());
             result = falseResults.get(realTask);
             if(result == null){
