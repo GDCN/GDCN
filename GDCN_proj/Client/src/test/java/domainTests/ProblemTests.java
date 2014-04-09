@@ -5,6 +5,7 @@ import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.peers.Number160;
+import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import net.tomp2p.storage.StorageGeneric;
 import net.tomp2p.utils.Utils;
@@ -15,6 +16,9 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Created by Niklas on 2014-04-08.
@@ -24,6 +28,9 @@ public class ProblemTests {
     private static Peer[] peers;
     private static Number160 peerOwner;
 
+    private static KeyPair k;
+    private static KeyPair k1;
+
     public static void main(String[] arg) throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
         Logger.getRootLogger().removeAllAppenders();
         Logger.getRootLogger().addAppender(new NullAppender());
@@ -31,18 +38,69 @@ public class ProblemTests {
         int calls = 100;
         Boolean[] results = new Boolean[calls];
 
+//        findKeys();
+
         for(int i = 10; i < calls; i++) {
             results[i] = masterStaysUp(calls, i);
             System.out.println("number of Sybils: " + i + " number of peers: " + calls +  " Sybils succedded?: " + results[i]);
         }
 //        System.out.println("Number of seconds: " + bothGoesDown());
 
-
+//        uploaderRejoin();
+//        masterrRejoin();
 
     }
 
+    private static void findKeys() throws IOException, NoSuchAlgorithmException, InterruptedException {
+        initialize(3, 5000, 0, 0);
+
+
+        FutureDHT futurePut =
+        peers[0].put(Number160.createHash("1")).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        futurePut =
+        peers[0].put(Number160.createHash("2")).setData(Number160.createHash("2") ,new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        futurePut =
+        peers[0].put(Number160.createHash("3")).setData(Number160.createHash("3") , new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        futurePut =
+                peers[1].put(Number160.createHash("10")).setData( new Data( "success" ) ).start();
+        futurePut.awaitUninterruptibly();
+
+        futurePut =
+                peers[1].put(Number160.createHash("20")).setData(Number160.createHash("2") ,new Data( "success" ) ).start();
+        futurePut.awaitUninterruptibly();
+
+        futurePut =
+                peers[1].put(Number160.createHash("30")).setData(Number160.createHash("3") , new Data( "success" ) ).start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        Peer p = peers[1];
+
+        List<PeerAddress> pa = p.getPeerBean().getPeerMap().getAll();
+
+        Collection<Number160> fC = p.getPeerBean().getStorage().findContentForResponsiblePeerID(pa.get(0).getID());
+        System.out.println(p.getPeerBean().getStorage().findContentForResponsiblePeerID(p.getPeerID()).size());
+
+        System.out.println(fC.size());
+
+        fC = p.getPeerBean().getStorage().findContentForResponsiblePeerID(pa.get(1).getID());
+
+        System.out.println(fC.size());
+
+        shutdown(peers);
+    }
+
+
+
     private static int masterGoesDown() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
-        initialize(3,6000, 1, 2);
+        initialize(3,4000, 1, 2);
 
         FutureDHT futurePut =
                 peers[1].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
@@ -177,7 +235,7 @@ public class ProblemTests {
             futurePut.awaitUninterruptibly();
 
             futureGet =
-                    peers[0].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+                    peers[0].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(10, 10, 0)).start();
             futureGet.awaitUninterruptibly();
 
             if("Attack".equals(futureGet.getData().getObject())) {
@@ -201,14 +259,14 @@ public class ProblemTests {
 
     }
 
-    private static boolean masterStaysUp(int nP, int nS) throws IOException, NoSuchAlgorithmException, ClassNotFoundException {
+    private static boolean masterStaysUp(int nP, int nS) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InterruptedException {
 
         int peerO = nP-1;
 
-        initialize(nP, 4000, nS, peerO);
+        initialize(nP, 4200, nS, peerO);
 
         FutureDHT futurePut =
-                peers[peerO].put(Number160.ONE).setData( new Data( "test" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+                peers[peerO].put(Number160.ONE).setData( new Data( "test" ) ).setDomainKey( peerOwner ).setProtectDomain().setRequestP2PConfiguration(new RequestP2PConfiguration(6, 10, 0)).start();
         futurePut.awaitUninterruptibly();
 
         if(nS > 0) {
@@ -221,20 +279,153 @@ public class ProblemTests {
             futurePut.awaitUninterruptibly();
         }
 
-        FutureDHT futureGet = peers[peerO].get( Number160.ONE ).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20,10,0)).start();
+        Thread.sleep(1000);
+
+        FutureDHT futureGet = peers[peerO].get( Number160.ONE ).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(5,10,0)).start();
         futureGet.awaitUninterruptibly();
+
+        Object o = futureGet.getData().getObject();
+
+//        if("ATTACK".equals(o)) {
+//            for (Map.Entry<PeerAddress, Map<Number160, Data>> entry : futureGet.getRawData().entrySet()) {
+//                System.out.print("got from (6)" + entry.getKey());
+//                System.out.println(entry.getValue());
+//            }
+//        }
+        shutdown(peers);
+
+        return "ATTACK".equals(o);
+    }
+
+    private static void uploaderRejoin() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
+        initialize(3, 3000, 0, 2);
+
+        FutureDHT futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "test" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        shutdown(peers[1]);
+
+        Thread.sleep(1000);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        peers[1] = new PeerMaker( k ).setPorts(3001).makeAndListen();
+
+        Thread.sleep(1000);
+
+        ExampleUtils.bootstrap(peers);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        Thread.sleep(1000);
+
+        FutureDHT futureGet =
+                peers[2].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+        futureGet.awaitUninterruptibly();
+        System.out.println(futureGet.getData().getObject());
+
+        futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "test2" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        futureGet =
+                peers[2].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+        futureGet.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        System.out.println(futureGet.getData().getObject());
+
+        System.out.println();
 
         shutdown(peers);
 
-        return "ATTACK".equals(futureGet.getData().getObject());
+    }
 
+    private static void masterrRejoin() throws IOException, NoSuchAlgorithmException, InterruptedException, ClassNotFoundException {
+        initialize(3, 3000, 0, 2);
 
+        FutureDHT futurePut =
+                peers[2].put(Number160.ONE).setData( new Data( "test" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        shutdown(peers[2]);
+
+        Thread.sleep(1000);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        peers[2] = new PeerMaker( k1 ).setPorts(3002).makeAndListen();
+
+        Thread.sleep(1000);
+
+        ExampleUtils.bootstrap(peers);
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println(futurePut.isSuccess());
+
+        futurePut =
+                peers[2].put(Number160.ONE).setData( new Data( "test2" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        System.out.println("OWNER SUCCEDED: " + futurePut.isSuccess());
+
+        Thread.sleep(1000);
+
+        FutureDHT futureGet =
+                peers[2].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(20, 10, 0)).start();
+        futureGet.awaitUninterruptibly();
+
+        System.out.println(futureGet.getData().getObject());
+
+        shutdown(peers);
     }
 
 
     private static Peer createPeer(int port) throws IOException, NoSuchAlgorithmException {
         KeyPairGenerator gen = KeyPairGenerator.getInstance( "DSA" );
         KeyPair pair = gen.generateKeyPair();
+        if(port == 3001) {
+            k = pair;
+        }
+        if(port == 3000) {
+            k1 = pair;
+        }
+
         return new PeerMaker( pair ).setPorts(port).makeAndListen();
     }
 
