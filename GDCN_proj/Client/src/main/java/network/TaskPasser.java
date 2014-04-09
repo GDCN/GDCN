@@ -132,7 +132,7 @@ public class TaskPasser extends Passer {
     public void requestWork(final PeerAddress jobOwner){
         //TODO do concurrently?
         //TODO make tread safe...
-        System.out.println("Request work from "+Passer.print(jobOwner));
+        System.out.println("Request work from " + Passer.print(jobOwner));
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
             @Override
@@ -142,29 +142,34 @@ public class TaskPasser extends Passer {
                     throw new IllegalStateException("Should be a Challenge response here!");
                 }
 
-                Challenge challenge = (Challenge) taskMessage.getActualContent();
+                final Challenge challenge = (Challenge) taskMessage.getActualContent();
                 System.out.println("Challenge received: "+challenge.toString());
 
-                Solution challengeSolution = challenge.solve();
-                System.out.println("Challenge solved");
-
-                sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, myWorkerID, challengeSolution), new OnReplyCommand() {
+                taskManager.submit(new Runnable() {
                     @Override
-                    public void execute(Object replyMessageContent2) {
-                        TaskMessage taskMessage2 = TaskMessage.check(replyMessageContent2);
-                        switch (taskMessage2.getType()) {
-                            case TASK:
-                                ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
-                                System.out.println("Start processing task, \n\tResultKey: "+replicaBox.getResultKey());
+                    public void run() {
+                        Solution challengeSolution = challenge.solve();
+                        System.out.println("Challenge solved");
 
-                                workOnTask(jobOwner, replicaBox);
-                                System.out.println("Some Task was received from " + Passer.print(jobOwner));
-                                break;
-                            case CHALLENGE_FAIL:
-                                throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
-                            default:
-                                throw new IllegalStateException("Should be a Challenge response here!");
-                        }
+                        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_TASK, myWorkerID, challengeSolution), new OnReplyCommand() {
+                            @Override
+                            public void execute(Object replyMessageContent2) {
+                                TaskMessage taskMessage2 = TaskMessage.check(replyMessageContent2);
+                                switch (taskMessage2.getType()) {
+                                    case TASK:
+                                        ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
+                                        System.out.println("Start processing task, \n\tResultKey: "+replicaBox.getResultKey());
+
+                                        workOnTask(jobOwner, replicaBox);
+                                        System.out.println("Some Task was received from " + Passer.print(jobOwner));
+                                        break;
+                                    case CHALLENGE_FAIL:
+                                        throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
+                                    default:
+                                        throw new IllegalStateException("Should be a Challenge response here!");
+                                }
+                            }
+                        });
                     }
                 });
             }

@@ -244,11 +244,14 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      * @return true only if worker was assigned this replica, otherwise false.
      */
     public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, String replicaID){
+        if(workerID==null || replicaID == null){
+            return false;
+        }
         Replica replica = replicaMap.get(replicaID);
         if(replica == null){
             return false;
         }
-        if(! replica.getWorker().equals(workerID)){
+        if(! workerID.equals(replica.getWorker())){
             return false;
         }
         return true;

@@ -19,6 +19,8 @@ import java.util.concurrent.Semaphore;
  * Created by Leif on 2014-04-01.
  *
  * Not really Unit testing but manual testing...
+ *
+ * @deprecated Doesn't read tasks from file anymore but sends in messages
  */
 public class TaskManagerManual {
 

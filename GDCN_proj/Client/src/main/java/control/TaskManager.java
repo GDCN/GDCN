@@ -45,8 +45,17 @@ public class TaskManager{
         this.client = client;
     }
 
-    //TODO use worker pool instead of new Threads
     //TODO handle Listeners more nicely...
+
+    /**
+     * Submits a runnable to run concurrently in the thread pool.
+     * Is currently used for solving challenges concurrently.
+     *
+     * @param runnable Runnable
+     */
+    public void submit(Runnable runnable){
+        threadPool.submit(runnable);
+    }
 
     /**
      * Work on this task
