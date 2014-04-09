@@ -105,9 +105,10 @@ public class BinaryTest {
     private byte[] generate(){
         final int len = 64;
         byte[] bytes = new byte[len];
-        for(int i=0; i<len; ++i){
-            bytes[i] = (byte) random.nextInt(128);
-        }
+//        for(int i=0; i<len; ++i){
+//            bytes[i] = (byte) random.nextInt(128);
+//        }
+        random.nextBytes(bytes);
         return bytes;
     }
 

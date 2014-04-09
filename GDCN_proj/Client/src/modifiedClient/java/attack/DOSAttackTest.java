@@ -1,25 +1,23 @@
-package attack.dos;
+package attack;
 
 import hashcash.HashCash;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.Peer;
-import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.BootstrapBuilder;
 import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.PeerAddress;
+import network.DeceitfulNetworkUtils;
 import network.OnReplyCommand;
 import network.TaskPasserDOS;
 import network.WorkerID;
 import org.testng.annotations.Test;
 
 import javax.crypto.KeyGenerator;
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
@@ -62,7 +60,7 @@ public class DOSAttackTest {
         System.out.println("Create challenge: "+challengeDiff);
 
         Date beforePeer = new Date();
-        Peer peer = createPeer(26789);
+        Peer peer = DeceitfulNetworkUtils.createPeer(26789);
         Date afterPeer = new Date();
 
         final long peerDiff = afterPeer.getTime()-beforePeer.getTime();
@@ -78,7 +76,7 @@ public class DOSAttackTest {
     }
 
     public void reAttackTest(){
-        Peer peer = createPeer(17677);
+        Peer peer = DeceitfulNetworkUtils.createPeer(17677);
         TaskPasserDOS taskPasserDOS = new TaskPasserDOS(peer);
         final int messages = 500;
 
@@ -121,7 +119,7 @@ public class DOSAttackTest {
 
         try {
             for(int ix=0; ix<sybils; ++ix){
-                peers[ix] = createPeer(13000+ix);
+                peers[ix] = DeceitfulNetworkUtils.createPeer(13000 + ix);
                 taskPassers[ix] = new TaskPasserDOS(peers[ix]);
             }
 
@@ -185,21 +183,4 @@ public class DOSAttackTest {
         }
     }
 
-    private static Peer createPeer(int port){
-        KeyPairGenerator generator = null;
-        try {
-            generator = KeyPairGenerator.getInstance("RSA");
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-        assert generator != null;
-        KeyPair keyPair = generator.generateKeyPair();
-
-        try {
-            return new PeerMaker(keyPair).setPorts(port).makeAndListen();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 }
