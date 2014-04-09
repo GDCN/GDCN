@@ -7,6 +7,7 @@ import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.BootstrapBuilder;
 import net.tomp2p.p2p.builder.DiscoverBuilder;
+import net.tomp2p.peers.PeerAddress;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -14,6 +15,7 @@ import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collection;
 
 /**
  * Created by HalfLeif on 2014-04-09.
@@ -55,8 +57,8 @@ public class DeceitfulNetworkUtils {
                     bootstrapBuilder.start().addListener(new BaseFutureAdapter<FutureBootstrap>() {
                         @Override
                         public void operationComplete(FutureBootstrap future) throws Exception {
-                            System.out.println("Bootstrap successful?");
-                            finished.execute(null);
+                            Collection<PeerAddress> connected = future.getBootstrapTo();
+                            finished.execute(connected);
                         }
                     });
                 }

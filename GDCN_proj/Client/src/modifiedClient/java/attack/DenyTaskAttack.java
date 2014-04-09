@@ -17,6 +17,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.beans.PropertyChangeListener;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -74,25 +77,46 @@ public class DenyTaskAttack {
         }
 
         private Runnable runnable = new Runnable() {
+            private volatile boolean running = true;
+
             @Override
             public void run() {
                 try {
-                    final Semaphore bootstrap = new Semaphore(0);
                     DeceitfulNetworkUtils.bootstrap(peer, "narrens.olf.sgsnet.se", 4001, new OnReplyCommand() {
                         @Override
                         public void execute(Object replyMessageContent) {
-                            bootstrap.release();
+                            System.out.println("\tBootstrap done");
+
+                            try {
+                                InetAddress address = InetAddress.getByName("narrens.olf.sgsnet.se");
+                                Collection<PeerAddress> connectedTo = (Collection<PeerAddress>) replyMessageContent;
+                                for(PeerAddress node : connectedTo){
+                                    if(node.getInetAddress().equals(address) && node.portUDP() == 4001){
+                                        taskPasserDeny.requestWork(node);
+                                        return;
+                                    }
+                                    running = false;
+                                }
+                            } catch (UnknownHostException e) {
+                                e.printStackTrace();
+                                running = false;
+                            } finally {
+                                if(!running){
+                                    peer.shutdown();
+                                }
+                            }
+
+
+
                         }
                     });
-                    bootstrap.acquireUninterruptibly();
-                    System.out.println("\tBootstrap done");
-                    taskPasserDeny.requestWork(peer.getPeerBean().getPeerMap().getAll().get(0));
-
                 } catch (Exception e) {
                     e.printStackTrace();
+                    running = false;
                 } finally {
-                    //TODO shutdown peer after finish...
-//                    peer.shutdown();
+                    if(!running){
+                        peer.shutdown();
+                    }
                 }
             }
         };
