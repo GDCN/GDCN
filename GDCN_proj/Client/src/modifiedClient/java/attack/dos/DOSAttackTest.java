@@ -1,5 +1,6 @@
 package attack.dos;
 
+import hashcash.HashCash;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureBootstrap;
 import net.tomp2p.futures.FutureDiscover;
@@ -10,10 +11,14 @@ import net.tomp2p.p2p.builder.DiscoverBuilder;
 import net.tomp2p.peers.PeerAddress;
 import network.OnReplyCommand;
 import network.TaskPasserDOS;
+import network.WorkerID;
+import org.testng.annotations.Test;
 
+import javax.crypto.KeyGenerator;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -22,6 +27,8 @@ import java.util.concurrent.Semaphore;
 
 /**
  * Created by HalfLeif on 2014-04-09.
+ *
+ * Conclusion: It seems to be more expensive to generate a new Sybil node than to create a new Challenge!
  */
 public class DOSAttackTest {
 
@@ -31,21 +38,49 @@ public class DOSAttackTest {
     private Semaphore boots = new Semaphore(0);
     private Semaphore challenges = new Semaphore(0);
 
-    private OnReplyCommand challengeReceived = new OnReplyCommand() {
+    final private OnReplyCommand challengeReceived = new OnReplyCommand() {
         @Override
         public void execute(Object replyMessageContent) {
             challenges.release();
         }
     };
 
-    public static void main(String[] args){
-        DOSAttackTest dosAttackTest = new DOSAttackTest();
-        dosAttackTest.attackTest();
+    @Test
+    public static void timeDiff() throws NoSuchAlgorithmException, InvalidKeyException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("HmacSHA256");
+        HashCash hashCash = new HashCash(keyGenerator.generateKey());
+
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        WorkerID workerIDa = new WorkerID(keyPairGenerator.generateKeyPair().getPublic());
+        WorkerID workerIDb = new WorkerID(keyPairGenerator.generateKeyPair().getPublic());
+
+        Date beforeChallenge = new Date();
+        hashCash.generateRegistrationChallenge(workerIDa, workerIDb);
+        Date afterChallenge = new Date();
+
+        final long challengeDiff = afterChallenge.getTime()-beforeChallenge.getTime();
+        System.out.println("Create challenge: "+challengeDiff);
+
+        Date beforePeer = new Date();
+        Peer peer = createPeer(26789);
+        Date afterPeer = new Date();
+
+        final long peerDiff = afterPeer.getTime()-beforePeer.getTime();
+        System.out.println("Create peer: "+peerDiff);
+
+        assert challengeDiff < peerDiff;
     }
 
+//    public static void main(String[] args){
+//        DOSAttackTest dosAttackTest = new DOSAttackTest();
+//        dosAttackTest.attackTest();
+//    }
+
     public void attackTest(){
-        final int sybils = 5;
+        final int sybils = 50;
         peers = new Peer[sybils];
+        taskPassers = new TaskPasserDOS[sybils];
+
         try {
             for(int ix=0; ix<sybils; ++ix){
                 peers[ix] = createPeer(13000+ix);
@@ -55,14 +90,18 @@ public class DOSAttackTest {
             for(int ix=0; ix<sybils; ++ix){
                 bootstrap(peers[ix], "narrens.olf.sgsnet.se", 4001);
             }
-            boots.acquireUninterruptibly((sybils*3)/4);
+            System.out.println("\tAwait bootstrap");
+//            boots.acquireUninterruptibly((sybils * 3) / 4);
+            Thread.sleep(500);
 
             final Date startTime = new Date();
             for(int ix=0; ix<sybils; ++ix){
                 PeerAddress targetOwner = peers[ix].getPeerBean().getPeerMap().getAll().get(0);
                 taskPassers[ix].requestChallenge(targetOwner, challengeReceived);
             }
-            challenges.acquireUninterruptibly((sybils*3)/4);
+            System.out.println("\tAwait challenges");
+//            challenges.acquireUninterruptibly((sybils*3)/4);
+            challenges.acquireUninterruptibly(sybils-1);
             final Date stopTime = new Date();
 
             System.out.println("Time it took: "+(stopTime.getTime()-startTime.getTime()));
@@ -70,6 +109,9 @@ public class DOSAttackTest {
             e.printStackTrace();
         } finally {
             for(int ix=0; ix<sybils; ++ix){
+                if(peers[ix]==null){
+                    continue;
+                }
                 peers[ix].shutdown();
             }
         }
@@ -81,23 +123,20 @@ public class DOSAttackTest {
             final InetAddress inetAddress = InetAddress.getByName(address);
 
             DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(inetAddress).setPorts(port);
-            FutureDiscover futureDiscover = discoverBuilder.start();
-
-
-            futureDiscover.addListener(new BaseFutureAdapter<FutureDiscover>() {
+            discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>() {
                 @Override
                 public void operationComplete(FutureDiscover future) throws Exception {
-                    if(!future.isSuccess()){
+                    if (!future.isSuccess()) {
+                        System.out.println("Bootstrap insuccessful");
                         boots.release();
                         return;
                     }
 
                     BootstrapBuilder bootstrapBuilder = peer.bootstrap().setInetAddress(inetAddress).setPorts(port);
-                    FutureBootstrap futureBootstrap = bootstrapBuilder.start();
-
-                    futureBootstrap.addListener(new BaseFutureAdapter<FutureBootstrap>() {
+                    bootstrapBuilder.start().addListener(new BaseFutureAdapter<FutureBootstrap>() {
                         @Override
                         public void operationComplete(FutureBootstrap future) throws Exception {
+                            System.out.println("Bootstrap successful?");
                             boots.release();
                         }
                     });

@@ -1,11 +1,8 @@
 package network;
 
-import hashcash.Challenge;
-import hashcash.HashCash;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
 
-import javax.crypto.SecretKey;
 import java.io.Serializable;
 
 /**
@@ -16,10 +13,6 @@ import java.io.Serializable;
  * FAKE Sybil version of TaskPasser used for DOS attack
  */
 public class TaskPasserDOS extends Passer {
-
-    //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
-    private SecretKey secretKey = null;
-    private HashCash hashCash = null;
 
     private final WorkerID myWorkerID;
 
@@ -54,23 +47,7 @@ public class TaskPasserDOS extends Passer {
      * @param jobOwner Peer to work for
      */
     public void requestChallenge(final PeerAddress jobOwner, final OnReplyCommand onReplyCommand){
-        //TODO do concurrently?
-        //TODO make tread safe...
-        System.out.println("Request work from " + Passer.print(jobOwner));
-
-        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
-            @Override
-            public void execute(Object replyMessageContent) {
-                TaskMessage taskMessage = TaskMessage.check(replyMessageContent);
-                if (taskMessage.getType() != TaskMessageType.CHALLENGE) {
-                    throw new IllegalStateException("Should be a Challenge response here!");
-                }
-
-                Challenge challenge = (Challenge) taskMessage.getActualContent();
-                onReplyCommand.execute(challenge);
-                //Only asks for challenge, nothing more
-            }
-        });
+        sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, "S"), onReplyCommand);
     }
 
 
