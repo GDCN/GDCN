@@ -17,9 +17,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.beans.PropertyChangeListener;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -96,7 +93,6 @@ public class DenyTaskAttack {
         }
 
         private Runnable runnable = new Runnable() {
-            private volatile boolean running = true;
 
             @Override
             public void run() {
@@ -105,25 +101,12 @@ public class DenyTaskAttack {
                     public void execute(Object replyMessageContent) {
                         System.out.println("\tBootstrap done");
 
-                        try {
-                            InetAddress address = InetAddress.getByName("narrens.olf.sgsnet.se");
-                            Collection<PeerAddress> connectedTo = (Collection<PeerAddress>) replyMessageContent;
-                            for (PeerAddress node : connectedTo) {
-                                if (node.getInetAddress().equals(address) && node.portUDP() == 4001) {
-                                    taskPasserDeny.requestWork(node);
-                                    return;
-                                }
-                            }
-                            running = false;
-                        } catch (UnknownHostException e) {
-                            e.printStackTrace();
-                            running = false;
-                        } finally {
-                            if (!running) {
-                                peer.shutdown();
-                            }
+                        PeerAddress jobOwner = (PeerAddress) replyMessageContent;
+                        if(jobOwner == null){
+                            peer.shutdown();
+                        } else {
+                            taskPasserDeny.requestWork(jobOwner);
                         }
-
                     }
                 });
             }
