@@ -75,7 +75,7 @@ public class Operation<E>{
         }
 
         public Operation<E> create(){
-            return new Operation<E>(success, result, errorCode, key, reason);
+            return new Operation<>(success, result, errorCode, key, reason);
         }
     }
 }

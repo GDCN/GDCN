@@ -36,9 +36,8 @@ class Replica implements Serializable{
 
         Replica replica = (Replica) o;
 
-        if (!replicaBox.equals(replica.replicaBox)) return false;
+        return replicaBox.equals(replica.replicaBox);
 
-        return true;
     }
 
     @Override

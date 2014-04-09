@@ -199,7 +199,7 @@ public class ConsoleFactory {
             }
         });
 
-        //TODO use enum
+        //TODO remove entirely? Currently asks neighbour for work.
         commandMap.put("reqw", new UICommand() {
             @Override
             public void execute(List<String> args) {

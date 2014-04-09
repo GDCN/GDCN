@@ -11,7 +11,6 @@ import java.util.Map;
  *
  * Class to keep track of what peers are registered as workers.
  *
- * //TODO save this object to file on 'exit' and load it from file on startup
  */
 public class WorkerNodeManager implements Serializable{
 

@@ -119,8 +119,6 @@ public class TaskManager{
         });
     }
 
-    //TODO use worker pool instead of new Threads
-
     /**
      * Upload entire job, that is all necessary files within the directory to fulfill the TaskMetas
      * @param jobName Name of job directory
