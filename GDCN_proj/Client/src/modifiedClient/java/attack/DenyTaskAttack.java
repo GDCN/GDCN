@@ -60,19 +60,38 @@ public class DenyTaskAttack {
 
     @Test
     public void denyTest() throws InterruptedException {
-        for(int i=0; i<4; ++i){
-            new Denier(falseResults, i, pool);
+        Denier[] deniers = new Denier[4];
+        for(int i=0; i<deniers.length; ++i){
+            deniers[i] = new Denier(falseResults, i, pool);
         }
+
+        for(int replay=0; replay<3; ++replay){
+            Thread.sleep(15000);
+            for(int i=0; i<deniers.length; ++i){
+                deniers[i].startAgain();
+            }
+        }
+
         pool.awaitTermination(100, TimeUnit.SECONDS);
     }
 
     private static class Denier {
         private Peer peer;
         private TaskPasserDeny taskPasserDeny;
+        private final ExecutorService pool;
 
         private Denier(Map<String, byte[]> falseResults, int index, ExecutorService pool) {
             this.peer = DeceitfulNetworkUtils.createPeer(13000+index);
-            taskPasserDeny = new TaskPasserDeny(peer, client, falseResults, pool);
+            this.taskPasserDeny = new TaskPasserDeny(peer, client, falseResults, pool);
+            this.pool = pool;
+
+            startAgain();
+        }
+
+        /**
+         * Called in constructor as well.
+         */
+        public void startAgain(){
             pool.submit(runnable);
         }
 
@@ -81,43 +100,32 @@ public class DenyTaskAttack {
 
             @Override
             public void run() {
-                try {
-                    DeceitfulNetworkUtils.bootstrap(peer, "narrens.olf.sgsnet.se", 4001, new OnReplyCommand() {
-                        @Override
-                        public void execute(Object replyMessageContent) {
-                            System.out.println("\tBootstrap done");
+                DeceitfulNetworkUtils.bootstrap(peer, "narrens.olf.sgsnet.se", 4001, new OnReplyCommand() {
+                    @Override
+                    public void execute(Object replyMessageContent) {
+                        System.out.println("\tBootstrap done");
 
-                            try {
-                                InetAddress address = InetAddress.getByName("narrens.olf.sgsnet.se");
-                                Collection<PeerAddress> connectedTo = (Collection<PeerAddress>) replyMessageContent;
-                                for(PeerAddress node : connectedTo){
-                                    if(node.getInetAddress().equals(address) && node.portUDP() == 4001){
-                                        taskPasserDeny.requestWork(node);
-                                        return;
-                                    }
-                                    running = false;
-                                }
-                            } catch (UnknownHostException e) {
-                                e.printStackTrace();
-                                running = false;
-                            } finally {
-                                if(!running){
-                                    peer.shutdown();
+                        try {
+                            InetAddress address = InetAddress.getByName("narrens.olf.sgsnet.se");
+                            Collection<PeerAddress> connectedTo = (Collection<PeerAddress>) replyMessageContent;
+                            for(PeerAddress node : connectedTo){
+                                if(node.getInetAddress().equals(address) && node.portUDP() == 4001){
+                                    taskPasserDeny.requestWork(node);
+                                    return;
                                 }
                             }
-
-
-
+                            running = false;
+                        } catch (UnknownHostException e) {
+                            e.printStackTrace();
+                            running = false;
+                        } finally {
+                            if(!running){
+                                peer.shutdown();
+                            }
                         }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    running = false;
-                } finally {
-                    if(!running){
-                        peer.shutdown();
+
                     }
-                }
+                });
             }
         };
 

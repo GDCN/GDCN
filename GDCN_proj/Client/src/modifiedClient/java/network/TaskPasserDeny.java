@@ -86,6 +86,10 @@ public class TaskPasserDeny extends Passer {
                                         workOnTaskDeceitfully(jobOwner, replicaBox);
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                         break;
+                                    case NO_TASK_AVAILABLE:
+                                        System.out.println("No task available form this job owner any more");
+                                        //TODO
+                                        break;
                                     case CHALLENGE_FAIL:
                                         throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
                                     default:
