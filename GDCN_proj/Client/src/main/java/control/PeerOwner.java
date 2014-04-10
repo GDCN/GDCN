@@ -95,15 +95,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void start(int port){
-
-<<<<<<< HEAD
-            //Initiates the peer
-            KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
-            generator.initialize(2048);
-            KeyPair keyPair = generator.generateKeyPair();
-=======
         dataFilesManager = new DataFilesManager();
->>>>>>> identities
 
         startInitiate(port);
     }
