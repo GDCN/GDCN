@@ -15,6 +15,7 @@ import java.util.*;
 public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     private final int REPLICAS;
+    private final int EXPECTED_RESULTS;
 
     private final int CALENDAR_FIELD;
     private final int CALENDAR_VALUE;
@@ -29,36 +30,53 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     /**
      * ReplicaManager
+     *
+     * If R replicas are produced, expects R results.
+     *
      * @param replicas Number of replicas per task
      */
     public ReplicaManager(int replicas) {
+        this(replicas, replicas);
+    }
+
+    /**
+     *
+     * @param replicas Number of replicas per task
+     * @param expectedResults Number of expected results, must be less or equal to replicas
+     */
+    public ReplicaManager(int replicas, int expectedResults) {
         //TODO how long time?
-        this(replicas, Calendar.HOUR, 5);
+        this(replicas, expectedResults, 5, Calendar.HOUR);
     }
 
     /**
      * @param replicas Number of replicas per task
-     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param expectedResults Number of expected results, must be less or equal to replicas
      * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
      */
-    public ReplicaManager(int replicas, int calendarField, int calendarValue){
-        REPLICAS = replicas;
-        CALENDAR_FIELD = calendarField;
-        CALENDAR_VALUE = calendarValue;
-
-        replicaTimer = new ReplicaTimer(this);
-        resumeTimer();
+    public ReplicaManager(int replicas, int expectedResults, int calendarValue, int calendarField){
+        this(replicas, expectedResults, calendarValue, calendarField, 1000*60);
     }
 
     /**
      * Used for testing purposes
+     *
      * @param replicas Number of replicas per task
-     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param expectedResults Number of expected results, must be less or equal to replicas
      * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
+     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
      * @param updateInterval Milliseconds for clock to update queue
      */
-    public ReplicaManager(int replicas, int calendarField, int calendarValue, long updateInterval){
+    public ReplicaManager(int replicas, int expectedResults, int calendarValue, int calendarField, long updateInterval){
+        if(replicas<1){
+            throw new IllegalArgumentException("Number of replicas must at least 1");
+        }
+        if(expectedResults > replicas){
+            throw new IllegalArgumentException("Number of expected results cannot exceed number of replicas!");
+        }
         REPLICAS = replicas;
+        EXPECTED_RESULTS = expectedResults;
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
@@ -89,7 +107,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      */
     @Override
     public ReplicaManager clone(){
-        ReplicaManager clone = new ReplicaManager(REPLICAS, CALENDAR_FIELD, CALENDAR_VALUE);
+        ReplicaManager clone = new ReplicaManager(REPLICAS, 2, CALENDAR_VALUE, CALENDAR_FIELD);
         clone.replicaTimer = this.replicaTimer.clone();
 
         clone.assignedTasks.putAll(this.assignedTasks);
@@ -229,7 +247,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             List<Replica> list = new ArrayList<>();
             list.add(replica);
             finishedReplicasTaskMap.put(taskName, list);
-        } else if(returnedReplicas.size()==REPLICAS-1){
+        } else if(returnedReplicas.size() == EXPECTED_RESULTS-1){
             //This is the Last replica to return for this task
             finishedReplicasTaskMap.remove(taskName);
             returnedReplicas.add(replica);

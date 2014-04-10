@@ -17,21 +17,8 @@ public class ReplicaTimer implements Serializable, Cloneable {
     private Outdater outdater;
 
     /**
-     * Creates a ReplicaTimer with outdater null. Use setter.
-     */
-    public ReplicaTimer(){
-        this(null);
-    }
-
-    public ReplicaTimer(Outdater outdater) {
-        this.outdater = outdater;
-        UPDATE_TIME =  1000*60;
-    }
-
-    /**
-     * This constructor should only be used for testing!
-     * @param outdater Listener
-     * @param updateTime Milliseconds for polling
+     * @param outdater ReplicaManager that can accept outdate orders
+     * @param updateTime Number of Milliseconds between check queue
      */
     public ReplicaTimer(Outdater outdater, long updateTime) {
         this.outdater = outdater;
@@ -39,7 +26,6 @@ public class ReplicaTimer implements Serializable, Cloneable {
     }
 
     /**
-     *
      * @param outdater ReplicaManager that can accept outdate orders
      */
     public void setOutdater(Outdater outdater) {
@@ -47,8 +33,7 @@ public class ReplicaTimer implements Serializable, Cloneable {
     }
 
     /**
-     *
-     * @return Clone without "outdater" set
+     * @return ReplicaTimer clone where "outdater" is set as null
      */
     @Override
     public ReplicaTimer clone() {
@@ -90,9 +75,7 @@ public class ReplicaTimer implements Serializable, Cloneable {
     }
 
     /**
-     * Called by clock to check the queue.
-     *
-     * Resembles busy-wait. Problem is, {@link java.util.Timer} is not serializable...
+     * Called by clock to check the queue. Requires Outdater to be set.
      */
     private synchronized void update(){
         final Date currentTime = new Date();
@@ -100,13 +83,12 @@ public class ReplicaTimer implements Serializable, Cloneable {
 //            System.out.println("ReplicaTimer: queue empty on update");
             return;
         }
-//        long timeDiff = queue.peek().getDate().getTime()-currentTime.getTime();
-//        System.out.println("TimeDiff to next element: "+timeDiff);
         while(queue.peek()!=null && queue.peek().getDate().compareTo(currentTime) < 0){
             ReplicaTimeout outdated = queue.remove();
-//            System.out.println("Outdated called!");
             outdater.replicaOutdated(outdated.getReplicaID());
         }
+//        long timeDiff = queue.peek().getDate().getTime()-currentTime.getTime();
+//        System.out.println("TimeDiff to next element: "+timeDiff);
     }
 
 

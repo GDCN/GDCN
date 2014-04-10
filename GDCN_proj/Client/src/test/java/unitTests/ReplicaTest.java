@@ -191,8 +191,57 @@ public class ReplicaTest {
     }
 
     @Test
+    public void expectedReturnTest(){
+        ReplicaManager replicaManagerE = new ReplicaManager(2, 1);
+        loadMeta(taskMetaA, replicaManagerE);
+
+        ReplicaBox replicaBoxA = replicaManagerE.giveReplicaToWorker(workerA);
+        replicaManagerE.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+        //TODO assert validation is called
+    }
+
+    @Test
+    public void constructorTest(){
+        boolean exceptionThrown = false;
+        try {
+            new ReplicaManager(0,0);
+        } catch (Exception e) {
+            exceptionThrown = true;
+        } finally {
+            assert exceptionThrown;
+        }
+
+        exceptionThrown = false;
+        try {
+            new ReplicaManager(3,4);
+        } catch (Exception e) {
+            exceptionThrown = true;
+        } finally {
+            assert exceptionThrown;
+        }
+    }
+
+    @Test
+    public void latecomerTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+        assert null == replicaManager.giveReplicaToWorker(workerC);
+
+        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
+        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
+
+        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
+        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
+        //TODO assert validation is called
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+        //TODO assert replicaManager responds as wanted
+    }
+
+    @Test
     public void integrationReplicaTimerTest() throws IOException, ClassNotFoundException {
-        ReplicaManager replicaManager2 = new ReplicaManager(2, Calendar.MILLISECOND, 300, 50L);
+        ReplicaManager replicaManager2 = new ReplicaManager(2, 2, 300, Calendar.MILLISECOND, 50L);
         loadMeta(this.taskMetaA, replicaManager2);
 
         ReplicaBox replicaBoxA = replicaManager2.giveReplicaToWorker(workerA);
@@ -205,7 +254,7 @@ public class ReplicaTest {
 
         deserialized.resumeTimer();
         try {
-            Thread.sleep(300);
+            Thread.sleep(350);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
