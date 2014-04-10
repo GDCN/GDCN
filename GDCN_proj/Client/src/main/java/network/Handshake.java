@@ -28,6 +28,10 @@ public class Handshake implements Serializable {
         return stage == Stage.INIT ? new Handshake(key,Stage.REPLY) : null;
     }
 
+    public boolean equals(Handshake other) {
+        return this.publicKey.equals(other.publicKey) && this.stage == other.stage;
+    }
+
     private enum Stage {
         INIT,
         REPLY
