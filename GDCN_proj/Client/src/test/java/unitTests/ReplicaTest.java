@@ -180,6 +180,15 @@ public class ReplicaTest {
         replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
     }
 
+    @Test
+    public void outdateFinishTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
+        //No exception
+    }
 
     @Test
     public void integrationReplicaTimerTest() throws IOException, ClassNotFoundException {

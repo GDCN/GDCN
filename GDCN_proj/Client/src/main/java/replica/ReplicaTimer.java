@@ -54,6 +54,9 @@ public class ReplicaTimer implements Serializable, Cloneable {
     public ReplicaTimer clone() {
         ReplicaTimer clone = new ReplicaTimer(null, this.UPDATE_TIME);
         clone.queue.addAll(this.queue);
+
+        //Outdater must be null in order to Serialize
+        clone.outdater = null;
         return clone;
     }
 

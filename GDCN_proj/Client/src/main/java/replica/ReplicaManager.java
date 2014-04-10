@@ -119,13 +119,17 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      * This replica didn't get any answer within given time limit. Create another one.
      * Doesn't have to report worker, he might still come up with an answer.
      *
+     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
+     *
      * @param replicaID Replica that was outdated
      */
     @Override
     public synchronized void replicaOutdated(String replicaID){
         Replica oldReplica = replicaMap.get(replicaID);
         if(oldReplica==null){
-            throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
+            //It might already be returned! Hence not present in replicaMap
+            return;
+            //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
         }
         Random random = new Random();
         Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta(), random.nextInt());
