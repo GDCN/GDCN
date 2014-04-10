@@ -35,7 +35,7 @@ public class NetworkMessage implements Serializable {
     public static NetworkMessage decryptAndVerify(SealedObject sealedData, PrivateKey myKey, PublicKey otherKey) throws ClassNotFoundException, SignatureException, InvalidKeyException, IOException {
         Serializable data = Crypto.decryptAndVerify(sealedData,myKey,otherKey);
 
-        if (data.getClass() == NetworkMessage.class) {
+        if (data instanceof NetworkMessage) {
             return (NetworkMessage) data;
         } else {
             throw new InvalidParameterException("The encrypted object was not a NetworkMessage");

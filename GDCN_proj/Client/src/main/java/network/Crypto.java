@@ -117,7 +117,7 @@ public class Crypto {
         Object decrypted = decrypt(data,myKey);
         SignedObject signedData;
 
-        if (decrypted.getClass() == SignedObject.class) {
+        if (decrypted instanceof SignedObject) {
             signedData = (SignedObject) decrypted;
         } else {
             throw new InvalidParameterException("The encrypted object was not signed");
