@@ -1,9 +1,8 @@
 package network;
 
+import java.io.IOException;
 import java.io.Serializable;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.SignedObject;
+import java.security.*;
 
 /**
  * Created by weeeeeew on 2014-04-10.
@@ -21,7 +20,7 @@ public class Handshake implements Serializable {
         this.stage = stage;
     }
 
-    public SignedObject sign(PrivateKey key) {
+    public SignedObject sign(PrivateKey key) throws InvalidKeyException, IOException, SignatureException {
         return Crypto.sign(this,key);
     }
 
