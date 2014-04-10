@@ -126,7 +126,8 @@ public class Crypto {
         if (verify(signedData,otherKey)) {
             return (Serializable) signedData.getObject();
         } else {
-            throw new Exception("ERROR! ERROR! Signature did not match.");
+            System.out.println("in Crypto.decryptAndVerify: ERROR! Signature did not match! Object: "+signedData.getObject());
+            return null;
         }
     }
 

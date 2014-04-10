@@ -22,8 +22,7 @@ import java.io.IOException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 import java.io.Serializable;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -61,9 +60,7 @@ public class TaskPasser extends Passer {
         try {
             secretKey = KeyGenerator.getInstance("HmacSHA256").generateKey();
             hashCash = new HashCash(secretKey);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException|InvalidKeyException e) {
             e.printStackTrace();
         }
     }
