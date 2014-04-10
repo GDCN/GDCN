@@ -38,61 +38,54 @@ public class ProblemTests {
         int calls = 100;
         Boolean[] results = new Boolean[calls];
 
-//        findKeys();
+        findKeys();
 
-        for(int i = 10; i < calls; i++) {
-            results[i] = masterStaysUp(calls, i);
-            System.out.println("number of Sybils: " + i + " number of peers: " + calls +  " Sybils succedded?: " + results[i]);
-        }
+//        for(int i = 10; i < calls; i++) {
+//            results[i] = masterStaysUp(calls, i);
+//            System.out.println("number of Sybils: " + i + " number of peers: " + calls +  " Sybils succedded?: " + results[i]);
+//        }
 //        System.out.println("Number of seconds: " + bothGoesDown());
 
 //        uploaderRejoin();
 //        masterrRejoin();
 
+
     }
 
     private static void findKeys() throws IOException, NoSuchAlgorithmException, InterruptedException {
-        initialize(3, 5000, 0, 0);
-
+        initialize(3, 5000, 0, 2);
 
         FutureDHT futurePut =
-        peers[0].put(Number160.createHash("1")).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
-        futurePut.awaitUninterruptibly();
-
-        futurePut =
-        peers[0].put(Number160.createHash("2")).setData(Number160.createHash("2") ,new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
-        futurePut.awaitUninterruptibly();
-
-        futurePut =
-        peers[0].put(Number160.createHash("3")).setData(Number160.createHash("3") , new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
-        futurePut.awaitUninterruptibly();
-
-        futurePut =
-                peers[1].put(Number160.createHash("10")).setData( new Data( "success" ) ).start();
-        futurePut.awaitUninterruptibly();
-
-        futurePut =
-                peers[1].put(Number160.createHash("20")).setData(Number160.createHash("2") ,new Data( "success" ) ).start();
-        futurePut.awaitUninterruptibly();
-
-        futurePut =
-                peers[1].put(Number160.createHash("30")).setData(Number160.createHash("3") , new Data( "success" ) ).start();
+                peers[0].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
         futurePut.awaitUninterruptibly();
 
         Thread.sleep(1000);
 
-        Peer p = peers[1];
+        System.out.println(futurePut.isSuccess());
 
-        List<PeerAddress> pa = p.getPeerBean().getPeerMap().getAll();
+        futurePut =
+                peers[1].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
 
-        Collection<Number160> fC = p.getPeerBean().getStorage().findContentForResponsiblePeerID(pa.get(0).getID());
-        System.out.println(p.getPeerBean().getStorage().findContentForResponsiblePeerID(p.getPeerID()).size());
+        Thread.sleep(1000);
 
-        System.out.println(fC.size());
+        System.out.println(futurePut.isSuccess());
 
-        fC = p.getPeerBean().getStorage().findContentForResponsiblePeerID(pa.get(1).getID());
+        futurePut =
+                peers[2].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
 
-        System.out.println(fC.size());
+        Thread.sleep(1000);
+
+        System.out.println(futurePut.isSuccess());
+
+        futurePut =
+                peers[0].put(Number160.ONE).setData( new Data( "success" ) ).setDomainKey( peerOwner ).setProtectDomain().start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println(futurePut.isSuccess());
 
         shutdown(peers);
     }
@@ -470,11 +463,11 @@ public class ProblemTests {
 
         peerOwner = Utils.makeSHAHash(peers[peerO].getPeerBean().getKeyPair().getPublic().getEncoded());
 
-        setProtection(peers, StorageGeneric.ProtectionEnable.ALL, StorageGeneric.ProtectionMode.MASTER_PUBLIC_KEY);
+//        setProtection(peers, StorageGeneric.ProtectionEnable.ALL, StorageGeneric.ProtectionMode.MASTER_PUBLIC_KEY);
 
-        for(int i = 0; i < numberSybil; i++) {
-            setProtection(peers[i], StorageGeneric.ProtectionEnable.NONE, StorageGeneric.ProtectionMode.NO_MASTER );
-        }
+//        for(int i = 0; i < numberSybil; i++) {
+//            setProtection(peers[i], StorageGeneric.ProtectionEnable.NONE, StorageGeneric.ProtectionMode.NO_MASTER );
+//        }
     }
 }
 
