@@ -1,5 +1,6 @@
 package network;
 
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
@@ -11,10 +12,18 @@ import net.tomp2p.rpc.ObjectDataReply;
 import javax.crypto.SealedObject;
 import java.io.IOException;
 import java.io.Serializable;
+<<<<<<< HEAD
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
+=======
+import java.security.InvalidParameterException;
+import java.security.PublicKey;
+import java.security.SignedObject;
+import java.util.HashMap;
+import java.util.Map;
+>>>>>>> identities
 
 /**
  * Created by Leif on 2014-03-19.
@@ -27,6 +36,8 @@ abstract class Passer {
 
     private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
 
+    private final Map<PeerAddress,PublicKey> knownPeers = new HashMap<>();
+
     public Passer(final Peer peer) {
         this.peer = peer;
         peer.setObjectDataReply(new ObjectDataReply() {
@@ -37,12 +48,31 @@ abstract class Passer {
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
+<<<<<<< HEAD
                 if(!(request instanceof SealedObject)) {
                     System.out.println("in Passer: ERROR! request is not encrypted! Things *will* fail now.");
                 }
 
                 //TODO Get PublicKey from sender...
                 NetworkMessage message = NetworkMessage.decryptAndVerify((SealedObject) request, getPrivateKey(), sender);
+=======
+                PublicKey senderKey;
+
+                if(request instanceof SignedObject) {
+                    Handshake hs = (Handshake) ((SignedObject) request).getObject();
+                    senderKey = (PublicKey) hs.publicKey;
+
+                    if(Crypto.verify(request,senderKey)) {
+                        knownPeers.put(sender, senderKey);
+                        return hs.reply( getPublicKey() ).sign(getPrivateKey());
+                    } else {
+                        System.out.println("in Passer: Handshake verification failed!");
+                        return null;
+                    }
+                }
+
+                NetworkMessage message = NetworkMessage.decrypt( request);
+>>>>>>> identities
                 if(message == null){
                     //Error has occured in decrypt
                     System.out.println("Decrypt returned NULL!");
@@ -86,10 +116,15 @@ abstract class Passer {
      * @param onReturn what you will do when it answers
      */
     protected void sendRequest(PeerAddress receiver, Serializable message, final OnReplyCommand onReturn){
+        Serializable actualMessage;
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
-        final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
+        if(message instanceof Handshake) {
+            actualMessage = ((Handshake) message).sign(getPrivateKey());
+        } else {
+            final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
 
+<<<<<<< HEAD
         FutureDHT futureDHT = null;
         try {
             //TODO Get PublicKey from receiver...
@@ -99,6 +134,19 @@ abstract class Passer {
             System.out.println("in Passer: Failure during encryption!");
         }
 
+=======
+            PublicKey receiverKey = knownPeers.get(receiver);
+
+            if (receiverKey == null) {
+                System.out.println("receiver has not shaken hands, cannot encrypt.");
+                return;
+            }
+
+            actualMessage = networkMessage.encrypt();
+        }
+
+        FutureDHT futureDHT = sendBuilder.setObject(actualMessage).setRequestP2PConfiguration(requestConfiguration).start();
+>>>>>>> identities
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -127,6 +175,7 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.NO_REPLY);
 
+<<<<<<< HEAD
         FutureDHT futureDHT = null;
         try {
             //TODO Get PublicKey from receiver...
@@ -136,6 +185,16 @@ abstract class Passer {
             System.out.println("in Passer: Failure during encryption!");
         }
 
+=======
+        PublicKey receiverKey = knownPeers.get(receiver);
+
+        if(receiverKey == null) {
+            System.out.println("receiver has not shaken hands, cannot encrypt.");
+            return;
+        }
+
+        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.encrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
+>>>>>>> identities
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -158,7 +217,12 @@ abstract class Passer {
         return peerAddress.getInetAddress().toString();
     }
 
+<<<<<<< HEAD
     protected PrivateKey getPrivateKey() {
         return peer.getPeerBean().getKeyPair().getPrivate();
+=======
+    private PublicKey getPublicKey() {
+        return peer.getPeerBean().getKeyPair().getPublic();
+>>>>>>> identities
     }
 }

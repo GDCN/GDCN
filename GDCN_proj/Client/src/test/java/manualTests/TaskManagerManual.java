@@ -6,7 +6,7 @@ import control.PeerOwner;
 import control.TaskManager;
 import files.TaskMeta;
 import files.TaskMetaDataException;
-import network.TaskPasser;
+import network.StringHolder;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
@@ -19,6 +19,8 @@ import java.util.concurrent.Semaphore;
  * Created by Leif on 2014-04-01.
  *
  * Not really Unit testing but manual testing...
+ *
+ * @deprecated Doesn't read tasks from file anymore but sends in messages
  */
 public class TaskManagerManual {
 
@@ -107,7 +109,7 @@ public class TaskManagerManual {
 
         TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-        manager.startTask("Primes", taskMeta, new TaskPasser.StringHolder(), null);
+        manager.startTask("Primes", taskMeta, new StringHolder(), null);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

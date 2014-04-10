@@ -5,6 +5,8 @@ import taskbuilder.communicationToClient.ValidityListener;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,8 +16,6 @@ import java.util.regex.Pattern;
  * Class for validating results of tasks
  */
 public class Validifier {
-
-    private static final String ACCEPT_WORD = "ok.*";
 
     private final ValidityListener listener;
 
@@ -44,13 +44,15 @@ public class Validifier {
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getInputStream(), writer, null);
 
-                Pattern pattern = Pattern.compile(ACCEPT_WORD, Pattern.DOTALL);
-                Matcher matcher = pattern.matcher(writer.toString().toLowerCase());
-                if (matcher.matches()) {
+                try {
+                    NumberFormat numberFormat = NumberFormat.getInstance();
+                    numberFormat.setParseIntegerOnly(true);
+                    int quality = numberFormat.parse(writer.toString()).intValue();
+
                     // Result accepted
-                    listener.validityOk();
+                    listener.validityOk(quality);
                 }
-                else {
+                catch (ParseException e) {
                     // Result is corrupt
                     listener.validityCorrupt();
                 }
@@ -73,8 +75,8 @@ public class Validifier {
     public static void main(String[] args) {
         ValidityListener vl = new ValidityListener() {
             @Override
-            public void validityOk() {
-                System.out.println("Validity Ok");
+            public void validityOk(int quality) {
+                System.out.println("Validity Ok. Q: "+quality);
             }
 
             @Override

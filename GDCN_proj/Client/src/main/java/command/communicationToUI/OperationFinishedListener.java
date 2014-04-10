@@ -14,7 +14,7 @@ public abstract class OperationFinishedListener implements PropertyChangeListene
     private final CommandWord commandWord;
 
     /**
-     * Listener that will delete itself from the ClientInterface it was added to.
+     * Listener that will delete itself from the ClientInterface it was added to after receiving ONE Message that fits.
      *
      * @param client ClientInterface, will remove itself from this one
      * @param resultKey Key to listen for
@@ -41,5 +41,10 @@ public abstract class OperationFinishedListener implements PropertyChangeListene
         }
     }
 
+    /**
+     * Operation finished. Listener will be removed after this is called. Here is the result of the operation.
+     *
+     * @param operation Result
+     */
     protected abstract void operationFinished(Operation operation);
 }

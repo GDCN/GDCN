@@ -38,6 +38,16 @@ abstract class AbstractFileMaster{
     private volatile boolean operationFailed = false;
     private volatile boolean stillStartingUp = true;
 
+
+    private final PropertyChangeListener operationListener = new PropertyChangeListener() {
+        @Override
+        public void propertyChange(PropertyChangeEvent evt) {
+            if (evt instanceof OperationFinishedEvent) {
+                operationReturned((OperationFinishedEvent) evt);
+            }
+        }
+    };
+
     /**
      * Creates FileMaster object that reads meta-file for a task. Run {@link AbstractFileMaster#runAndAwait()} for
      * solving the dependencies.
@@ -59,14 +69,7 @@ abstract class AbstractFileMaster{
         this.expectedOperation = expectedOperation;
         this.pathManager = pathManager;
 
-        client.addListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                if (evt instanceof OperationFinishedEvent) {
-                    operationReturned((OperationFinishedEvent) evt);
-                }
-            }
-        });
+        client.addListener(operationListener);
 
         //TODO do locally
 //            if(! taskName.equals(taskMeta.taskName)){
@@ -141,6 +144,7 @@ abstract class AbstractFileMaster{
             // since there is no guarantee for another signal (it might have been the last file to be resolved)
 
             System.out.println("Operation failed before enter loop, return FALSE");
+            client.removeListener(operationListener);
             return false;
         }
 
@@ -154,12 +158,13 @@ abstract class AbstractFileMaster{
                 continue;
             }
             if(operationFailed){
+                client.removeListener(operationListener);
                 return false;
             }
             System.out.println("Test monitor condition before exit loop...");
         }
 
-        //Alternatively, ignore await() model and use TaskFailureListener instead...
+        client.removeListener(operationListener);
         return true;
     }
 

@@ -9,8 +9,9 @@ public interface ValidityListener {
 
     /**
      * Called when a validation of a workers result of a task has been successful
+     * @param quality
      */
-    public void validityOk();
+    public void validityOk(int quality);
 
     /**
      * Called when a validation of a workers result of a task has found to be corrupt

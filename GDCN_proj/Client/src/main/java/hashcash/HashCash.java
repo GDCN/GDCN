@@ -25,7 +25,10 @@ public class HashCash {
      *            which can be generated with KeyGenerator.getInstance("HmacSHA256").generateKey()
      */
     public HashCash(SecretKey key) throws InvalidKeyException {
-        this(key,20,30); //TODO Insert real numbers for easy and hard difficulties.
+        this(key,20,25);
+        //TODO Insert real numbers for easy and hard difficulties.
+        // 28-30 seems good for REG. Lowers this for debugging purposes.
+        // perhaps 22-25 for AUTH
     }
 
     /**

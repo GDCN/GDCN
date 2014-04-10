@@ -23,7 +23,7 @@ public class ReplicaBox implements Serializable {
      * @param taskMeta TaskMeta for this replica
      * @param index Index used to generate replicaID
      */
-    public ReplicaBox(TaskMeta taskMeta, int index) {
+    ReplicaBox(TaskMeta taskMeta, int index) {
         this.resultKey = Number160.createHash(random.nextLong());
         this.taskMeta = taskMeta;
         this.replicaID = generateReplicaID(taskMeta, index);

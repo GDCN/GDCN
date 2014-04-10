@@ -5,7 +5,6 @@ import command.communicationToUI.ErrorCode;
 import command.communicationToUI.Operation.OperationBuilder;
 import command.communicationToUI.OperationFinishedSupport;
 import files.DataFilesManager;
-import files.NeighbourFileManager;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
@@ -22,7 +21,8 @@ import taskbuilder.communicationToClient.TaskListener;
 import taskbuilder.fileManagement.Install;
 
 import java.beans.PropertyChangeListener;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.KeyPair;
@@ -30,6 +30,9 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+
 
 /**
  * Created by Leif on 2014-02-17
@@ -39,11 +42,13 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager replicaManager = new ReplicaManager(3);
+    private final ReplicaManager replicaManager;
 
     private DataFilesManager dataFilesManager;
 
-    private NeighbourFileManager neighbourFileManager;
+    private Timer timer;
+
+    private String testPath = File.separator + "TEST";
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -72,42 +77,49 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         notifier.removeListener(listener);
     }
 
+    public PeerOwner() {
+
+        //TODO Make it possible to have a test replicaManager
+        ReplicaManager replicaManager1;
+        dataFilesManager = new DataFilesManager();
+        replicaManager1 = dataFilesManager.getReplicaManager();
+
+        if(replicaManager1 == null) {
+            replicaManager = new ReplicaManager(3);
+
+        } else {
+            replicaManager = replicaManager1;
+        }
+
+    }
 
     @Override
     public void start(int port){
 
-        //Stops the peer if it is running to free the port
-        if(peer != null) {
-            stop();
-        }
-
-//        Good to use if testing multiple peers locally
-//        fileName = fileName + port;
-
-        neighbourFileManager = new NeighbourFileManager();
-        dataFilesManager = new DataFilesManager();
-
-        try {
-
+<<<<<<< HEAD
             //Initiates the peer
             KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
             generator.initialize(2048);
             KeyPair keyPair = generator.generateKeyPair();
+=======
+        dataFilesManager = new DataFilesManager();
+>>>>>>> identities
 
-            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
+        startInitiate(port);
+    }
 
-            //Reads the old neighbours which have been saved to file
+    /**
+     * Only used by tests.
+     *
+     *
+     */
+    public void testStart(int port){
 
-            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(neighbourFileManager.getPeerMapListener());
 
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this);
+        dataFilesManager = new DataFilesManager(testPath, port + "");
 
-        } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
-        }
+        startInitiate(port);
 
-        notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<Integer>(peer != null).setResult(port).create());
     }
 
     @Override
@@ -122,6 +134,12 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             peer.shutdown();
 
             notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
+
+            timer.cancel();
+
+            taskPasser.stopTimer();
+
+            dataFilesManager.saveReplicaManager(replicaManager);
         }
     }
 
@@ -218,7 +236,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             public void operationComplete(FutureDHT future) throws Exception {
                 boolean success = future.isSuccess();
                 notifier.fireOperationFinished(CommandWord.GET,
-                        new OperationBuilder<Data>(success).setKey(key.toString()).setResult(future.getData()).create());
+                        new OperationBuilder<Data>(success).setKey(key).setResult(future.getData()).create());
             }
         });
     }
@@ -239,20 +257,32 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     }
 
     @Override
-    //TODO refactor method signature...
-    public void work(String projectName, String taskName) {
-//        taskManager.startTask(projectName, taskName, this);
+    public void work(String address, int port) {
         //TODO might want to continue on already downloaded task?
-        //TODO supply with real job owner
 
-        PeerAddress jobOwner = null;
-        if (getNeighbours().size()>0){
-            jobOwner = getNeighbours().get(0);
+        if("self".equals(address)){
+            taskPasser.requestWork(peer.getPeerAddress());
         } else {
-            System.out.println("Sorry, no job owner is online. Will try to work on your own tasks instead");
-            jobOwner = peer.getPeerAddress();
+            try {
+                DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
+                discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>(){
+                    @Override
+                    public void operationComplete(FutureDiscover future) throws Exception {
+                        if(!future.isSuccess()){
+                            notifier.fireOperationFinished(CommandWord.WORK,
+                                    new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
+                            return;
+                        }
+                        PeerAddress jobOwner = future.getReporter();
+                        assert ! jobOwner.equals(peer.getPeerAddress());
+
+                        taskPasser.requestWork(jobOwner);
+                    }
+                });
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
         }
-        taskPasser.requestWork(jobOwner);
     }
 
     @Override
@@ -269,7 +299,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
     @Override
     public void reBootstrap() {
 
-        HashSet<PeerAddress> fileNeighbours =  neighbourFileManager.getFileNeighbours();
+        HashSet<PeerAddress> fileNeighbours =  dataFilesManager.getFileNeighbours();
 
         for(PeerAddress p : fileNeighbours) {
             bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
@@ -313,9 +343,9 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
-                String s = future.isSuccess()?"succeeded":"failed";
-                System.out.println("Get2 under "+key+"/"+domain+s);
-                if(future.isSuccess()){
+                String s = future.isSuccess() ? "succeeded" : "failed";
+                System.out.println("Get2 under " + key + "/" + domain + s);
+                if (future.isSuccess()) {
                     System.out.println(future.getData().getObject().toString());
                 }
             }
@@ -325,17 +355,37 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
 
     @Override
     public void setNeighbourFile(String file){
-        neighbourFileManager.changeNeighbourFileName(file);
+        //dataFilesManager.changeNeighbourFileName(file);
     }
 
     @Override
     public void clearNeighbourFile(){
-        neighbourFileManager.clearNeighbourFile();
+        //neighbourFileManager.clearNeighbourFile();
     }
 
     @Override
     public void deleteNeighbourFile(){
-        neighbourFileManager.deleteNeighbourFile();
+        if(dataFilesManager != null) {
+            dataFilesManager.removeNeighbourFile();
+        }
+    }
+
+    public void deleteKeyFile() {
+        if(dataFilesManager != null) {
+            dataFilesManager.removeKeyFile();
+        }
+    }
+
+    public void deleteReplicaManager() {
+        if(dataFilesManager != null) {
+            dataFilesManager.removeReplicaManagerFile();
+        }
+    }
+
+    public void deleteTestDir() {
+        if(dataFilesManager != null) {
+            dataFilesManager.deleteTestDir();
+        }
     }
 
     @Override
@@ -344,4 +394,49 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
         taskPasser.requestWork(getNeighbours().get(index%N));
     }
 
+    private void startInitiate(int port) {
+
+        //Stops the peer if it is running to free the port
+        if(peer != null) {
+            stop();
+        }
+
+        try {
+
+            //Initiates the peer
+            KeyPair keyPair = dataFilesManager.getKeypair();
+
+            if(keyPair == null) {
+                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                keyPair = generator.generateKeyPair();
+                dataFilesManager.saveKeyPair(keyPair);
+            }
+
+            peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
+
+            peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
+
+            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
+
+            timer = new Timer(true);
+
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    dataFilesManager.saveReplicaManager(replicaManager);
+
+                    System.out.println("saving replicaManager");
+
+                }
+            }, 1000 * 120, 1000 * 120);
+
+
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+        notifier.fireOperationFinished(CommandWord.START,
+                new OperationBuilder<Integer>(peer != null).setResult(port).create());
+
+    }
 }

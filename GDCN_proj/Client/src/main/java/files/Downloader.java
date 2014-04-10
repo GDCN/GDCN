@@ -67,18 +67,6 @@ public class Downloader extends AbstractFileMaster {
         return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
     }
 
-
-    /**
-     * @deprecated
-     * TODO remove this method if not needed...
-     *
-     * @param taskName Name of task
-     * @param client Client
-     * @param taskListener Listener
-     * @param pathManager Pathmanager
-     * @return TaskMeta
-     * @throws TaskMetaDataException
-     */
 //    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
 //        final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
 //        if(file.exists()){

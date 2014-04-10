@@ -5,13 +5,16 @@ import files.Downloader;
 import files.JobUploader;
 import files.TaskMeta;
 import files.TaskMetaDataException;
-import network.TaskPasser;
+import network.StringHolder;
 import replica.ReplicaManager;
 import taskbuilder.Task;
 import taskbuilder.communicationToClient.TaskFailureListener;
 import taskbuilder.communicationToClient.TaskListener;
 
 import java.io.FileNotFoundException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by HalfLeif on 2014-02-28.
@@ -23,6 +26,15 @@ public class TaskManager{
     private final TaskListener taskListener;
     private final ClientInterface client;
 
+    private final ExecutorService threadPool = Executors.newFixedThreadPool(4, new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
+
     /**
      *
      * @param taskListener Listener for the different kinds of things TaskManager can do such as Upload job or Work on task
@@ -33,8 +45,17 @@ public class TaskManager{
         this.client = client;
     }
 
-    //TODO use worker pool instead of new Threads
     //TODO handle Listeners more nicely...
+
+    /**
+     * Submits a runnable to run concurrently in the thread pool.
+     * Is currently used for solving challenges concurrently.
+     *
+     * @param runnable Runnable
+     */
+    public void submit(Runnable runnable){
+        threadPool.submit(runnable);
+    }
 
     /**
      * Work on this task
@@ -43,10 +64,10 @@ public class TaskManager{
      * @param resultFileNameHolder Holder that will contain the absolute path of the future result file of this task.
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
-    public void startTask(final String projectName, final TaskMeta taskMeta, final TaskPasser.StringHolder resultFileNameHolder,
+    public void startTask(final String projectName, final TaskMeta taskMeta, final StringHolder resultFileNameHolder,
                           final TaskListener subjectListener){
 
-        Thread downloaderThread = new Thread(new Runnable() {
+        threadPool.submit(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to client (ie PeerOwner). Makes call to his listeners
@@ -88,9 +109,7 @@ public class TaskManager{
                     final String resultPath = task.getResultFilePath();
                     resultFileNameHolder.setString(resultPath);
 
-                    Thread taskThread = new Thread(task);
-                    taskThread.setDaemon(true);
-                    taskThread.start();
+                    threadPool.submit(task);
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
                     //TODO handle job owner error
@@ -98,11 +117,7 @@ public class TaskManager{
 
             }
         });
-        downloaderThread.setDaemon(true);
-        downloaderThread.start();
     }
-
-    //TODO use worker pool instead of new Threads
 
     /**
      * Upload entire job, that is all necessary files within the directory to fulfill the TaskMetas
@@ -110,7 +125,7 @@ public class TaskManager{
      * @param replicaManager Manager that will produce replicas of each task
      */
     public void uploadJob(final String jobName, final ReplicaManager replicaManager){
-        Thread thread = new Thread(new Runnable() {
+        threadPool.submit(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -130,8 +145,6 @@ public class TaskManager{
                 }
             }
         });
-        thread.setDaemon(true);
-        thread.start();
     }
 
 
