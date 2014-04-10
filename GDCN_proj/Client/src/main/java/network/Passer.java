@@ -42,7 +42,7 @@ abstract class Passer {
                 }
 
                 //TODO Get PublicKey from sender...
-                NetworkMessage message = NetworkMessage.decryptAndVerify((SealedObject) request, peer.getPeerBean().getKeyPair().getPrivate(), sender);
+                NetworkMessage message = NetworkMessage.decryptAndVerify((SealedObject) request, getPrivateKey(), sender);
                 if(message == null){
                     //Error has occured in decrypt
                     System.out.println("Decrypt returned NULL!");
