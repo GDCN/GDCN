@@ -24,14 +24,11 @@ import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-<<<<<<< HEAD
 import java.security.*;
-=======
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Timer;
 import java.util.TimerTask;
->>>>>>> identities
 
 /**
  * Created by Leif on 2014-03-29.
@@ -82,11 +79,7 @@ public class TaskPasser extends Passer {
         }
         try {
             hashCash = new HashCash(secretKey);
-<<<<<<< HEAD
-        } catch (NoSuchAlgorithmException|InvalidKeyException e) {
-=======
         } catch (InvalidKeyException e) {
->>>>>>> identities
             e.printStackTrace();
         }
 
@@ -221,27 +214,22 @@ public class TaskPasser extends Passer {
                     taskFailed(taskName, e.getMessage());
                 }
                 if(result != null){
-<<<<<<< HEAD
                     SignedObject signedResult = null;
                     try {
                         signedResult = Crypto.sign(result,getPrivateKey());
                     } catch (InvalidKeyException|IOException|SignatureException e) {
                         e.printStackTrace();
                         System.out.println("in TaskPasser: ERROR! Couldn't sign result.");
+                        return;
                     }
 
-                    if(signedResult != null) {
-                        try {
-                            client.put(resultKey, new Data(signedResult));
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            System.out.println("in TaskPasser: ERROR! Couldn't create Data of the signed result.");
-                        }
+                    try {
+                        System.out.println("\nResult holds "+result.length+" bytes.");
+                        client.put(resultKey, new Data(signedResult));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("in TaskPasser: ERROR! Couldn't create Data of the signed result.");
                     }
-=======
-                    System.out.println("\nResult holds "+result.length+" bytes.");
-                    client.put(resultKey, new Data(result));
->>>>>>> identities
                 }
             }
 
