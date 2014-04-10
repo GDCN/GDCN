@@ -8,7 +8,13 @@ import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
+import javax.crypto.SealedObject;
+import java.io.IOException;
 import java.io.Serializable;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
 
 /**
  * Created by Leif on 2014-03-19.
@@ -31,7 +37,12 @@ abstract class Passer {
                     System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
-                NetworkMessage message = NetworkMessage.decryptAndVerify(request);
+                if(!(request instanceof SealedObject)) {
+                    System.out.println("in Passer: ERROR! request is not encrypted! Things *will* fail now.");
+                }
+
+                //TODO Get PublicKey from sender...
+                NetworkMessage message = NetworkMessage.decryptAndVerify((SealedObject) request, peer.getPeerBean().getKeyPair().getPrivate(), sender);
                 if(message == null){
                     //Error has occured in decrypt
                     System.out.println("Decrypt returned NULL!");
@@ -79,7 +90,15 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
+        FutureDHT futureDHT = null;
+        try {
+            //TODO Get PublicKey from receiver...
+            futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt(getPrivateKey(), receiver) ).setRequestP2PConfiguration(requestConfiguration).start();
+        } catch (InvalidKeyException|SignatureException|IOException e) {
+            e.printStackTrace();
+            System.out.println("in Passer: Failure during encryption!");
+        }
+
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -103,12 +122,20 @@ abstract class Passer {
      * @param receiver peer
      * @param message message
      */
-    protected void sendNoReplyMessage(PeerAddress receiver, Serializable message){
+    protected void sendNoReplyMessage(PeerAddress receiver, Serializable message) {
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.NO_REPLY);
 
-        FutureDHT futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt() ).setRequestP2PConfiguration(requestConfiguration).start();
+        FutureDHT futureDHT = null;
+        try {
+            //TODO Get PublicKey from receiver...
+            futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt(getPrivateKey(), receiver) ).setRequestP2PConfiguration(requestConfiguration).start();
+        } catch (InvalidKeyException|SignatureException|IOException e) {
+            e.printStackTrace();
+            System.out.println("in Passer: Failure during encryption!");
+        }
+
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
@@ -129,5 +156,9 @@ abstract class Passer {
      */
     public static String print(PeerAddress peerAddress){
         return peerAddress.getInetAddress().toString();
+    }
+
+    protected PrivateKey getPrivateKey() {
+        return peer.getPeerBean().getKeyPair().getPrivate();
     }
 }

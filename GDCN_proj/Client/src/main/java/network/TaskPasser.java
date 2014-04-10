@@ -177,7 +177,22 @@ public class TaskPasser extends Passer {
                     taskFailed(taskName, e.getMessage());
                 }
                 if(result != null){
-                    client.put(resultKey, new Data(result));
+                    SignedObject signedResult = null;
+                    try {
+                        signedResult = Crypto.sign(result,getPrivateKey());
+                    } catch (InvalidKeyException|IOException|SignatureException e) {
+                        e.printStackTrace();
+                        System.out.println("in TaskPasser: ERROR! Couldn't sign result.");
+                    }
+
+                    if(signedResult != null) {
+                        try {
+                            client.put(resultKey, new Data(signedResult));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            System.out.println("in TaskPasser: ERROR! Couldn't create Data of the signed result.");
+                        }
+                    }
                 }
             }
 
