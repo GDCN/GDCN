@@ -78,7 +78,9 @@ public class WorkerNodeManager implements Serializable{
      */
     public void reportWorker(WorkerID worker, DisciplinaryAction action){
         if(!registeredWorkers.containsKey(worker)){
-            throw new IllegalArgumentException("Worker doesn't exist");
+            //This can happen when a Worker is reported for not computing the registration task properly.
+            return;
+//            throw new IllegalArgumentException("Worker doesn't exist");
         }
 
         switch (action){

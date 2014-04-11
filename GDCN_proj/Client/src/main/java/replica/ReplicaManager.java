@@ -283,6 +283,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     public synchronized Collection<Replica> pendingReplicas(){
         //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
+        //TODO Actually this would be better handled by ReplicaTimer... Adding this to Sprint log
         return null;
     }
 
