@@ -1,8 +1,10 @@
 package replica;
 
+import network.WorkerID;
 import taskbuilder.Validifier;
 import taskbuilder.communicationToClient.ValidityListener;
 import taskbuilder.fileManagement.PathManager;
+import utils.ByteArray;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,51 +17,41 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private final List<Replica> replicas;
-    private int bestQuality = 0;
+    private final Map<ByteArray, List<WorkerID>> resultMap;
+    private final Map<ByteArray, Trust> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
     private final String program;
+    private final String taskName;
 
+    private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
-    private final Map<Replica, Trust> rewards = new HashMap<>();
 
-    public static Map<Replica, Trust> compareQuality(String jobName, List<Replica> replicas) {
-        QualityControl qualityControl = new QualityControl(jobName, replicas);
+    public static Map<ByteArray, Trust> compareQuality(String jobName, String taskName, Map<ByteArray, List<WorkerID>> resultMap) throws IOException{
+        QualityControl qualityControl = new QualityControl(jobName, taskName, resultMap);
         return qualityControl.compare();
     }
 
-    private QualityControl(String jobName, List<Replica> replicas) {
-        this.replicas = replicas;
+    private QualityControl(String jobName, String taskName, Map<ByteArray, List<WorkerID>> resultMap) throws IOException {
+        this.resultMap = resultMap;
+        this.taskName = taskName;
         pathMan = PathManager.jobOwner(jobName);
-        waitForAll = new CountDownLatch(replicas.size());
-        String program;
-        try {
-            program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-            program = null;
-        }
-        this.program = program;
+        waitForAll = new CountDownLatch(resultMap.size());
+        program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
     }
 
-    private Map<Replica, Trust> compare() {
-        for (Replica replica : replicas) {
-            try {
-                String resultFile = pathMan.projectTempDir() + replica.getReplicaBox().getReplicaID();
-                FileOutputStream fos = new FileOutputStream(resultFile);
-                fos.write(replica.getResult());
-                fos.close();
-                Listener listener = new Listener(replica);
-                Validifier validifier = new Validifier(listener);
-                ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
-                // TODO Limit amount of threads?
-                new Thread(runner).start();
-            }
-            catch (IOException e) {
-                e.printStackTrace();
-            }
+    private Map<ByteArray, Trust> compare() throws IOException {
+        int resultID = 0;
+        for (Map.Entry<ByteArray, List<WorkerID>> entry : resultMap.entrySet()) {
+            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
+            FileOutputStream fos = new FileOutputStream(resultFile);
+            fos.write(entry.getKey().getData());
+            fos.close();
+            Listener listener = new Listener(entry.getKey());
+            Validifier validifier = new Validifier(listener);
+            ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
+            // TODO Limit amount of threads?
+            new Thread(runner).start();
         }
         try {
             waitForAll.await();
@@ -67,39 +59,40 @@ public class QualityControl {
         catch (InterruptedException e) {
             addRemaining();
         }
-        return rewards;
+
+        return trustMap;
     }
 
-    private synchronized void reward(Replica replica) {
-        rewards.put(replica, Trust.TRUSTWORTHY);
+    private synchronized void reward(ByteArray result) {
+        trustMap.put(result, Trust.TRUSTWORTHY);
         waitForAll.countDown();
     }
 
-    private synchronized void punish(Replica replica) {
-        rewards.put(replica, Trust.DECEITFUL);
+    private synchronized void punish(ByteArray result) {
+        trustMap.put(result, Trust.DECEITFUL);
         waitForAll.countDown();
     }
 
-    private synchronized void unknown(Replica replica) {
-        rewards.put(replica, Trust.UNKNOWN);
+    private synchronized void unknown(ByteArray result) {
+        trustMap.put(result, Trust.UNKNOWN);
         waitForAll.countDown();
     }
 
-    private synchronized void punishTrusted(Replica replica, int newQuality) {
-        for (Map.Entry<Replica, Trust> entry : rewards.entrySet()) {
+    private synchronized void punishTrusted(ByteArray result, int newQuality) {
+        for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
             if (entry.getValue() == Trust.TRUSTWORTHY) {
                 entry.setValue(Trust.DECEITFUL);
             }
         }
-        rewards.put(replica, Trust.TRUSTWORTHY);
+        trustMap.put(result, Trust.TRUSTWORTHY);
         bestQuality = newQuality;
         waitForAll.countDown();
     }
 
     private synchronized void addRemaining() {
-        for (Replica replica : replicas) {
-            if (!rewards.containsKey(replica)) {
-                rewards.put(replica, Trust.UNKNOWN);
+        for (Map.Entry<ByteArray, List<WorkerID>> entry : resultMap.entrySet()) {
+            if (!trustMap.containsKey(entry.getKey())) {
+                trustMap.put(entry.getKey(), Trust.UNKNOWN);
             }
         }
     }
@@ -122,34 +115,34 @@ public class QualityControl {
 
     private class Listener implements ValidityListener {
 
-        private final Replica myReplica;
+        private final ByteArray myResult;
 
-        private Listener(Replica myReplica) {
-            this.myReplica = myReplica;
+        private Listener(ByteArray myResult) {
+            this.myResult = myResult;
         }
 
         @Override
         public void validityOk(int quality) {
             if (quality == bestQuality) {
-                reward(myReplica);
+                reward(myResult);
             }
             else if (quality > bestQuality) {
-                punishTrusted(myReplica, quality);
+                punishTrusted(myResult, quality);
 
             }
             else {
-                punish(myReplica);
+                punish(myResult);
             }
         }
 
         @Override
         public void validityCorrupt() {
-            punish(myReplica);
+            punish(myResult);
         }
 
         @Override
         public void validityError(String reason) {
-            unknown(myReplica);
+            unknown(myResult);
         }
     }
 }

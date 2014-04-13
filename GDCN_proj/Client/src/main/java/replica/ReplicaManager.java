@@ -3,7 +3,9 @@ package replica;
 import files.TaskMeta;
 import net.tomp2p.peers.Number160;
 import network.WorkerID;
+import utils.ByteArray;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -148,17 +150,15 @@ public class ReplicaManager implements Serializable{
 
     public void validateResults(String taskName, List<Replica> replicaList){
         String jobName = jobNameOfTask.remove(taskName);
-        List<byte[]> results = new ArrayList<>();
-        for (Replica replica : replicaList) {
 
-        }
-        if (EqualityControl.compareData(results)) {
-            //Reward all!
-        }
-        else {
-            QualityControl.compareQuality(jobName, replicaList);
-            //TODO Implement choice of automatic or manual result validation
+        Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
+        try {
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskName, resultMap);
             //TODO Implement actual reward and punishment of peers
         }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        //TODO Implement choice of automatic or manual result validation
     }
 }

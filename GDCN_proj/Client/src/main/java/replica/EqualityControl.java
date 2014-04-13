@@ -1,32 +1,31 @@
 package replica;
 
+import network.WorkerID;
+import utils.ByteArray;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by joakim on 4/2/14.
  */
 public class EqualityControl {
 
-    public static boolean compareData(List<byte[]> data) {
-        byte[] prev = null;
-        for (byte[] curr : data) {
-            if (prev != null && curr.length != prev.length) {
-                return false;
+    public static Map<ByteArray, List<WorkerID>> compareData(List<Replica> replicas) {
+        Map<ByteArray, List<WorkerID>> map = new HashMap<>();
+
+        for (Replica replica : replicas) {
+            ByteArray result = new ByteArray(replica.getResult());
+            List<WorkerID> list = map.get(result);
+            if (list == null) {
+                list = new ArrayList<>();
+                map.put(result, list);
             }
-            prev = curr;
+            list.add(replica.getWorker());
         }
 
-        prev = null;
-        for (byte[] curr : data) {
-            if (prev != null) {
-                for (int i = 0; i < curr.length; i++) {
-                    if (curr[i] != prev[i]) {
-                        return false;
-                    }
-                }
-            }
-            prev = curr;
-        }
-        return true;
+        return map;
     }
 }
