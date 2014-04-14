@@ -5,6 +5,7 @@ import org.testng.annotations.Test;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.SealedObject;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.*;
 import java.util.Random;
@@ -28,6 +29,10 @@ public class CryptoTest {
         SealedObject encMsg = Crypto.encrypt(message,keypair.getPublic());
 
         assert message.equals((String) Crypto.decrypt(encMsg,keypair.getPrivate()));
+
+        PrivateKey wrongKey = keygen.generateKeyPair().getPrivate();
+
+        assert Crypto.decrypt(encMsg,wrongKey) == null;
     }
 
     @Test
@@ -36,23 +41,10 @@ public class CryptoTest {
         SignedObject signedObject = Crypto.sign(randomString(), keypair.getPrivate());
 
         assert Crypto.verify(signedObject, keypair.getPublic());
-    }
 
-    @Test(expectedExceptions = BadPaddingException.class)
-    public void testWrongDecryption() throws Exception {
-        PublicKey publicKey = keygen.generateKeyPair().getPublic();
-        PrivateKey wrongPrivateKey = keygen.generateKeyPair().getPrivate();
-        SealedObject encMsg = Crypto.encrypt(randomString(), publicKey);
-        Crypto.decrypt(encMsg, wrongPrivateKey);
-    }
+        PublicKey wrongKey = keygen.generateKeyPair().getPublic();
 
-    @Test
-    public void testWrongVerification() throws Exception {
-        PrivateKey privateKey = keygen.generateKeyPair().getPrivate();
-        PublicKey wrongPublicKey = keygen.generateKeyPair().getPublic();
-        SignedObject signedObject = Crypto.sign(randomString(), privateKey);
-
-        assert !Crypto.verify(signedObject,wrongPublicKey);
+        assert !Crypto.verify(signedObject, wrongKey);
     }
 
     @Test
@@ -62,6 +54,18 @@ public class CryptoTest {
         SignedObject signedObject = Crypto.sign(message, privateKey);
 
         assert message.equals((String) signedObject.getObject());
+    }
+
+    @Test
+    public void testSignEncrypt() throws Exception {
+        KeyPair signKeys = keygen.generateKeyPair();
+        KeyPair encryptKeys = keygen.generateKeyPair();
+        String msg = randomString();
+
+        SealedObject sealedObject = Crypto.signAndEncrypt(msg, signKeys.getPrivate(), encryptKeys.getPublic());
+        Serializable decrypted = Crypto.decryptAndVerify(sealedObject, encryptKeys.getPrivate(), signKeys.getPublic());
+
+        assert msg.equals(decrypted);
     }
 
 
