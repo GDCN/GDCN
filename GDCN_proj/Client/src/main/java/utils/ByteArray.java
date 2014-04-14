@@ -1,5 +1,6 @@
 package utils;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -8,7 +9,7 @@ import java.util.Arrays;
  *
  * Created by joakim on 4/13/14.
  */
-public class ByteArray {
+public class ByteArray implements Serializable {
 
     private final byte[] data;
     private int computedHashCode;
