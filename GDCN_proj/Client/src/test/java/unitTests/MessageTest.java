@@ -34,8 +34,7 @@ public class MessageTest {
         SealedObject encrypted = message.signAndEncrypt(myKeyPair.getPrivate(), otherKeyPair.getPublic());
         NetworkMessage decrypted = NetworkMessage.decryptAndVerify(encrypted, otherKeyPair.getPrivate(), myKeyPair.getPublic());
 
-        assert decrypted.getType() == message.getType();
-        assert decrypted.getObject().equals(message.getObject());
+        assert decrypted.equals(message);
     }
 
     private String randomString() {

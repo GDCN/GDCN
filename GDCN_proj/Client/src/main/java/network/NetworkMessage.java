@@ -54,5 +54,9 @@ public class NetworkMessage implements Serializable {
         NO_REPLY
     }
 
+    @Override
+    public boolean equals(Object other) {
+        return other instanceof NetworkMessage ? this.object.equals( ((NetworkMessage) other).object ) && this.type == ((NetworkMessage) other).type : false;
+    }
 
 }
