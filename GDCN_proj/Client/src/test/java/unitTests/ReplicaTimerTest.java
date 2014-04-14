@@ -3,8 +3,8 @@ package unitTests;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import replica.Outdater;
-import replica.ReplicaTimer;
+import se.chalmers.gdcn.replica.Outdater;
+import se.chalmers.gdcn.replica.ReplicaTimer;
 
 import java.io.IOException;
 import java.util.Calendar;

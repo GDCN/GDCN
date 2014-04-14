@@ -1,12 +1,12 @@
 package attack;
 
-import hashcash.HashCash;
+import se.chalmers.gdcn.hashcash.HashCash;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.PeerAddress;
-import network.DeceitfulNetworkUtils;
-import network.OnReplyCommand;
-import network.TaskPasserDOS;
-import network.WorkerID;
+import se.chalmers.gdcn.network.DeceitfulNetworkUtils;
+import se.chalmers.gdcn.network.OnReplyCommand;
+import se.chalmers.gdcn.network.TaskPasserDOS;
+import se.chalmers.gdcn.network.WorkerID;
 import org.testng.annotations.Test;
 
 import javax.crypto.KeyGenerator;

@@ -1,9 +1,9 @@
 package manualTests;
 
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.Operation;
-import command.communicationToUI.OperationFinishedListener;
-import control.PeerOwner;
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.Operation;
+import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
+import se.chalmers.gdcn.control.PeerOwner;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;

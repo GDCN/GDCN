@@ -1,7 +1,7 @@
 package unitTests;
 
-import control.WorkerNodeManager;
-import network.WorkerID;
+import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.network.WorkerID;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

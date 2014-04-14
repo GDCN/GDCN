@@ -1,18 +1,18 @@
 package attack;
 
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.NetworkInterface;
-import command.communicationToUI.Operation;
-import command.communicationToUI.OperationFinishedSupport;
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.NetworkInterface;
+import se.chalmers.gdcn.communicationToUI.Operation;
+import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import network.DeceitfulNetworkUtils;
-import network.OnReplyCommand;
-import network.TaskPasserDeny;
+import se.chalmers.gdcn.network.DeceitfulNetworkUtils;
+import se.chalmers.gdcn.network.OnReplyCommand;
+import se.chalmers.gdcn.network.TaskPasserDeny;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
