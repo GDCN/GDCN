@@ -29,11 +29,21 @@ public class NetworkMessage implements Serializable {
     }
 
     public SealedObject signAndEncrypt(PrivateKey myKey, PublicKey otherKey) throws InvalidKeyException, IOException, SignatureException {
-        return Crypto.signAndEncrypt(this,myKey,otherKey);
+        try {
+            return Crypto.signAndEncrypt(this,myKey,otherKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     public static NetworkMessage decryptAndVerify(SealedObject sealedData, PrivateKey myKey, PublicKey otherKey) throws ClassNotFoundException, SignatureException, InvalidKeyException, IOException {
-        Serializable data = Crypto.decryptAndVerify(sealedData,myKey,otherKey);
+        Serializable data = null;
+        try {
+            data = Crypto.decryptAndVerify(sealedData, myKey, otherKey);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         if (data instanceof NetworkMessage) {
             return (NetworkMessage) data;
