@@ -1,12 +1,12 @@
 package manualTests;
 
-import command.communicationToUI.ClientInterface;
-import control.PeerOwner;
-import files.JobUploader;
-import replica.ReplicaManager;
-import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.communicationToUI.ClientInterface;
+import se.chalmers.gdcn.control.PeerOwner;
+import se.chalmers.gdcn.files.JobUploader;
+import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 /**
  * Created by Leif on 2014-04-01.

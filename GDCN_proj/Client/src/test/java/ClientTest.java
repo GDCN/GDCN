@@ -1,6 +1,6 @@
-import control.PeerOwner;
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.OperationFinishedEvent;
+import se.chalmers.gdcn.control.PeerOwner;
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.AfterMethod;

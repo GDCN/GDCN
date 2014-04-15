@@ -1,16 +1,16 @@
 package manualTests;
 
 import com.google.gson.Gson;
-import command.communicationToUI.ClientInterface;
-import control.PeerOwner;
-import control.TaskManager;
-import files.TaskMeta;
-import files.TaskMetaDataException;
-import network.TaskPasser;
-import replica.ReplicaManager;
-import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.communicationToUI.ClientInterface;
+import se.chalmers.gdcn.control.PeerOwner;
+import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.files.TaskMetaDataException;
+import se.chalmers.gdcn.network.StringHolder;
+import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.concurrent.Semaphore;
@@ -19,6 +19,8 @@ import java.util.concurrent.Semaphore;
  * Created by Leif on 2014-04-01.
  *
  * Not really Unit testing but manual testing...
+ *
+ * @deprecated Doesn't read tasks from file anymore but sends in messages
  */
 public class TaskManagerManual {
 
@@ -107,7 +109,7 @@ public class TaskManagerManual {
 
         TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-        manager.startTask("Primes", taskMeta, new TaskPasser.StringHolder(), null);
+        manager.startTask("Primes", taskMeta, new StringHolder(), null);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

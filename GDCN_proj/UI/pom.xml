@@ -5,7 +5,7 @@
     <parent>
         <artifactId>GDCN</artifactId>
         <groupId>GDCN</groupId>
-        <version>0.2</version>
+        <version>0.3</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,7 +25,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>ui.console.Console</mainClass>
+                    <mainClass>se.chalmers.gdcn.ui.Console</mainClass>
                 </configuration>
             </plugin>
         </plugins>
@@ -35,7 +35,7 @@
         <dependency>
             <groupId>GDCN</groupId>
             <artifactId>Client</artifactId>
-            <version>0.2</version>
+            <version>0.3</version>
         </dependency>
 
     </dependencies>

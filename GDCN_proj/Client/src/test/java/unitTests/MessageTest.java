@@ -1,6 +1,6 @@
 package unitTests;
 
-import network.NetworkMessage;
+import se.chalmers.gdcn.network.NetworkMessage;
 import org.testng.annotations.Test;
 
 /**

@@ -1,7 +1,7 @@
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.File;
 import java.io.FileInputStream;
