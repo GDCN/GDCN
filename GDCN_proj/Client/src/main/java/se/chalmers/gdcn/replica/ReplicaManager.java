@@ -23,7 +23,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     private final int CALENDAR_FIELD;
     private final int CALENDAR_VALUE;
 
-    private final Deque<Replica> stagedReplicas = new ArrayDeque<>();
+//    private final Deque<Replica> stagedReplicas = new ArrayDeque<>();
     private final Map<String, Replica> replicaMap = new HashMap<>();
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
@@ -135,7 +135,8 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         clone.assignedTasks.putAll(this.assignedTasks);
         clone.finishedReplicasTaskMap.putAll(this.finishedReplicasTaskMap);
         clone.replicaMap.putAll(this.replicaMap);
-        clone.stagedReplicas.addAll(this.stagedReplicas);
+        //todo update
+//        clone.stagedReplicas.addAll(this.stagedReplicas);
 
         return clone;
     }
@@ -174,14 +175,17 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             return;
             //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
         }
-        Random random = new Random();
-        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-
-        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
-            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-        }
-        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-        stagedReplicas.addFirst(replica);
+//        Random random = new Random();
+//        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
+//
+//        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
+//            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
+//        }
+//        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
+//        stagedReplicas.addFirst(replica);
+        //TODO fix reputation
+        int workerReputation = 1;
+        //todo implement!
     }
 
     /**
@@ -198,17 +202,14 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
                 return workerReputation;
             }
         };
-        //TODO
-
-
-        ///////////////////////
-        //todo fix this
+        
         Set<TaskData> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
             assignedTasks.put(worker, alreadyGiven);
         }
 
+        //Shallow copy intended
         TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
         notGiven.removeAll(alreadyGiven);
 

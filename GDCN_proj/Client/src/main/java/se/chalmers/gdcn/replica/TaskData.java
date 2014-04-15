@@ -24,7 +24,12 @@ public class TaskData implements TaskCompare, Serializable{
     public Replica giveReplica(float reputation){
         replicasLeft--;
         reputationNeeded-=reputation;
+        //TODO replica ID must be unique!
         return new Replica(taskMeta);
+    }
+
+    public String getJobName() {
+        return jobName;
     }
 
     @Override
