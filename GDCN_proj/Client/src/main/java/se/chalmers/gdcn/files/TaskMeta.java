@@ -54,7 +54,8 @@ public class TaskMeta implements Serializable {
         return module;
     }
 
-    List<FileDep> getDependencies() {
+    //TODO Visibility changed for convenience for QualityControl, may exist better solution
+    public List<FileDep> getDependencies() {
         return new ArrayList<>(dependencies);
     }
 }

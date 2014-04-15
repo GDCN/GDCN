@@ -3,7 +3,9 @@ package se.chalmers.gdcn.replica;
 import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.utils.ByteArray;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -29,6 +31,9 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     // Used for decision making based on reputation
     private final TreeSet<TaskData> taskDatas = new TreeSet<>();
+
+    private final Map<String, String> jobNameOfTask = new HashMap<>();
+
 
     private ReplicaTimer replicaTimer = null;
 
@@ -127,8 +132,9 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      *
      * @param tasks List of TaskMeta objects
      */
-    public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
+    public synchronized void loadTasksAndReplicate(String jobName, List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
+            jobNameOfTask.put(task.getTaskName(), jobName);
             for(int i=0; i<REPLICAS; ++i){
                 Replica replica = new Replica(task);
                 replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
@@ -245,7 +251,8 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         }
 
         replica.setResult(result);
-        final String taskName = replica.getReplicaBox().getTaskMeta().getTaskName();
+        final TaskMeta taskMeta = replica.getReplicaBox().getTaskMeta();
+        final String taskName = taskMeta.getTaskName();
 
         //TODO what if this return is a late-comer? Ie enough replica results have been given already
 
@@ -259,7 +266,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             //This is the Last replica to return for this task
             finishedReplicasTaskMap.remove(taskName);
             returnedReplicas.add(replica);
-            validateResults(returnedReplicas);
+            validateResults(taskMeta, returnedReplicas);
         } else {
             returnedReplicas.add(replica);
         }
@@ -295,7 +302,18 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         return null;
     }
 
-    public void validateResults(List<Replica> replicaList){
+    public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
         //TODO Validate results! Perhaps use interface (ie Strategy pattern)?
+        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
+
+        Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
+        try {
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
+            //TODO Implement actual reward and punishment of peers
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        //TODO Implement choice of automatic or manual result validation
     }
 }

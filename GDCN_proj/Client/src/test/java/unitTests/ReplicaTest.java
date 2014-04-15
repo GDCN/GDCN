@@ -268,6 +268,6 @@ public class ReplicaTest {
     private static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);
-        replicaManager.loadTasksAndReplicate(taskMetas);
+        replicaManager.loadTasksAndReplicate("jobName", taskMetas);
     }
 }
