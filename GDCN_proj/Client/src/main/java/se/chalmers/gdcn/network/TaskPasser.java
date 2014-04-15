@@ -298,6 +298,7 @@ public class TaskPasser extends Passer {
                 FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
                 WorkerID worker = taskMessage.getSenderID();
                 //TODO check reputation as well?
+                //TODO handle in ReplicaManager2 instead
                 if(replicaManager.isWorkerAssignedReplica(worker, failMessage.getReplicaID())){
                     System.out.println("My task failed! Reason: "+failMessage.getReason());
                     replicaManager.replicaFailed(failMessage.getReplicaID());

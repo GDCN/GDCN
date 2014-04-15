@@ -21,11 +21,10 @@ public class TaskData implements TaskCompare, Serializable{
         this.reputationNeeded = reputationNeeded;
     }
 
-    public Replica giveReplica(float reputation){
+    public TaskMeta giveTask(float reputation){
         replicasLeft--;
         reputationNeeded-=reputation;
-        //TODO replica ID must be unique!
-        return new Replica(taskMeta);
+        return taskMeta;
     }
 
     public String getJobName() {
@@ -34,6 +33,12 @@ public class TaskData implements TaskCompare, Serializable{
 
     @Override
     public float value(){
+        if(reputationNeeded == 0){
+            return 0;
+        }
+        if(replicasLeft == 0){
+            return Float.MAX_VALUE;
+        }
         return reputationNeeded/replicasLeft;
     }
 }

@@ -218,7 +218,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             assign = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
-        Replica replica = assign.giveReplica(workerReputation);
+        Replica replica = assign.giveTask(workerReputation);
         ReplicaBox replicaBox = replica.getReplicaBox();
 
         alreadyGiven.add(assign);
