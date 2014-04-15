@@ -125,7 +125,9 @@ public class WorkerNodeManager implements Serializable{
      */
     public int getReputation(WorkerID worker){
         if(!registeredWorkers.containsKey(worker)){
-            throw new IllegalArgumentException("Worker doesn't exist");
+            //TODO update tests
+            return 0;
+//            throw new IllegalArgumentException("Worker doesn't exist");
         }
 
         return registeredWorkers.get(worker);

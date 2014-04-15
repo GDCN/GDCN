@@ -76,13 +76,7 @@ public class WorkerManagementTest {
 
     @Test
     public void exceptionTestReputation(){
-        boolean exceptionThrown = false;
-        try{
-            workerNodeManager.getReputation(workerA);
-        } catch (IllegalArgumentException e){
-            exceptionThrown = true;
-        }
-        assert exceptionThrown;
+        assert 0 == workerNodeManager.getReputation(workerA);
     }
 
     @Test

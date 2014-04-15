@@ -29,7 +29,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
 
-    private final static Comparator<TaskCompare> TASK_COMPARE = new Comparator<TaskCompare>() {
+    private static class TaskComparator implements Comparator<TaskCompare>, Serializable {
         @Override
         public int compare(TaskCompare o1, TaskCompare o2) {
             if(o1.value()>o2.value()){
@@ -40,10 +40,10 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
                 return 0;
             }
         }
-    };
+    }
 
     // Used for decision making based on reputation
-    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(TASK_COMPARE);
+    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator());
 
     private ReplicaTimer replicaTimer = null;
 
@@ -218,13 +218,14 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             assign = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
-        Replica replica = assign.giveTask(workerReputation);
-        ReplicaBox replicaBox = replica.getReplicaBox();
-
-        alreadyGiven.add(assign);
-        replicaTimer.add(replicaBox.getReplicaID(), replicaDeadline());
-        replicaMap.put(replicaBox.getReplicaID(), replica);
-        return replicaBox;
+//        Replica replica = assign.giveTask(workerReputation);
+//        ReplicaBox replicaBox = replica.getReplicaBox();
+//
+//        alreadyGiven.add(assign);
+//        replicaTimer.add(replicaBox.getReplicaID(), replicaDeadline());
+//        replicaMap.put(replicaBox.getReplicaID(), replica);
+//        return replicaBox;
+        return null;
 
 //        Stack<Replica> skipped = null;
 //        try{

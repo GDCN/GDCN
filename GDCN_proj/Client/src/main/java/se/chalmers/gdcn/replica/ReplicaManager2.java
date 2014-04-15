@@ -18,20 +18,23 @@ import java.util.*;
 public class ReplicaManager2 implements Serializable{
 
     private final int REPLICAS;
-    private final int EXPECTED_RESULTS;
     private final int EXPECTED_REPUTATION;
 
     private final int CALENDAR_FIELD;
     private final int CALENDAR_VALUE;
 
+    private final WorkerNodeManager workerNodeManager;
+    private ReplicaTimer2 replicaTimer = null;
+
     private final Map<String, Replica2> replicaMap = new HashMap<>();
-//    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
-    private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
-
-    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(TASK_COMPARE); // Used for decision making based on reputation
     private final Map<String, TaskData> taskDataMap = new HashMap<>();
+//    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
-    private final static Comparator<TaskCompare> TASK_COMPARE = new Comparator<TaskCompare>() {
+    private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
+    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
+
+
+    private static class TaskComparator implements Comparator<TaskCompare>, Serializable {
         @Override
         public int compare(TaskCompare o1, TaskCompare o2) {
             if(o1.value()>o2.value()){
@@ -42,20 +45,17 @@ public class ReplicaManager2 implements Serializable{
                 return 0;
             }
         }
-    };
-
-    private final WorkerNodeManager workerNodeManager;
-    private ReplicaTimer2 replicaTimer = null;
+    }
 
     public ReplicaManager2(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
 
-        REPLICAS = 3;
-        EXPECTED_RESULTS = REPLICAS;
+        //TODO stop hardcoding values, make Builder class later
+        REPLICAS = 2;
         EXPECTED_REPUTATION = 3;
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
-//        replicaTimer = new ReplicaTimer2(this, updateInterval);
+        replicaTimer = new ReplicaTimer2(updateInterval);
         resumeTimer();
         workerNodeManager = new WorkerNodeManager(myWorkerID);
     }
@@ -66,8 +66,6 @@ public class ReplicaManager2 implements Serializable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-//        replicaTimer.setOutdater(this);
-
         Thread timerThread = new Thread(replicaTimer.createUpdater());
         timerThread.setDaemon(true);
 
@@ -93,7 +91,7 @@ public class ReplicaManager2 implements Serializable{
      *
      * @param replicaID Replica that was outdated
      */
-    private synchronized void replicaOutdated(String replicaID){
+    public synchronized void replicaOutdated(String replicaID){
 //        Replica oldReplica = replicaMap.get(replicaID);
 //        if(oldReplica==null){
 //            //It might already be returned! Hence not present in replicaMap
