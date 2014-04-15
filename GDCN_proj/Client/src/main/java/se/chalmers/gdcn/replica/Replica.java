@@ -23,10 +23,10 @@ class Replica implements Serializable{
      * Generates a ReplicaBox that will be sent to a specific worker node.
      *
      * @param taskMeta TaskMeta for this replica
-     * @param index Index used to generate replicaID
+     *
      */
-    Replica(TaskMeta taskMeta, int index) {
-        replicaBox = new ReplicaBox(taskMeta, index);
+    Replica(TaskMeta taskMeta) {
+        replicaBox = new ReplicaBox(taskMeta);
     }
 
     @Override

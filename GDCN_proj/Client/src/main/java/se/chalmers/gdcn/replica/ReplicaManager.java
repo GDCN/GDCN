@@ -16,6 +16,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
     private final int REPLICAS;
     private final int EXPECTED_RESULTS;
+    private final int EXPECTED_REPUTATION = 3;
 
     private final int CALENDAR_FIELD;
     private final int CALENDAR_VALUE;
@@ -25,6 +26,9 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
+
+    // Used for decision making based on reputation
+    private final TreeSet<TaskData> taskDatas = new TreeSet<>();
 
     private ReplicaTimer replicaTimer = null;
 
@@ -126,10 +130,12 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     public synchronized void loadTasksAndReplicate(List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
             for(int i=0; i<REPLICAS; ++i){
-                Replica replica = new Replica(task, i);
+                Replica replica = new Replica(task);
                 replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
                 stagedReplicas.addFirst(replica);
             }
+            //TODO fix this
+            taskDatas.add(new TaskData(task, REPLICAS, EXPECTED_REPUTATION));
         }
     }
 
@@ -150,10 +156,10 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
         }
         Random random = new Random();
-        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta(), random.nextInt());
+        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
 
         while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
-            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta(), random.nextInt());
+            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
         }
         replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
         stagedReplicas.addFirst(replica);
@@ -166,6 +172,8 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
+
+        //todo fix this
         Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();

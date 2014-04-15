@@ -21,12 +21,12 @@ public class ReplicaBox implements Serializable {
      * ReplicaBox is the serialized object that is sent to a Worker in a message.
      *
      * @param taskMeta TaskMeta for this replica
-     * @param index Index used to generate replicaID
+     *
      */
-    ReplicaBox(TaskMeta taskMeta, int index) {
+    ReplicaBox(TaskMeta taskMeta) {
         this.resultKey = Number160.createHash(random.nextLong());
         this.taskMeta = taskMeta;
-        this.replicaID = generateReplicaID(taskMeta, index);
+        this.replicaID = generateReplicaID(taskMeta);
     }
 
     @Override
@@ -71,8 +71,9 @@ public class ReplicaBox implements Serializable {
         return resultKey;
     }
 
-    private static String generateReplicaID(TaskMeta taskMeta, int index){
-        return taskMeta.getTaskName() + index;
+    private static String generateReplicaID(TaskMeta taskMeta){
+        return taskMeta.getTaskName() + random.nextLong();
+        //TODO make deterministic?
         //TODO hash replicaID or something, should not be so obvious, or should it?
     }
 }
