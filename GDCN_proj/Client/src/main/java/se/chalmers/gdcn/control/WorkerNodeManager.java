@@ -57,10 +57,14 @@ public class WorkerNodeManager implements Serializable{
     /**
      *
      * @param worker Worker node
-     * @return true if and only if worker is registered
+     * @return true if and only if worker is registered and has reputation.
      */
-    public boolean isWorkerRegistered(WorkerID worker){
-        return registeredWorkers.keySet().contains(worker);
+    public boolean hasWorkerReputation(WorkerID worker){
+        if(!registeredWorkers.keySet().contains(worker)){
+            return false;
+        }
+        Integer rep = registeredWorkers.get(worker);
+        return rep != null && rep > 0;
     }
 
     /**

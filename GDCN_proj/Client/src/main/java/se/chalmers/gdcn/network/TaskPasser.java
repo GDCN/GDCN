@@ -242,7 +242,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
-                Challenge challenge = workerNodeManager.isWorkerRegistered(workerID)?
+                Challenge challenge = workerNodeManager.hasWorkerReputation(workerID)?
                         hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
 //                        : hashCash.generateChallenge(HashCash.Purpose.REGISTER, myWorkerID.toString() + workerID.toString(), 15);
                         : hashCash.generateRegistrationChallenge(myWorkerID, workerID);

@@ -36,11 +36,14 @@ public class WorkerManagementTest {
 
     @Test
     public void registerTest() throws NoSuchAlgorithmException {
-        assert ! workerNodeManager.isWorkerRegistered(workerA);
+        assert ! workerNodeManager.hasWorkerReputation(workerA);
         assert workerNodeManager.registerWorker(workerA);
 
-        assert workerNodeManager.isWorkerRegistered(workerA);
-        assert workerNodeManager.isWorkerRegistered(new WorkerID(keyPairA.getPublic()));
+        assert ! workerNodeManager.hasWorkerReputation(workerA);
+        workerNodeManager.promoteWorker(workerA);
+
+        assert workerNodeManager.hasWorkerReputation(workerA);
+        assert workerNodeManager.hasWorkerReputation(new WorkerID(keyPairA.getPublic()));
     }
 
     @Test
@@ -48,7 +51,7 @@ public class WorkerManagementTest {
         assert workerNodeManager.registerWorker(workerA);
         workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.REMOVE);
 
-        assert ! workerNodeManager.isWorkerRegistered(workerA);
+        assert ! workerNodeManager.hasWorkerReputation(workerA);
     }
 
     @Test
@@ -85,14 +88,4 @@ public class WorkerManagementTest {
         assert exceptionThrown;
     }
 
-    @Test
-    public void exceptionTestReport(){
-        boolean exceptionThrown = false;
-        try{
-            workerNodeManager.reportWorker(workerA);
-        } catch (IllegalArgumentException e){
-            exceptionThrown = true;
-        }
-        assert exceptionThrown;
-    }
 }
