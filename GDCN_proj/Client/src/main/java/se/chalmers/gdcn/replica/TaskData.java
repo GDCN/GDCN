@@ -2,10 +2,12 @@ package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
 
+import java.io.Serializable;
+
 /**
  * Created by HalfLeif on 2014-04-15.
  */
-public class TaskData implements Comparable<TaskData>{
+public class TaskData implements TaskCompare, Serializable{
     private final TaskMeta taskMeta;
 
     private int replicasLeft;
@@ -23,18 +25,8 @@ public class TaskData implements Comparable<TaskData>{
         return new Replica(taskMeta);
     }
 
-    private float value(){
-        return reputationNeeded/replicasLeft;
-    }
-
     @Override
-    public int compareTo(TaskData o) {
-        if(value()>o.value()){
-            return 1;
-        } else if(value()<o.value()){
-            return -1;
-        } else{
-            return 0;
-        }
+    public float value(){
+        return reputationNeeded/replicasLeft;
     }
 }

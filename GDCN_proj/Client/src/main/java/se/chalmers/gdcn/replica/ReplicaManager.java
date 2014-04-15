@@ -30,7 +30,18 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
 
     // Used for decision making based on reputation
-    private final TreeSet<TaskData> taskDatas = new TreeSet<>();
+    private final TreeSet<TaskData> taskDatas = new TreeSet<>(new Comparator<TaskCompare>() {
+        @Override
+        public int compare(TaskCompare o1, TaskCompare o2) {
+            if(o1.value()>o2.value()){
+                return 1;
+            } else if(o1.value()<o2.value()){
+                return -1;
+            } else{
+                return 0;
+            }
+        }
+    });
 
     private final Map<String, String> jobNameOfTask = new HashMap<>();
 
@@ -178,6 +189,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
+
 
         //todo fix this
         Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
