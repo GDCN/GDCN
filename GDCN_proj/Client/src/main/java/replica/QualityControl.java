@@ -1,5 +1,7 @@
 package replica;
 
+import files.FileDep;
+import files.TaskMeta;
 import network.WorkerID;
 import taskbuilder.Validifier;
 import taskbuilder.communicationToClient.ValidityListener;
@@ -23,21 +25,26 @@ public class QualityControl {
     private final PathManager pathMan;
     private final String program;
     private final String taskName;
+    private final List<String> taskDeps;
 
     private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
-    public static Map<ByteArray, Trust> compareQuality(String jobName, String taskName, Map<ByteArray, List<WorkerID>> resultMap) throws IOException{
-        QualityControl qualityControl = new QualityControl(jobName, taskName, resultMap);
+    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, List<WorkerID>> resultMap) throws IOException{
+        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
 
-    private QualityControl(String jobName, String taskName, Map<ByteArray, List<WorkerID>> resultMap) throws IOException {
+    private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, List<WorkerID>> resultMap) throws IOException {
         this.resultMap = resultMap;
-        this.taskName = taskName;
+        taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
         waitForAll = new CountDownLatch(resultMap.size());
         program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
+        taskDeps = new ArrayList<>();
+        for (FileDep fileDep : taskMeta.getDependencies()) {
+            taskDeps.add(pathMan.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
+        }
     }
 
     private Map<ByteArray, Trust> compare() throws IOException {
@@ -109,7 +116,7 @@ public class QualityControl {
 
         @Override
         public void run() {
-            validifier.testResult(program, resultFile);
+            validifier.testResult(program, resultFile, taskDeps);
         }
     }
 

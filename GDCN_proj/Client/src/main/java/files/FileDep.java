@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * Represent one file that has to be resolved for Task to compile or run
  */
-class FileDep implements Serializable {
+public class FileDep implements Serializable {
     private String fileName;
     private String fileLocation;
     private String dhtKey;

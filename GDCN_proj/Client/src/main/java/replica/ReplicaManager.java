@@ -121,7 +121,8 @@ public class ReplicaManager implements Serializable{
         }
 
         replica.setResult(result);
-        final String taskName = replica.getReplicaBox().getTaskMeta().getTaskName();
+        final TaskMeta taskMeta = replica.getReplicaBox().getTaskMeta();
+        final String taskName = taskMeta.getTaskName();
 
         List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
         if(returnedReplicas==null){
@@ -133,7 +134,7 @@ public class ReplicaManager implements Serializable{
             //This is the Last replica to return for this task
             finishedReplicasTaskMap.remove(taskName);
             returnedReplicas.add(replica);
-            validateResults(taskName, returnedReplicas);
+            validateResults(taskMeta, returnedReplicas);
         } else {
             returnedReplicas.add(replica);
         }
@@ -148,12 +149,12 @@ public class ReplicaManager implements Serializable{
         return null;
     }
 
-    public void validateResults(String taskName, List<Replica> replicaList){
-        String jobName = jobNameOfTask.remove(taskName);
+    public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
+        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
 
         Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
         try {
-            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskName, resultMap);
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
             //TODO Implement actual reward and punishment of peers
         }
         catch (IOException e) {

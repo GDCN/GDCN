@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,9 +33,13 @@ public class Validifier {
      * Runs a validity test of a result
      * @param program the testing program
      * @param result the result file
+     * @param taskDeps the task dependencies used for generating the result
      */
-    public void testResult(String program, String result) {
-        String[] command = {program, result};
+    public void testResult(String program, String result, List<String> taskDeps) {
+        List<String> command = new ArrayList<>();
+        command.add(program);
+        command.add(result);
+        command.addAll(taskDeps);
         Process proc = null;
 
         try {
@@ -91,6 +97,6 @@ public class Validifier {
         };
 
         Validifier v = new Validifier(vl);
-        v.testResult("someProgram", "someResultFile");
+        v.testResult("someProgram", "someResultFile", new ArrayList<String>());
     }
 }
