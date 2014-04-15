@@ -27,6 +27,10 @@ public class TaskData implements TaskCompare, Serializable{
         return taskMeta;
     }
 
+    public boolean enoughGiven(){
+        return replicasLeft <=0 && reputationNeeded <= 0;
+    }
+
     public String getJobName() {
         return jobName;
     }

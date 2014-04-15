@@ -47,7 +47,18 @@ public class ReplicaManager2 implements Serializable{
         }
     }
 
+    private static class TaskResultData{
+        Set<String> failedReplicas;
+        Set<String> pendingReplicas;
+        Map<String, byte[]> returnedReplicas;
+    }
+
+
     public ReplicaManager2(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
+        this(new WorkerNodeManager(myWorkerID), calendarValue, calendarField, updateInterval);
+    }
+
+    public ReplicaManager2(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval){
 
         //TODO stop hardcoding values, make Builder class later
         REPLICAS = 2;
@@ -56,8 +67,9 @@ public class ReplicaManager2 implements Serializable{
         CALENDAR_VALUE = calendarValue;
 
         replicaTimer = new ReplicaTimer2(updateInterval);
+        this.workerNodeManager = workerNodeManager;
+
         resumeTimer();
-        workerNodeManager = new WorkerNodeManager(myWorkerID);
     }
 
     /**
@@ -81,33 +93,6 @@ public class ReplicaManager2 implements Serializable{
         for(TaskMeta task : tasks){
             taskDatas.add(new TaskData(task, jobName, REPLICAS, EXPECTED_REPUTATION));
         }
-    }
-
-    /**
-     * This replica didn't get any answer within given time limit. Create another one.
-     * Doesn't have to report worker, he might still come up with an answer.
-     *
-     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
-     *
-     * @param replicaID Replica that was outdated
-     */
-    public synchronized void replicaOutdated(String replicaID){
-        //TODO validate now or wait?
-
-//        Replica oldReplica = replicaMap.get(replicaID);
-//        if(oldReplica==null){
-//            //It might already be returned! Hence not present in replicaMap
-//            return;
-//            //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
-//        }
-//        Random random = new Random();
-//        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//
-//        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
-//            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//        }
-//        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-//        stagedReplicas.addFirst(replica);
     }
 
     /**
@@ -178,14 +163,49 @@ public class ReplicaManager2 implements Serializable{
     }
 
     /**
+     * This replica didn't get any answer within given time limit. Create another one.
+     * Doesn't have to report worker, he might still come up with an answer.
+     *
+     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
+     *
+     * @param replicaID Replica that was outdated
+     */
+    public synchronized void replicaOutdated(String replicaID){
+        //TODO validate now or wait?
+
+//        Replica oldReplica = replicaMap.get(replicaID);
+//        if(oldReplica==null){
+//            //It might already be returned! Hence not present in replicaMap
+//            return;
+//            //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
+//        }
+//        Random random = new Random();
+//        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
+//
+//        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
+//            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
+//        }
+//        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
+//        stagedReplicas.addFirst(replica);
+    }
+
+    /**
      *
      * @param replicaID ID of a replica
      * @param result Computed result of the replica
      */
-    public synchronized void replicaFinished(String replicaID, byte[] result){
+    public synchronized void replicaFinished(WorkerID worker, String replicaID, byte[] result){
         //TODO IMPLEMENT!!!
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
+        }
+
+        TaskData taskData = taskDataMap.get(replicaID);
+        if(taskData == null){
+            throw new IllegalStateException("Null taskData");
+        }
+        if(! assignedTasks.get(worker).contains(taskData)){
+            throw new IllegalStateException("This TaskData was not found for this worker in assignedTasks!");
         }
 //
 //        final ReplicaBox replicaBox = replicaBoxMap.remove(replicaID);
