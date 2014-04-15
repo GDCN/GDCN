@@ -19,6 +19,7 @@ public class WorkerManagementTest {
 
     private KeyPair keyPairA;
     private WorkerID workerA;
+    private WorkerID myWorkerID;
 
     private final static int DEMOTE_REPUTATION = 3;
 
@@ -27,11 +28,13 @@ public class WorkerManagementTest {
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
         keyPairA = generator.generateKeyPair();
         workerA = new WorkerID(keyPairA.getPublic());
+
+        myWorkerID = new WorkerID(generator.generateKeyPair().getPublic());
     }
 
     @BeforeMethod
     public void setupTest(){
-        workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, DEMOTE_REPUTATION);
+        workerNodeManager = new WorkerNodeManager(myWorkerID, DEMOTE_REPUTATION, WorkerNodeManager.DisciplinaryAction.REMOVE);
     }
 
     @Test
@@ -64,6 +67,11 @@ public class WorkerManagementTest {
 
         workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.DEMOTE);
         assert 1-DEMOTE_REPUTATION == workerNodeManager.getReputation(workerA);
+    }
+
+    @Test
+    public void trustHimselfTest(){
+        assert workerNodeManager.hasWorkerReputation(myWorkerID);
     }
 
     @Test

@@ -85,7 +85,7 @@ public class TaskPasser extends Passer {
         WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
 
         if (workerNodeManager1 == null) {
-            workerNodeManager = new WorkerNodeManager(WorkerNodeManager.DisciplinaryAction.REMOVE, 3);
+            workerNodeManager = new WorkerNodeManager(myWorkerID, 3, WorkerNodeManager.DisciplinaryAction.REMOVE);
         } else {
             workerNodeManager = workerNodeManager1;
         }

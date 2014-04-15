@@ -27,18 +27,22 @@ public class WorkerNodeManager implements Serializable{
     /**
      * Create new WorkerNodeManager with default action REMOVE.
      */
-    public WorkerNodeManager(){
-        this(DisciplinaryAction.REMOVE, 3);
+    public WorkerNodeManager(WorkerID myWorkerID){
+        this(myWorkerID, 3, DisciplinaryAction.REMOVE);
     }
 
     /**
      *
-     * @param standardAction Default action to do when reporting
+     * @param myWorkerID
      * @param removeSoManyPoints So many points are withdrawn from a workers reputation when it misbehaves.
+     * @param standardAction Default action to do when reporting
      */
-    public WorkerNodeManager(DisciplinaryAction standardAction, int removeSoManyPoints) {
+    public WorkerNodeManager(WorkerID myWorkerID, int removeSoManyPoints, DisciplinaryAction standardAction) {
         this.standardAction = standardAction;
         this.removeSoManyPoints = removeSoManyPoints;
+
+        //The job owner trusts himself
+        this.registeredWorkers.put(myWorkerID, 100);
     }
 
     /**
