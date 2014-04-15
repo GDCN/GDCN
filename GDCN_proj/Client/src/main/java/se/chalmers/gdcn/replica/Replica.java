@@ -7,6 +7,7 @@ import java.io.Serializable;
 
 /**
 * Created by Leif on 2014-03-31.
+ * @deprecated
 */
 class Replica implements Serializable{
 

@@ -8,6 +8,7 @@ import java.util.TimerTask;
 
 /**
  * Created by HalfLeif on 2014-04-08.
+ * @deprecated
  */
 public class ReplicaTimer implements Serializable, Cloneable {
 

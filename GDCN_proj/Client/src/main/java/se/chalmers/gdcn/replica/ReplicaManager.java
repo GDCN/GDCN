@@ -11,7 +11,7 @@ import java.util.*;
 
 /**
  * Created by Leif on 2014-03-31.
- *
+ * @deprecated
  * //TODO reader-writer synchronization instead of common mutex?
  */
 public class ReplicaManager implements Serializable, Outdater, Cloneable{
