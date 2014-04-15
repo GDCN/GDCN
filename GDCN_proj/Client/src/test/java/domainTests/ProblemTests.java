@@ -4,8 +4,8 @@ import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.RequestP2PConfiguration;
+import net.tomp2p.p2p.builder.RemoveBuilder;
 import net.tomp2p.peers.Number160;
-import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import net.tomp2p.storage.StorageGeneric;
 import net.tomp2p.utils.Utils;
@@ -16,9 +16,6 @@ import java.io.IOException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by Niklas on 2014-04-08.
@@ -38,7 +35,10 @@ public class ProblemTests {
         int calls = 100;
         Boolean[] results = new Boolean[calls];
 
-        findKeys();
+//        findKeys();
+
+        deleteContent();
+//        deleteContent2();
 
 //        for(int i = 10; i < calls; i++) {
 //            results[i] = masterStaysUp(calls, i);
@@ -49,6 +49,81 @@ public class ProblemTests {
 //        uploaderRejoin();
 //        masterrRejoin();
 
+
+    }
+
+    private static void deleteContent() throws IOException, NoSuchAlgorithmException, InterruptedException {
+        initialize(50, 4000, 25, 49);
+
+        FutureDHT futurePut =
+                peers[49].put(Number160.ONE).setData( new Data( "THE TEST" ) ).setDomainKey( peerOwner ).setProtectDomain().setRequestP2PConfiguration(new RequestP2PConfiguration(6, 10, 0)).start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println("First put: " + futurePut.isSuccess());
+
+        futurePut = peers[0].put(Number160.ONE).setData( new Data( "ATTACK" ) ).setDomainKey( peerOwner ).setProtectDomain().setRequestP2PConfiguration(new RequestP2PConfiguration(6, 10, 0)).start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println("Second put: " + futurePut.isSuccess());
+
+        RemoveBuilder fR = new RemoveBuilder(peers[0], Number160.ONE).setDomainKey(peerOwner);
+
+        FutureDHT futureRemove = fR.start();
+        futureRemove.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println("remove: " + futureRemove.isSuccess());
+
+        FutureDHT futureGet = peers[49].get(Number160.ONE).setDomainKey( peerOwner ).setRequestP2PConfiguration(new RequestP2PConfiguration(6, 10, 0)).start();
+        futureGet.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        Boolean success = futureGet.isSuccess();
+        System.out.println(success);
+
+        try {
+            System.out.println(futureGet.getData().getObject());
+        }
+        catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        shutdown(peers);
+
+    }
+
+    private static void deleteContent2() throws IOException, NoSuchAlgorithmException, InterruptedException {
+        initialize(3, 4000, 0, 2);
+
+        FutureDHT futurePut =
+                peers[0].put(Number160.ONE).setData(new Data("success")).start();
+        futurePut.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println(futurePut.isSuccess());
+
+        FutureDHT futureRemove = new RemoveBuilder(peers[0], Number160.ONE).start();
+        futureRemove.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println(futureRemove.isSuccess());
+
+        FutureDHT futureGet = peers[2].get(Number160.ONE).setDomainKey( peerOwner ).start();
+        futureGet.awaitUninterruptibly();
+
+        Thread.sleep(1000);
+
+        System.out.println(futureGet.isSuccess());
+
+        shutdown(peers);
 
     }
 
@@ -463,11 +538,11 @@ public class ProblemTests {
 
         peerOwner = Utils.makeSHAHash(peers[peerO].getPeerBean().getKeyPair().getPublic().getEncoded());
 
-//        setProtection(peers, StorageGeneric.ProtectionEnable.ALL, StorageGeneric.ProtectionMode.MASTER_PUBLIC_KEY);
+        setProtection(peers, StorageGeneric.ProtectionEnable.ALL, StorageGeneric.ProtectionMode.MASTER_PUBLIC_KEY);
 
-//        for(int i = 0; i < numberSybil; i++) {
-//            setProtection(peers[i], StorageGeneric.ProtectionEnable.NONE, StorageGeneric.ProtectionMode.NO_MASTER );
-//        }
+        for(int i = 0; i < numberSybil; i++) {
+            setProtection(peers[i], StorageGeneric.ProtectionEnable.NONE, StorageGeneric.ProtectionMode.NO_MASTER );
+        }
     }
 }
 
