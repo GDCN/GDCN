@@ -92,6 +92,8 @@ public class ReplicaManager2 implements Serializable{
      * @param replicaID Replica that was outdated
      */
     public synchronized void replicaOutdated(String replicaID){
+        //TODO validate now or wait?
+
 //        Replica oldReplica = replicaMap.get(replicaID);
 //        if(oldReplica==null){
 //            //It might already be returned! Hence not present in replicaMap
@@ -106,9 +108,6 @@ public class ReplicaManager2 implements Serializable{
 //        }
 //        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
 //        stagedReplicas.addFirst(replica);
-        //TODO fix reputation
-//        int workerReputation = workerNodeManager.getReputation(worker);
-        //todo implement!
     }
 
     /**
