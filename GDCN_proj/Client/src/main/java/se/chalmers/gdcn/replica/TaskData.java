@@ -9,12 +9,14 @@ import java.io.Serializable;
  */
 public class TaskData implements TaskCompare, Serializable{
     private final TaskMeta taskMeta;
+    private final String jobName;
 
     private int replicasLeft;
     private float reputationNeeded;
 
-    public TaskData(TaskMeta taskMeta, int replicas, float reputationNeeded) {
+    public TaskData(TaskMeta taskMeta, String jobName, int replicas, float reputationNeeded) {
         this.taskMeta = taskMeta;
+        this.jobName = jobName;
         this.replicasLeft = replicas;
         this.reputationNeeded = reputationNeeded;
     }

@@ -27,10 +27,9 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     private final Map<String, Replica> replicaMap = new HashMap<>();
     private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
-    private final Map<WorkerID, Set<TaskMeta>> assignedTasks = new HashMap<>();
+    private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
 
-    // Used for decision making based on reputation
-    private final TreeSet<TaskData> taskDatas = new TreeSet<>(new Comparator<TaskCompare>() {
+    private final static Comparator<TaskCompare> TASK_COMPARE = new Comparator<TaskCompare>() {
         @Override
         public int compare(TaskCompare o1, TaskCompare o2) {
             if(o1.value()>o2.value()){
@@ -41,7 +40,10 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
                 return 0;
             }
         }
-    });
+    };
+
+    // Used for decision making based on reputation
+    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(TASK_COMPARE);
 
     private final Map<String, String> jobNameOfTask = new HashMap<>();
 
@@ -145,14 +147,14 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      */
     public synchronized void loadTasksAndReplicate(String jobName, List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
-            jobNameOfTask.put(task.getTaskName(), jobName);
-            for(int i=0; i<REPLICAS; ++i){
-                Replica replica = new Replica(task);
-                replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-                stagedReplicas.addFirst(replica);
-            }
+//            jobNameOfTask.put(task.getTaskName(), jobName);
+//            for(int i=0; i<REPLICAS; ++i){
+//                Replica replica = new Replica(task);
+//                replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
+//                stagedReplicas.addFirst(replica);
+//            }
             //TODO fix this
-            taskDatas.add(new TaskData(task, REPLICAS, EXPECTED_REPUTATION));
+            taskDatas.add(new TaskData(task, jobName, REPLICAS, EXPECTED_REPUTATION));
         }
     }
 
@@ -189,43 +191,72 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
+        final int workerReputation = 1;
+        TaskCompare reputationCompare = new TaskCompare() {
+            @Override
+            public float value() {
+                return workerReputation;
+            }
+        };
+        //TODO
 
 
+        ///////////////////////
         //todo fix this
-        Set<TaskMeta> alreadyGiven = assignedTasks.get(worker);
+        Set<TaskData> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
             assignedTasks.put(worker, alreadyGiven);
         }
 
-        Stack<Replica> skipped = null;
-        try{
-            Replica replica = stagedReplicas.removeLast();
+        TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
+        notGiven.removeAll(alreadyGiven);
 
-            while(alreadyGiven.contains(replica.getReplicaBox().getTaskMeta())){
-                if(skipped == null){
-                    skipped = new Stack<>();
-                }
-                skipped.push(replica);
-                replica = stagedReplicas.removeLast();
-            }
-            replica.setWorker(worker);
-            alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
-            replicaTimer.add(replica.getReplicaBox().getReplicaID(), replicaDeadline());
-
-            return replica.getReplicaBox();
-        } catch (NoSuchElementException e){
-            //Deque is empty
+        if(notGiven.size()==0){
             return null;
-        } finally {
-            if(skipped!=null){
-                //Order preserved for skipped replicas
-                while(skipped.size()>0){
-                    Replica r = skipped.pop();
-                    stagedReplicas.addLast(r);
-                }
-            }
         }
+
+        TaskData assign = (TaskData) notGiven.floor(reputationCompare);
+        if(assign == null){
+            assign = (TaskData) notGiven.ceiling(reputationCompare);
+        }
+
+        Replica replica = assign.giveReplica(workerReputation);
+        ReplicaBox replicaBox = replica.getReplicaBox();
+
+        alreadyGiven.add(assign);
+        replicaTimer.add(replicaBox.getReplicaID(), replicaDeadline());
+        replicaMap.put(replicaBox.getReplicaID(), replica);
+        return replicaBox;
+
+//        Stack<Replica> skipped = null;
+//        try{
+//            Replica replica = stagedReplicas.removeLast();
+//
+//            while(alreadyGiven.contains(replica.getReplicaBox().getTaskMeta())){
+//                if(skipped == null){
+//                    skipped = new Stack<>();
+//                }
+//                skipped.push(replica);
+//                replica = stagedReplicas.removeLast();
+//            }
+//            replica.setWorker(worker);
+//            alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
+//            replicaTimer.add(replica.getReplicaBox().getReplicaID(), replicaDeadline());
+//
+//            return replica.getReplicaBox();
+//        } catch (NoSuchElementException e){
+//            //Deque is empty
+//            return null;
+//        } finally {
+//            if(skipped!=null){
+//                //Order preserved for skipped replicas
+//                while(skipped.size()>0){
+//                    Replica r = skipped.pop();
+//                    stagedReplicas.addLast(r);
+//                }
+//            }
+//        }
     }
 
     private Date replicaDeadline(){
@@ -305,7 +336,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     }
 
     public synchronized void replicaFailed(String replicaID){
-        //TODO implement
+        //TODO implement: note failure as a result. Make comparison later.
     }
 
     public synchronized Collection<Replica> pendingReplicas(){
@@ -315,8 +346,9 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
     }
 
     public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
-        //TODO Validate results! Perhaps use interface (ie Strategy pattern)?
-        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
+//        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
+        String jobName = "";
+        //TODO Use real job name in TaskData!
 
         Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
         try {
