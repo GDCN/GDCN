@@ -8,7 +8,7 @@ import java.io.Serializable;
 /**
  * Created by HalfLeif on 2014-04-15.
  */
-public class TaskData implements TaskCompare, Serializable{
+class TaskData implements TaskCompare, Serializable{
     private final TaskMeta taskMeta;
     private final String jobName;
 
@@ -30,6 +30,10 @@ public class TaskData implements TaskCompare, Serializable{
 
     public boolean enoughGiven(){
         return replicasLeft <=0 && reputationNeeded <= 0;
+    }
+
+    public TaskMeta getTaskMeta() {
+        return taskMeta;
     }
 
     public String getJobName() {

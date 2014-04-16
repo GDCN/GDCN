@@ -1,32 +1,30 @@
 package se.chalmers.gdcn.replica;
 
-import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.utils.ByteArray;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by joakim on 4/2/14.
  */
 public class EqualityControl {
 
-    public static Map<ByteArray, List<WorkerID>> compareData(List<ReplicaOLD> replicas) {
-        Map<ByteArray, List<WorkerID>> map = new HashMap<>();
+    public static Map<ByteArray, Set<ReplicaID>> compareData(Map<ReplicaID, byte[]> resultMap) {
+        Map<ByteArray, Set<ReplicaID>> returnMap = new HashMap<>();
+        for (ReplicaID replicaID : resultMap.keySet()) {
+            ByteArray result = new ByteArray(resultMap.get(replicaID));
 
-        for (ReplicaOLD replica : replicas) {
-            ByteArray result = new ByteArray(replica.getResult());
-            //TODO fix all of this, result is stored in a different way after refactor
-            List<WorkerID> list = map.get(result);
-            if (list == null) {
-                list = new ArrayList<>();
-                map.put(result, list);
+            Set<ReplicaID> set = returnMap.get(result);
+            if (set == null) {
+                set = new HashSet<>();
+                returnMap.put(result, set);
             }
-            list.add(replica.getWorker());
+            set.add(replicaID);
         }
-
-        return map;
+        return returnMap;
     }
 }

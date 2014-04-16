@@ -4,9 +4,11 @@ import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.control.WorkerNodeManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -291,19 +293,18 @@ public class ReplicaManager implements Serializable{
         return replicas;
     }
 
-    public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
-//        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
-        String jobName = "";
-        //TODO Use real job name in TaskData!
-//
-//        Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
-//        try {
-//            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
-//            //TODO Implement actual reward and punishment of peers
-//        }
-//        catch (IOException e) {
-//            e.printStackTrace();
-//        }
+    public void validateResults(TaskData taskData){
+        String jobName = taskData.getJobName();
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+
+        Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
+        try {
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
+            //TODO Implement actual reward and punishment of peers
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
         //TODO Implement choice of automatic or manual result validation
     }
 

@@ -2,7 +2,7 @@ package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;
-import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.taskbuilder.Validifier;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.ValidityListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -19,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private final Map<ByteArray, List<WorkerID>> resultMap;
+    private final Map<ByteArray, Set<ReplicaID>> resultMap;
     private final Map<ByteArray, Trust> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
@@ -30,12 +30,12 @@ public class QualityControl {
     private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
-    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, List<WorkerID>> resultMap) throws IOException{
+    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
 
-    private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, List<WorkerID>> resultMap) throws IOException {
+    private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
         this.resultMap = resultMap;
         taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
@@ -49,7 +49,7 @@ public class QualityControl {
 
     private Map<ByteArray, Trust> compare() throws IOException {
         int resultID = 0;
-        for (Map.Entry<ByteArray, List<WorkerID>> entry : resultMap.entrySet()) {
+        for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
             FileOutputStream fos = new FileOutputStream(resultFile);
             fos.write(entry.getKey().getData());
@@ -97,7 +97,7 @@ public class QualityControl {
     }
 
     private synchronized void addRemaining() {
-        for (Map.Entry<ByteArray, List<WorkerID>> entry : resultMap.entrySet()) {
+        for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
                 trustMap.put(entry.getKey(), Trust.UNKNOWN);
             }

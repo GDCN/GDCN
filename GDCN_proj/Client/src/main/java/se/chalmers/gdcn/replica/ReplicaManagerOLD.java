@@ -1,11 +1,9 @@
 package se.chalmers.gdcn.replica;
 
-import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
+import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
-import se.chalmers.gdcn.utils.ByteArray;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 
@@ -345,17 +343,17 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
 
     public void validateResults(TaskMeta taskMeta, List<ReplicaOLD> replicaList){
 //        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
-        String jobName = "";
-        //TODO Use real job name in TaskData!
-
-        Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
-        try {
-            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
-            //TODO Implement actual reward and punishment of peers
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+//        String jobName = "";
+//        //TODO Use real job name in TaskData!
+//
+//        Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
+//        try {
+//            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
+//            //TODO Implement actual reward and punishment of peers
+//        }
+//        catch (IOException e) {
+//            e.printStackTrace();
+//        }
         //TODO Implement choice of automatic or manual result validation
     }
 }
