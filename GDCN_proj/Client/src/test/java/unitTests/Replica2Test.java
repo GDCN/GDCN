@@ -6,7 +6,7 @@ package unitTests;
 public class Replica2Test {
 /*
 
-    private ReplicaManager2 replicaManager;
+    private ReplicaManager replicaManager;
     private TaskMeta taskMetaA;
 
     private WorkerID workerA;
@@ -39,7 +39,7 @@ public class Replica2Test {
 
     @BeforeMethod
     public void setupMethod(){
-        replicaManager = new ReplicaManager2(myWorkerID, 2, Calendar.MINUTE, 5000);
+        replicaManager = new ReplicaManager(myWorkerID, 2, Calendar.MINUTE, 5000);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class Replica2Test {
         final ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
 
         Data serialized = new Data(replicaManager);
-        ReplicaManager2 replicaManagerCopy = (ReplicaManager2) serialized.getObject();
+        ReplicaManager replicaManagerCopy = (ReplicaManager) serialized.getObject();
 
         Number160 originalKey = replicaBox.getResultKey();
         Number160 firstKey = replicaManager.getReplicaResultKey(replicaBox.getReplicaID());
@@ -178,7 +178,7 @@ public class Replica2Test {
 
     @Test
     public void expectedReturnTest(){
-//        ReplicaManager2 replicaManagerE = new ReplicaManager2(myWorkerID, 2, 1);
+//        ReplicaManager replicaManagerE = new ReplicaManager(myWorkerID, 2, 1);
 //        loadMeta(taskMetaA, replicaManagerE);
 //
 //        ReplicaBox replicaBoxA = replicaManagerE.giveReplicaToWorker(workerA);
@@ -190,7 +190,7 @@ public class Replica2Test {
 //    public void constructorTest(){
 //        boolean exceptionThrown = false;
 //        try {
-//            new ReplicaManager2(0,0);
+//            new ReplicaManager(0,0);
 //        } catch (Exception e) {
 //            exceptionThrown = true;
 //        } finally {
@@ -199,7 +199,7 @@ public class Replica2Test {
 //
 //        exceptionThrown = false;
 //        try {
-//            new ReplicaManager2(3,4);
+//            new ReplicaManager(3,4);
 //        } catch (Exception e) {
 //            exceptionThrown = true;
 //        } finally {
@@ -227,13 +227,13 @@ public class Replica2Test {
 
     @Test
     public void integrationReplicaTimerTest() throws IOException, ClassNotFoundException {
-//        ReplicaManager2 replicaManager2 = new ReplicaManager2(2, 2, 300, Calendar.MILLISECOND, 50L);
+//        ReplicaManager replicaManager2 = new ReplicaManager(2, 2, 300, Calendar.MILLISECOND, 50L);
 //        loadMeta(this.taskMetaA, replicaManager2);
 //
 //        ReplicaBox replicaBoxA = replicaManager2.giveReplicaToWorker(workerA);
 //        Data serialized = new Data(replicaManager2.clone());
 //
-//        ReplicaManager2 deserialized = (ReplicaManager2) serialized.getObject();
+//        ReplicaManager deserialized = (ReplicaManager) serialized.getObject();
 //        assert deserialized.isWorkerAssignedReplica(workerA, replicaBoxA.getReplicaID());
 //        assert null != deserialized.giveReplicaToWorker(workerB);
 //        assert null == deserialized.giveReplicaToWorker(workerC);
@@ -251,7 +251,7 @@ public class Replica2Test {
         loadMeta(taskMeta, this.replicaManager);
     }
 
-    private static void loadMeta(TaskMeta taskMeta, ReplicaManager2 replicaManager){
+    private static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);
         replicaManager.loadTasksAndReplicate("jobName", taskMetas);

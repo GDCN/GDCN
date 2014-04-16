@@ -1,33 +1,30 @@
 package se.chalmers.gdcn.replica;
 
-import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 
 import java.io.Serializable;
 
 /**
 * Created by Leif on 2014-03-31.
- * @deprecated
 */
 class Replica implements Serializable{
 
     private final ReplicaBox replicaBox;
-
-    private WorkerID worker = null;
-    private byte[] result = null;
-
+    private final WorkerID worker;
 
     /**
-     * Replica is the object that job owner holds to keep track of who worked on this replica
+     * ReplicaOLD is the object that job owner holds to keep track of who worked on this replica
      * and what the result of it is before it has been canonized.
      *
      * Generates a ReplicaBox that will be sent to a specific worker node.
      *
-     * @param taskMeta TaskMeta for this replica
+     * @param replicaBox
+     * @param worker
      *
      */
-    Replica(TaskMeta taskMeta) {
-        replicaBox = new ReplicaBox(taskMeta);
+    Replica(ReplicaBox replicaBox, WorkerID worker) {
+        this.worker = worker;
+        this.replicaBox = replicaBox;
     }
 
     @Override
@@ -53,17 +50,4 @@ class Replica implements Serializable{
     public WorkerID getWorker() {
         return worker;
     }
-
-    public byte[] getResult() {
-        return result;
-    }
-
-    public void setWorker(WorkerID worker) {
-        this.worker = worker;
-    }
-
-    public void setResult(byte[] result) {
-        this.result = result;
-    }
-
 }

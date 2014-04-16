@@ -1,9 +1,11 @@
 package se.chalmers.gdcn.replica;
 
-import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
+import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
+import se.chalmers.gdcn.utils.Identifier;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -11,23 +13,27 @@ import java.util.*;
 
 /**
  * Created by Leif on 2014-03-31.
- * @deprecated
+ *
  * //TODO reader-writer synchronization instead of common mutex?
  */
-public class ReplicaManager implements Serializable, Outdater, Cloneable{
+public class ReplicaManager implements Serializable{
 
     private final int REPLICAS;
-    private final int EXPECTED_RESULTS;
-    private final int EXPECTED_REPUTATION = 3;
+    private final int EXPECTED_REPUTATION;
 
     private final int CALENDAR_FIELD;
     private final int CALENDAR_VALUE;
 
-//    private final Deque<Replica> stagedReplicas = new ArrayDeque<>();
-    private final Map<String, Replica> replicaMap = new HashMap<>();
-    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
+    private final WorkerNodeManager workerNodeManager;
+    private final ReplicaTimer2 replicaTimer;
+
+    private final Map<ReplicaID, Replica> replicaMap = new HashMap<>();
+    private final Map<ReplicaID, TaskData> taskDataMap = new HashMap<>();
+    private final Map<TaskID, TaskResultData> resultDataMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
+    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
+
 
     private static class TaskComparator implements Comparator<TaskCompare>, Serializable {
         @Override
@@ -42,64 +48,44 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         }
     }
 
-    // Used for decision making based on reputation
-    private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator());
-
-    private ReplicaTimer replicaTimer = null;
-
-    /**
-     * ReplicaManager
-     *
-     * If R replicas are produced, expects R results.
-     *
-     * @param replicas Number of replicas per task
-     */
-    public ReplicaManager(int replicas) {
-        this(replicas, replicas);
-    }
-
-    /**
-     *
-     * @param replicas Number of replicas per task
-     * @param expectedResults Number of expected results, must be less or equal to replicas
-     */
-    public ReplicaManager(int replicas, int expectedResults) {
-        //TODO how long time?
-        this(replicas, expectedResults, 5, Calendar.HOUR);
-    }
-
-    /**
-     * @param replicas Number of replicas per task
-     * @param expectedResults Number of expected results, must be less or equal to replicas
-     * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
-     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
-     */
-    public ReplicaManager(int replicas, int expectedResults, int calendarValue, int calendarField){
-        this(replicas, expectedResults, calendarValue, calendarField, 1000*60);
-    }
-
-    /**
-     * Used for testing purposes
-     *
-     * @param replicas Number of replicas per task
-     * @param expectedResults Number of expected results, must be less or equal to replicas
-     * @param calendarValue Deadline time, see {@link java.util.Calendar#add(int, int)}
-     * @param calendarField Deadline time, see {@link java.util.Calendar#add(int, int)}
-     * @param updateInterval Milliseconds for clock to update queue
-     */
-    public ReplicaManager(int replicas, int expectedResults, int calendarValue, int calendarField, long updateInterval){
-        if(replicas<1){
-            throw new IllegalArgumentException("Number of replicas must at least 1");
+    public static class ReplicaID extends Identifier{
+        public ReplicaID(String id) {
+            super(id);
         }
-        if(expectedResults > replicas){
-            throw new IllegalArgumentException("Number of expected results cannot exceed number of replicas!");
+    }
+
+    public static class TaskID extends Identifier{
+        public TaskID(String id) {
+            super(id);
         }
-        REPLICAS = replicas;
-        EXPECTED_RESULTS = expectedResults;
+    }
+
+    /**
+     * Contains information about the status of a task, each String below is a ReplicaID
+     */
+    private static class TaskResultData{
+        final Set<ReplicaID> failedReplicas = new HashSet<>();
+        final Set<ReplicaID> outdatedReplicas = new HashSet<>();
+        final Set<ReplicaID> pendingReplicas = new HashSet<>();
+        final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
+    }
+
+
+    public ReplicaManager(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
+        this(new WorkerNodeManager(myWorkerID), calendarValue, calendarField, updateInterval);
+    }
+
+    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval){
+
+        //TODO stop hardcoding values, make Builder class later
+        REPLICAS = 2;
+        EXPECTED_REPUTATION = 3;
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
-        replicaTimer = new ReplicaTimer(this, updateInterval);
+        replicaTimer = new ReplicaTimer2(updateInterval);
+        this.workerNodeManager = workerNodeManager;
+
         resumeTimer();
     }
 
@@ -109,33 +95,10 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-        replicaTimer.setOutdater(this);
-
         Thread timerThread = new Thread(replicaTimer.createUpdater());
         timerThread.setDaemon(true);
 
         timerThread.start();
-    }
-
-    /**
-     * This is expensive... Use when serializing.
-     *
-     * Need to use this because ReplicaTimer is only Serializable when its Outdater is null.
-     *
-     * @return Serializable clone of ReplicaManager
-     */
-    @Override
-    public ReplicaManager clone(){
-        ReplicaManager clone = new ReplicaManager(REPLICAS, 2, CALENDAR_VALUE, CALENDAR_FIELD);
-        clone.replicaTimer = this.replicaTimer.clone();
-
-        clone.assignedTasks.putAll(this.assignedTasks);
-        clone.finishedReplicasTaskMap.putAll(this.finishedReplicasTaskMap);
-        clone.replicaMap.putAll(this.replicaMap);
-        //todo: Doesn't want to use clone at all, use static serializer instead!
-//        clone.stagedReplicas.addAll(this.stagedReplicas);
-
-        return clone;
     }
 
     /**
@@ -145,60 +108,17 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      */
     public synchronized void loadTasksAndReplicate(String jobName, List<TaskMeta> tasks){
         for(TaskMeta task : tasks){
-//            jobNameOfTask.put(task.getTaskName(), jobName);
-//            for(int i=0; i<REPLICAS; ++i){
-//                Replica replica = new Replica(task);
-//                replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-//                stagedReplicas.addFirst(replica);
-//            }
             taskDatas.add(new TaskData(task, jobName, REPLICAS, EXPECTED_REPUTATION));
         }
     }
 
     /**
-     * This replica didn't get any answer within given time limit. Create another one.
-     * Doesn't have to report worker, he might still come up with an answer.
-     *
-     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
-     *
-     * @param replicaID Replica that was outdated
-     */
-    @Override
-    public synchronized void replicaOutdated(String replicaID){
-        Replica oldReplica = replicaMap.get(replicaID);
-        if(oldReplica==null){
-            //It might already be returned! Hence not present in replicaMap
-            return;
-            //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
-        }
-//        Random random = new Random();
-//        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//
-//        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
-//            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//        }
-//        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-//        stagedReplicas.addFirst(replica);
-        //TODO fix reputation
-        int workerReputation = 1;
-        //todo implement!
-    }
-
-    /**
      *
      * @param worker Worker node
-     * @return Replica info if there are any. Returns null if queue is empty.
+     * @return ReplicaOLD info if there are any. Returns null if queue is empty.
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
-        final int workerReputation = 1;
-        TaskCompare reputationCompare = new TaskCompare() {
-            @Override
-            public float value() {
-                return workerReputation;
-            }
-        };
-
         Set<TaskData> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
@@ -208,53 +128,36 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         //Shallow copy intended
         TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
         notGiven.removeAll(alreadyGiven);
-
         if(notGiven.size()==0){
+            //No task left to work on for that worker
             return null;
         }
 
+        final int workerReputation = workerNodeManager.getReputation(worker);
+        TaskCompare reputationCompare = new TaskCompare() {
+            @Override
+            public float value() {
+                return workerReputation;
+            }
+        };
         TaskData assign = (TaskData) notGiven.floor(reputationCompare);
         if(assign == null){
+            //Warning, might not fulfill reputation demand!
             assign = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
-//        Replica replica = assign.giveTask(workerReputation);
-//        ReplicaBox replicaBox = replica.getReplicaBox();
-//
-//        alreadyGiven.add(assign);
-//        replicaTimer.add(replicaBox.getReplicaID(), replicaDeadline());
-//        replicaMap.put(replicaBox.getReplicaID(), replica);
-//        return replicaBox;
-        return null;
+        TaskMeta taskMeta = assign.giveTask(workerReputation);
+        ReplicaBox replicaBox = new ReplicaBox(taskMeta);
+        while (replicaMap.containsKey(replicaBox.getReplicaID())){
+            replicaBox = new ReplicaBox(taskMeta);
+        }
 
-//        Stack<Replica> skipped = null;
-//        try{
-//            Replica replica = stagedReplicas.removeLast();
-//
-//            while(alreadyGiven.contains(replica.getReplicaBox().getTaskMeta())){
-//                if(skipped == null){
-//                    skipped = new Stack<>();
-//                }
-//                skipped.push(replica);
-//                replica = stagedReplicas.removeLast();
-//            }
-//            replica.setWorker(worker);
-//            alreadyGiven.add(replica.getReplicaBox().getTaskMeta());
-//            replicaTimer.add(replica.getReplicaBox().getReplicaID(), replicaDeadline());
-//
-//            return replica.getReplicaBox();
-//        } catch (NoSuchElementException e){
-//            //Deque is empty
-//            return null;
-//        } finally {
-//            if(skipped!=null){
-//                //Order preserved for skipped replicas
-//                while(skipped.size()>0){
-//                    Replica r = skipped.pop();
-//                    stagedReplicas.addLast(r);
-//                }
-//            }
-//        }
+        alreadyGiven.add(assign);
+
+        final ReplicaID replicaID = replicaBox.getReplicaID();
+        replicaTimer.add(replicaID, replicaDeadline());
+        replicaMap.put(replicaID, new Replica(replicaBox, worker));
+        return replicaBox;
     }
 
     private Date replicaDeadline(){
@@ -268,7 +171,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      * @param replicaID ID of a replica
      * @return Key for the result file in DHT
      */
-    public synchronized Number160 getReplicaResultKey(String replicaID){
+    public synchronized Number160 getReplicaResultKey(ReplicaID replicaID){
         final Replica replica = replicaMap.get(replicaID);
         if(replica == null){
             throw new IllegalStateException("Error: Replica was not found!");
@@ -276,41 +179,50 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
         return replica.getReplicaBox().getResultKey();
     }
 
+
+    private TaskResultData returned(ReplicaID replicaID){
+        //TODO handle latecomer
+        TaskData taskData = taskDataMap.get(replicaID);
+        if(taskData == null){
+            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
+        }
+
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+        if(! resultData.pendingReplicas.remove(replicaID)){
+            throw new IllegalStateException("Expected replicaID to be in pendingReplicas!");
+        }
+        return resultData;
+    }
+
     /**
+     * This replica didn't get any answer within given time limit. Create another one.
+     * Doesn't have to report worker, he might still come up with an answer.
      *
-     * @param replicaID ID of a replica
-     * @param result Computed result of the replica
+     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
+     *
+     * @param replicaID ReplicaOLD that was outdated
      */
-    public synchronized void replicaFinished(String replicaID, byte[] result){
+    public synchronized void replicaOutdated(ReplicaID replicaID){
+        TaskResultData resultData = returned(replicaID);
+        resultData.outdatedReplicas.add(replicaID);
+        //TODO validate now or wait?
+    }
+
+    public synchronized void replicaFailed(ReplicaID replicaID){
+        TaskResultData resultData = returned(replicaID);
+        resultData.failedReplicas.add(replicaID);
+        //TODO validate now or wait?
+    }
+
+    public synchronized void replicaFinished(ReplicaID replicaID, byte[] result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
+        TaskResultData resultData = returned(replicaID);
+        resultData.returnedReplicas.put(replicaID, result);
 
-        final Replica replica = replicaMap.remove(replicaID);
-        if(replica == null){
-            throw new IllegalStateException("Error: Replica was not found!");
-        }
+        //TODO validate now or wait?
 
-        replica.setResult(result);
-        final TaskMeta taskMeta = replica.getReplicaBox().getTaskMeta();
-        final String taskName = taskMeta.getTaskName();
-
-        //TODO what if this return is a late-comer? Ie enough replica results have been given already
-
-        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
-        if(returnedReplicas==null){
-            //This is the First replica to return for this task
-            List<Replica> list = new ArrayList<>();
-            list.add(replica);
-            finishedReplicasTaskMap.put(taskName, list);
-        } else if(returnedReplicas.size() == EXPECTED_RESULTS-1){
-            //This is the Last replica to return for this task
-            finishedReplicasTaskMap.remove(taskName);
-            returnedReplicas.add(replica);
-            validateResults(taskMeta, returnedReplicas);
-        } else {
-            returnedReplicas.add(replica);
-        }
     }
 
     /**
@@ -319,27 +231,18 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
      * @param replicaID ID of a replica
      * @return true only if worker was assigned this replica, otherwise false.
      */
-    public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, String replicaID){
+    public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, ReplicaID replicaID){
         if(workerID==null || replicaID == null){
             return false;
         }
         Replica replica = replicaMap.get(replicaID);
-        if(replica == null){
-            return false;
-        }
-        if(! workerID.equals(replica.getWorker())){
-            return false;
-        }
-        return true;
+        return replica != null && replica.getWorker().equals(workerID);
     }
 
-    public synchronized void replicaFailed(String replicaID){
-        //TODO implement: note failure as a result. Make comparison later.
-    }
 
     public synchronized Collection<Replica> pendingReplicas(){
-        //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
-        //TODO Actually this would be better handled by ReplicaTimer... Adding this to Sprint log
+        //TODO implement if want this, easy to do now
+        //TODO would be better handled by ReplicaTimer2 ?
         return null;
     }
 
@@ -357,5 +260,97 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
             e.printStackTrace();
         }
         //TODO Implement choice of automatic or manual result validation
+    }
+
+    private class ReplicaTimer2 implements Serializable{
+
+        private final long UPDATE_TIME;
+        private final PriorityQueue<ReplicaTimeout2> queue = new PriorityQueue<>();
+
+        /**
+         * @param updateTime Number of Milliseconds between check queue
+         */
+        public ReplicaTimer2(long updateTime) {
+            UPDATE_TIME =  updateTime;
+        }
+
+        /**
+         * Clock that updates this timer. This class must be Serializable which {@link java.util.Timer} isn't.
+         * @return Runnable
+         */
+        public Runnable createUpdater(){
+            return new Runnable() {
+                @Override
+                public void run() {
+                    Timer timer = new Timer(true);
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            update();
+                        }
+                    }, UPDATE_TIME/2, UPDATE_TIME);
+                }
+            };
+        }
+
+        /**
+         *
+         * @param replicaID ID of a replica
+         * @param date Expiration date of the replica
+         */
+        public synchronized void add(ReplicaID replicaID, Date date){
+            ReplicaTimeout2 replicaTimeout = new ReplicaTimeout2(replicaID, date);
+            queue.add(replicaTimeout);
+        }
+
+        /**
+         * Called by clock to check the queue. Requires Outdater to be set.
+         */
+        private synchronized void update(){
+            final Date currentTime = new Date();
+            if(queue.peek()==null){
+//            System.out.println("ReplicaTimer2: queue empty on update");
+                return;
+            }
+            while(queue.peek()!=null && queue.peek().getDate().compareTo(currentTime) < 0){
+                ReplicaTimeout2 outdated = queue.remove();
+                replicaOutdated(outdated.getReplicaID());
+            }
+//        long timeDiff = queue.peek().getDate().getTime()-currentTime.getTime();
+//        System.out.println("TimeDiff to next element: "+timeDiff);
+        }
+
+
+        private class ReplicaTimeout2 implements Serializable, Comparable<ReplicaTimeout2>{
+
+            private final Date date;
+            private final ReplicaID replicaID;
+
+            private ReplicaTimeout2(ReplicaID replicaID, Date date) {
+                this.date = date;
+                this.replicaID = replicaID;
+            }
+
+            public ReplicaID getReplicaID() {
+                return replicaID;
+            }
+
+            public Date getDate() {
+                return date;
+            }
+
+            /**
+             *
+             * @param replicaTimeout Other ReplicaTimer2
+             * @return comparison
+             */
+            @Override
+            public int compareTo(ReplicaTimeout2 replicaTimeout) {
+                if(replicaTimeout==null){
+                    return 1;
+                }
+                return date.compareTo(replicaTimeout.date);
+            }
+        }
     }
 }

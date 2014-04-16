@@ -1,6 +1,6 @@
 package se.chalmers.gdcn.network;
 
-import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 
 import java.io.Serializable;
 

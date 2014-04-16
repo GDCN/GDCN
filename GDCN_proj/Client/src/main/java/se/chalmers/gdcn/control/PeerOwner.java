@@ -17,7 +17,7 @@ import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.WorkerID;
-import se.chalmers.gdcn.replica.ReplicaManager2;
+import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 
@@ -43,7 +43,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager2 replicaManager;
+    private final ReplicaManager replicaManager;
 
     private DataFilesManager dataFilesManager;
 
@@ -81,13 +81,13 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public PeerOwner() {
 
         //TODO Make it possible to have a test replicaManager
-        ReplicaManager2 replicaManager1;
+        ReplicaManager replicaManager1;
         dataFilesManager = new DataFilesManager();
         replicaManager1 = dataFilesManager.getReplicaManager();
 
         if(replicaManager1 == null) {
             //TODO instantiate correctly!
-            replicaManager = new ReplicaManager2((WorkerID)null, 1, 1, 1L);
+            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
 
         } else {
             replicaManager = replicaManager1;

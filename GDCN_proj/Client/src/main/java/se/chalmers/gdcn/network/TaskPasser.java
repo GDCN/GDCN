@@ -16,8 +16,8 @@ import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.HashCash;
 import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.replica.ReplicaBox;
-import se.chalmers.gdcn.replica.ReplicaManager2;
-import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
+import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 
 import javax.crypto.KeyGenerator;
@@ -38,7 +38,7 @@ import java.util.TimerTask;
 public class TaskPasser extends Passer {
 
     private final WorkerNodeManager workerNodeManager;
-    private final ReplicaManager2 replicaManager;
+    private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
 
@@ -59,7 +59,7 @@ public class TaskPasser extends Passer {
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, final ReplicaManager2 replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
+    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
@@ -298,7 +298,7 @@ public class TaskPasser extends Passer {
                 FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
                 WorkerID worker = taskMessage.getSenderID();
                 //TODO check reputation as well?
-                //TODO handle in ReplicaManager2 instead
+                //TODO handle in ReplicaManager instead
                 if(replicaManager.isWorkerAssignedReplica(worker, failMessage.getReplicaID())){
                     System.out.println("My task failed! Reason: "+failMessage.getReason());
                     replicaManager.replicaFailed(failMessage.getReplicaID());

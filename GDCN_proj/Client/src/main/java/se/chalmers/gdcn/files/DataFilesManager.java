@@ -3,7 +3,7 @@ package se.chalmers.gdcn.files;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import se.chalmers.gdcn.control.WorkerNodeManager;
-import se.chalmers.gdcn.replica.ReplicaManager2;
+import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import javax.crypto.SecretKey;
@@ -128,7 +128,7 @@ public class DataFilesManager {
     //REPLICAMANAGER METHODS
     //********************************************\\
 
-    public void saveReplicaManager(ReplicaManager2 rm) {
+    public void saveReplicaManager(ReplicaManager rm) {
 
         try {
             FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
@@ -143,13 +143,13 @@ public class DataFilesManager {
 
     }
 
-    public ReplicaManager2 getReplicaManager() {
+    public ReplicaManager getReplicaManager() {
         try {
             FileInputStream fis = new FileInputStream(replicaManagerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            ReplicaManager2 replicaManager = (ReplicaManager2) ois.readObject();
+            ReplicaManager replicaManager = (ReplicaManager) ois.readObject();
 
             ois.close();
 

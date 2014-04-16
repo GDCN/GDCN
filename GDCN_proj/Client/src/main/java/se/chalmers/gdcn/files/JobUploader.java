@@ -3,7 +3,7 @@ package se.chalmers.gdcn.files;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
-import se.chalmers.gdcn.replica.ReplicaManager2;
+import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
@@ -38,7 +38,7 @@ public class JobUploader extends AbstractFileMaster{
      * @throws FileNotFoundException
      * @throws TaskMetaDataException
      */
-    public static JobUploader create(String jobName, NetworkInterface client, TaskFailureListener taskFailureListener, ReplicaManager2 replicaManager) throws FileNotFoundException, TaskMetaDataException {
+    public static JobUploader create(String jobName, NetworkInterface client, TaskFailureListener taskFailureListener, ReplicaManager replicaManager) throws FileNotFoundException, TaskMetaDataException {
 
         PathManager manager = PathManager.jobOwner(jobName);
         File file = new File(manager.taskMetaDir());

@@ -1,7 +1,7 @@
 package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
-import se.chalmers.gdcn.replica.ReplicaManager2.TaskID;
+import se.chalmers.gdcn.replica.ReplicaManager.TaskID;
 
 import java.io.Serializable;
 

@@ -2,7 +2,7 @@ package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
-import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 
 import java.io.Serializable;
 import java.util.Random;
