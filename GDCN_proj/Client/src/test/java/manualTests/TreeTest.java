@@ -55,17 +55,46 @@ public class TreeTest {
         assert otherSet.remove(taskC);
     }
 
+    @Test
+    public void smartTest(){
+        treeSet.add(taskA);
+        treeSet.add(taskB);
+        TaskCompare high = new TaskDummy(4).setValue(2);
+        treeSet.add(high);
+
+        final TaskCompare request = new TaskCompare() {
+            @Override
+            public float value() {
+                return 2;
+            }
+
+            @Override
+            public String order() {
+                return "";
+            }
+        };
+
+        TaskCompare ceiling = treeSet.ceiling(request);
+        assert ceiling.equals(high);
+    }
+
     private static class TaskDummy implements TaskCompare{
 
         private final int id;
+        private int value = 0;
 
         private TaskDummy(int id) {
             this.id = id;
         }
 
+        public TaskDummy setValue(int value) {
+            this.value = value;
+            return this;
+        }
+
         @Override
         public float value() {
-            return 0;
+            return value;
         }
 
         @Override

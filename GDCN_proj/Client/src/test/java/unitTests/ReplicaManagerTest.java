@@ -79,6 +79,9 @@ public class ReplicaManagerTest {
     @BeforeMethod
     public void setupMethod(){
         workerNodeManager = new WorkerNodeManager(myWorkerID);
+        workerNodeManager.registerWorker(workerA);
+        workerNodeManager.registerWorker(workerB);
+        workerNodeManager.registerWorker(workerC);
 
         builder = new ReplicaManagerBuilder(workerNodeManager);
         builder.setReplicas(2);
@@ -321,6 +324,57 @@ public class ReplicaManagerTest {
         deserialized.resumeTimer();
         TestUtils.nap(180);
         assert deserialized.pendingReplicaIDs().size() == 0;
+    }
+
+    @Test
+    public void firstChoiceTest(){
+        loadMeta(taskMetaA);
+        loadMeta(taskMetaB);
+
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        //Should indeed work on different tasks since more reputation is required.
+        assert ! replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
+    }
+
+    @Test
+    public void obviousChoiceTest(){
+        builder.setExpectedReputation(4);
+        replicaManager = builder.create();
+        promote(workerA, 4);
+
+        loadMeta(taskMetaA);
+        loadMeta(taskMetaB);
+
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        //Since A has high reputation, should work on same task as B which has no reputation
+        assert replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
+    }
+
+    @Test
+    public void smartChoiceTest(){
+        builder.setExpectedReputation(4);
+        replicaManager = builder.create();
+        promote(workerA, 3);
+
+        //TODO fails now... check floor vs ceiling printout
+        loadMeta(taskMetaA);
+        loadMeta(taskMetaB);
+
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+
+        //Since A has high reputation, should work on same task as B which has no reputation
+        assert replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
+    }
+
+    private void promote(WorkerID workerID, int times){
+        for(int i=0; i<times; ++i){
+            workerNodeManager.promoteWorker(workerID);
+        }
     }
 
     private void loadMeta(TaskMeta taskMeta){
