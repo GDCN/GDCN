@@ -25,12 +25,11 @@ public class ReplicaManager2 implements Serializable{
     private final int CALENDAR_VALUE;
 
     private final WorkerNodeManager workerNodeManager;
-    private ReplicaTimer2 replicaTimer = null;
+    private final ReplicaTimer2 replicaTimer;
 
     private final Map<ReplicaID, Replica2> replicaMap = new HashMap<>();
-    private final Map<String, TaskData> taskDataMap = new HashMap<>();
-    private final Map<String, TaskResultData> resultDataMap = new HashMap<>();
-//    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
+    private final Map<ReplicaID, TaskData> taskDataMap = new HashMap<>();
+    private final Map<TaskID, TaskResultData> resultDataMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
@@ -51,6 +50,12 @@ public class ReplicaManager2 implements Serializable{
 
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
+            super(id);
+        }
+    }
+
+    public static class TaskID extends Identifier{
+        public TaskID(String id) {
             super(id);
         }
     }
@@ -174,6 +179,21 @@ public class ReplicaManager2 implements Serializable{
         return replica.getReplicaBox().getResultKey();
     }
 
+
+    private TaskResultData returned(ReplicaID replicaID){
+        //TODO handle latecomer
+        TaskData taskData = taskDataMap.get(replicaID);
+        if(taskData == null){
+            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
+        }
+
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+        if(! resultData.pendingReplicas.remove(replicaID)){
+            throw new IllegalStateException("Expected replicaID to be in pendingReplicas!");
+        }
+        return resultData;
+    }
+
     /**
      * This replica didn't get any answer within given time limit. Create another one.
      * Doesn't have to report worker, he might still come up with an answer.
@@ -183,53 +203,26 @@ public class ReplicaManager2 implements Serializable{
      * @param replicaID Replica that was outdated
      */
     public synchronized void replicaOutdated(ReplicaID replicaID){
+        TaskResultData resultData = returned(replicaID);
+        resultData.outdatedReplicas.add(replicaID);
         //TODO validate now or wait?
-
-//        Replica oldReplica = replicaMap.get(replicaID);
-//        if(oldReplica==null){
-//            //It might already be returned! Hence not present in replicaMap
-//            return;
-//            //throw new IllegalArgumentException("ReplicaID "+replicaID+" doesn't exist so it cannot be outdated!");
-//        }
-//        Random random = new Random();
-//        Replica replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//
-//        while(replicaMap.containsKey(replica.getReplicaBox().getReplicaID())){
-//            replica = new Replica(oldReplica.getReplicaBox().getTaskMeta());
-//        }
-//        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-//        stagedReplicas.addFirst(replica);
     }
+
     public synchronized void replicaFailed(ReplicaID replicaID){
-        //TODO
+        TaskResultData resultData = returned(replicaID);
+        resultData.failedReplicas.add(replicaID);
+        //TODO validate now or wait?
     }
 
-    /**
-     *
-     * @param replicaID ID of a replica
-     * @param result Computed result of the replica
-     */
     public synchronized void replicaFinished(ReplicaID replicaID, byte[] result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
-
-        TaskData taskData = taskDataMap.get(replicaID);
-        if(taskData == null){
-            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
-        }
-//        if(! assignedTasks.get(worker).contains(taskData)){
-//            throw new IllegalStateException("This TaskData was not found for this worker in assignedTasks!");
-//        }
-
-        TaskResultData resultData = resultDataMap.get(taskData.taskID());
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            throw new IllegalStateException("Expected replicaID to be in pendingReplicas!");
-        }
+        TaskResultData resultData = returned(replicaID);
         resultData.returnedReplicas.put(replicaID, result);
 
-        //TODO decision on wait or not
-        //TODO handle latecomer
+        //TODO validate now or wait?
+
     }
 
     /**
@@ -246,15 +239,12 @@ public class ReplicaManager2 implements Serializable{
         return replica != null && replica.getWorker().equals(workerID);
     }
 
-//    public synchronized void replicaFailed(ReplicaID replicaID){
-//        //TODO implement: note failure as a result. Make comparison later.
-//    }
-//
-//    public synchronized Collection<Replica2> pendingReplicas(){
-//        //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
-//        //TODO Actually this would be better handled by ReplicaTimer2... Adding this to Sprint log
-//        return null;
-//    }
+
+    public synchronized Collection<Replica2> pendingReplicas(){
+        //TODO implement if want this, easy to do now
+        //TODO would be better handled by ReplicaTimer2 ?
+        return null;
+    }
 
     public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
 //        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
@@ -275,7 +265,6 @@ public class ReplicaManager2 implements Serializable{
     private class ReplicaTimer2 implements Serializable{
 
         private final long UPDATE_TIME;
-
         private final PriorityQueue<ReplicaTimeout2> queue = new PriorityQueue<>();
 
         /**

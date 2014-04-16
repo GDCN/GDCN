@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.replica.ReplicaManager2.TaskID;
 
 import java.io.Serializable;
 
@@ -35,8 +36,8 @@ public class TaskData implements TaskCompare, Serializable{
         return jobName;
     }
 
-    public String taskID(){
-        return jobName + taskMeta.getTaskName();
+    public TaskID taskID(){
+        return new TaskID(jobName + taskMeta.getTaskName());
     }
 
     @Override
