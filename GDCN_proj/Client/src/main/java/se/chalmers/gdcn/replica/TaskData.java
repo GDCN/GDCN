@@ -11,6 +11,7 @@ import java.io.Serializable;
 class TaskData implements TaskCompare, Serializable{
     private final TaskMeta taskMeta;
     private final String jobName;
+    private final TaskID taskID;
 
     private int replicasLeft;
     private float reputationNeeded;
@@ -20,6 +21,7 @@ class TaskData implements TaskCompare, Serializable{
         this.jobName = jobName;
         this.replicasLeft = replicas;
         this.reputationNeeded = reputationNeeded;
+        this.taskID = new TaskID(jobName + taskMeta.getTaskName());
     }
 
     public TaskMeta giveTask(float reputation){
@@ -41,7 +43,7 @@ class TaskData implements TaskCompare, Serializable{
     }
 
     public TaskID taskID(){
-        return new TaskID(jobName + taskMeta.getTaskName());
+        return taskID;
     }
 
     @Override
@@ -54,5 +56,38 @@ class TaskData implements TaskCompare, Serializable{
             return Float.MAX_VALUE;
         }
         return reputationNeeded/replicasLeft;
+    }
+
+    @Override
+    public String order() {
+        return taskID().toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TaskData)) return false;
+
+        TaskData taskData = (TaskData) o;
+
+        if (!jobName.equals(taskData.jobName)) return false;
+        if (!taskMeta.equals(taskData.taskMeta)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = taskMeta.hashCode();
+        result = 31 * result + jobName.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TaskData{" +
+                "taskMeta=" + taskMeta +
+                ", jobName='" + jobName + '\'' +
+                '}';
     }
 }

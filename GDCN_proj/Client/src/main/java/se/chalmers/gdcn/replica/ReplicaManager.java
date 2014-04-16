@@ -47,7 +47,7 @@ public class ReplicaManager implements Serializable{
             } else if(o1.value()<o2.value()){
                 return -1;
             } else{
-                return 0;
+                return o1.order().compareTo(o2.order());
             }
         }
     }
@@ -140,6 +140,8 @@ public class ReplicaManager implements Serializable{
             assignedTasks.put(worker, alreadyGiven);
         }
 
+
+
         //Shallow copy intended
         TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
         notGiven.removeAll(alreadyGiven);
@@ -153,6 +155,11 @@ public class ReplicaManager implements Serializable{
             @Override
             public float value() {
                 return workerReputation;
+            }
+
+            @Override
+            public String order() {
+                return "";
             }
         };
         //Assign task in a smart manner

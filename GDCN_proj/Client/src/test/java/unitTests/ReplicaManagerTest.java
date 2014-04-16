@@ -87,6 +87,12 @@ public class ReplicaManagerTest {
     }
 
     @Test
+    public void dataTest(){
+        assert taskMetaA.getTaskName().equals("PrimeTask_01");
+        assert taskMetaB.getTaskName().equals("PrimeTask_02");
+    }
+
+    @Test
     public void keyTest(){
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);

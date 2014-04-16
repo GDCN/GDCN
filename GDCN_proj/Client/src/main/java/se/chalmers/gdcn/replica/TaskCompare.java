@@ -5,4 +5,5 @@ package se.chalmers.gdcn.replica;
  */
 public interface TaskCompare{
     float value();
+    String order();
 }
