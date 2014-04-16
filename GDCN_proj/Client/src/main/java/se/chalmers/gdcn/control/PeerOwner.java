@@ -18,6 +18,7 @@ import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 
@@ -86,8 +87,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         replicaManager1 = dataFilesManager.getReplicaManager();
 
         if(replicaManager1 == null) {
-            //TODO instantiate correctly!
-            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
+            //TODO instantiate correctly! Need workerID which is in TaskPasser...
+            //TODO WorkerNodeManager on the other hand is contained within ReplicaManager
+//            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
+            replicaManager = new ReplicaManagerBuilder((WorkerID)null).create();
 
         } else {
             replicaManager = replicaManager1;

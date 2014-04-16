@@ -24,12 +24,22 @@ class TaskData implements TaskCompare, Serializable{
         this.taskID = new TaskID(jobName + taskMeta.getTaskName());
     }
 
+    /**
+     * Assigns worker to task depending on its reputation. Ie Smart assign
+     * OBS! Changes the state of this object, if it is inside a sorted collection, it must be re-sorted!
+     * @param reputation the workers reputation
+     * @return task for that worker to work on
+     */
     public TaskMeta giveTask(float reputation){
         replicasLeft--;
         reputationNeeded-=reputation;
         return taskMeta;
     }
 
+    /**
+     * Enough replicas has been given for this task. Depends on reputation as well.
+     * @return true if this task can be validated.
+     */
     public boolean enoughGiven(){
         return replicasLeft <=0 && reputationNeeded <= 0;
     }
@@ -42,10 +52,16 @@ class TaskData implements TaskCompare, Serializable{
         return jobName;
     }
 
+    /**
+     * @return id of this task
+     */
     public TaskID taskID(){
         return taskID;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public float value(){
         //TODO replicasLeft can get negative as it is now...
@@ -58,6 +74,9 @@ class TaskData implements TaskCompare, Serializable{
         return reputationNeeded/replicasLeft;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String order() {
         return taskID().toString();

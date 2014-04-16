@@ -76,25 +76,27 @@ public class ReplicaManager implements Serializable{
     }
 
 
-    public ReplicaManager(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
-        this(new WorkerNodeManager(myWorkerID), calendarValue, calendarField, updateInterval);
-    }
+//    public ReplicaManager(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
+//        this(new WorkerNodeManager(myWorkerID), calendarValue, calendarField, updateInterval);
+//    }
+//
+//    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval){
+//
+//        REPLICAS = 2;
+//        EXPECTED_REPUTATION = 3;
+//        CALENDAR_FIELD = calendarField;
+//        CALENDAR_VALUE = calendarValue;
+//
+//        replicaTimer = new SerializableReplicaTimer(updateInterval);
+//        this.workerNodeManager = workerNodeManager;
+//
+//        resumeTimer();
+//    }
 
-    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval){
-
-        //TODO stop hardcoding values, make Builder class later
-        REPLICAS = 2;
-        EXPECTED_REPUTATION = 3;
-        CALENDAR_FIELD = calendarField;
-        CALENDAR_VALUE = calendarValue;
-
-        replicaTimer = new SerializableReplicaTimer(updateInterval);
-        this.workerNodeManager = workerNodeManager;
-
-        resumeTimer();
-    }
-
-    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval, int replicas, int expectedReputation){
+    /**
+     * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
+     */
+    ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval, int replicas, int expectedReputation){
 
         //TODO stop hardcoding values, make Builder class later
         REPLICAS = replicas;

@@ -7,10 +7,11 @@ import java.util.Map;
 
 /**
  * Created by Leif on 2014-04-15.
+ *
+ * Future unimplemented class that can store validated results
  */
 public class Archive {
 
-    //Map taskName to result
     private final Map<TaskID, CanonicalResult> resultMap = new HashMap<>();
 
     //TODO implement

@@ -21,6 +21,9 @@ public class ReplicaManagerBuilder {
     private WorkerNodeManager workerNodeManager = null;
     private WorkerID myWorkerID = null;
 
+    /**
+     * @param myWorkerID this node's workerID, used in WorkerNodeManager
+     */
     public ReplicaManagerBuilder(WorkerID myWorkerID) {
         this.myWorkerID = myWorkerID;
     }
@@ -55,17 +58,33 @@ public class ReplicaManagerBuilder {
         return this;
     }
 
+    /**
+     * Set timeout length for replica.
+     * @param length time length
+     * @param unit Time unit
+     * @return builder object
+     */
     public ReplicaManagerBuilder setTimeoutLength(int length, Time unit){
         this.timeoutLengthType = unit.typeConstant;
         this.timeoutLengthValue = length;
         return this;
     }
 
+    /**
+     * Set update time interval for timer, should be much lower than timeout interval.
+     * Update is cheap so this can be quite short.
+     * @param length time length
+     * @param unit Time unit
+     * @return builder object
+     */
     public ReplicaManagerBuilder setTimerUpdateInterval(int length, Time unit) {
         this.timerUpdateIntervalMillis = unit.comparedToMillis*length;
         return this;
     }
 
+    /**
+     * Type safe time unit mapping to Calendar constants.
+     */
     public static enum Time{
         MILLISECOND(Calendar.MILLISECOND, 1),
         SECOND(Calendar.SECOND, 1000),

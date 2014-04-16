@@ -35,7 +35,6 @@ class Replica implements Serializable{
         Replica replica = (Replica) o;
 
         return replicaBox.equals(replica.replicaBox);
-
     }
 
     @Override

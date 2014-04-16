@@ -5,6 +5,8 @@ import java.util.*;
 
 /**
  * Created by Leif on 2014-04-16.
+ *
+ * Fully serializable timer. Creates runnable that can update the thread.
  */
 public abstract class SerializableTimer<E> implements Serializable {
 
@@ -37,11 +39,21 @@ public abstract class SerializableTimer<E> implements Serializable {
         };
     }
 
+    /**
+     * Add timeout. Will call {@link se.chalmers.gdcn.utils.SerializableTimer#handleTimeout(E)} after specified time.
+     * @param element element
+     * @param date absolute date when <code>handleTimeout()</code> will be called
+     */
     public final synchronized void add(E element, Date date){
         Timeout<E> timeout = new Timeout<>(element, date);
         queue.add(timeout);
     }
 
+    /**
+     * Remove element from queue so that no timeout is called.
+     * @param element element
+     * @return if an element was removed.
+     */
     public final synchronized boolean remove(E element){
         //Should work since Timeout equals only depend on element
         Timeout<E> timeout = new Timeout<>(element, null);
@@ -63,6 +75,10 @@ public abstract class SerializableTimer<E> implements Serializable {
         }
     }
 
+    /**
+     * This element was set to timeout at this time. Handle in subclass.
+     * @param element element
+     */
     protected abstract void handleTimeout(E element);
 
     private static class Timeout<E> implements Serializable, Comparable<Timeout>{
