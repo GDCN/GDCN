@@ -164,10 +164,13 @@ public class TaskPasser extends Passer {
                                         workOnTask(jobOwner, replicaBox);
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                         break;
+                                    case NO_TASK_AVAILABLE:
+                                        System.out.println("No Task available at " + Passer.print(jobOwner));
+                                        break;
                                     case CHALLENGE_FAIL:
                                         throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
                                     default:
-                                        throw new IllegalStateException("Should be a Challenge response here!");
+                                        throw new IllegalStateException("Should be a Challenge response here! "+taskMessage2.getType().name());
                                 }
                             }
                         });
