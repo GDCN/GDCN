@@ -32,7 +32,9 @@ public class ReplicaManagerTest {
     private ReplicaManagerBuilder builder;
     private ReplicaManager replicaManager;
     private WorkerNodeManager workerNodeManager;
+
     private TaskMeta taskMetaA;
+    private TaskMeta taskMetaB;
 
     private WorkerID workerA;
     private WorkerID workerB;
@@ -51,9 +53,19 @@ public class ReplicaManagerTest {
             "    ]\n" +
             "}";
 
+    private final static String TASK_META_B = "{\n" +
+            "    \"taskName\":\"PrimeTask_02\",\n" +
+            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
+            "    \"dependencies\":\n" +
+            "    [\n" +
+            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Primes_2_2000\",\"sticky\":false,\"checkSum\":25}\n" +
+            "    ]\n" +
+            "}";
+
     @BeforeClass
     public void setupClass() throws NoSuchAlgorithmException {
         taskMetaA = gson.fromJson(TASK_META_A, TaskMeta.class);
+        taskMetaB = gson.fromJson(TASK_META_B, TaskMeta.class);
         KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
 
         workerA = new WorkerID(generator.generateKeyPair().getPublic());
@@ -99,6 +111,18 @@ public class ReplicaManagerTest {
 
         //OBS not anymore since reputation...: No replicas left, only use 2 replicas in this test
 //        assert null == replicaManager.giveReplicaToWorker(workerC);
+    }
+
+    @Test
+    public void multiTest(){
+        loadMeta(taskMetaA);
+        loadMeta(taskMetaB);
+
+        assert null != replicaManager.giveReplicaToWorker(workerA);
+        assert null != replicaManager.giveReplicaToWorker(workerA);
+
+        //There are only two different tasks
+        assert null == replicaManager.giveReplicaToWorker(workerA);
     }
 
     @Test
