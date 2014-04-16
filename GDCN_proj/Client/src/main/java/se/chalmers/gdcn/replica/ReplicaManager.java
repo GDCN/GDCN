@@ -172,7 +172,11 @@ public class ReplicaManager implements Serializable{
             taskData = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
+        taskDatas.remove(taskData);
+        //TaskData changes state internally which affects its sorted position! Remove and insert!
         TaskMeta taskMeta = taskData.giveTask(workerReputation);
+        taskDatas.add(taskData);
+
         ReplicaBox replicaBox = new ReplicaBox(taskMeta);
         while (replicaMap.containsKey(replicaBox.getReplicaID())){
             replicaBox = new ReplicaBox(taskMeta);
