@@ -2,9 +2,9 @@ package manualTests;
 
 import com.google.gson.Gson;
 import se.chalmers.gdcn.files.TaskMeta;
-import se.chalmers.gdcn.replica.QualityControl;
+import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
-import se.chalmers.gdcn.replica.Trust;
+import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.utils.ByteArray;
 

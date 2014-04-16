@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.replica;
+package se.chalmers.gdcn.compare;
 
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;

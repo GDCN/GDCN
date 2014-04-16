@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.replica;
+package se.chalmers.gdcn.compare;
 
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.utils.ByteArray;

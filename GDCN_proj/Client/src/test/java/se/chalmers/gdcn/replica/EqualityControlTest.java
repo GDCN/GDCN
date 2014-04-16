@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.replica;
 
 import org.testng.annotations.Test;
+import se.chalmers.gdcn.compare.EqualityControl;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.utils.ByteArray;
 

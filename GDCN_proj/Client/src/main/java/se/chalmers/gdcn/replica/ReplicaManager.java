@@ -1,6 +1,9 @@
 package se.chalmers.gdcn.replica;
 
 import net.tomp2p.peers.Number160;
+import se.chalmers.gdcn.compare.EqualityControl;
+import se.chalmers.gdcn.compare.QualityControl;
+import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.control.WorkerNodeManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;

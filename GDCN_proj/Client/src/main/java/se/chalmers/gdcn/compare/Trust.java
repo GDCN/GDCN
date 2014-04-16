@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.replica;
+package se.chalmers.gdcn.compare;
 
 /**
  * Created by joakim on 4/7/14.
