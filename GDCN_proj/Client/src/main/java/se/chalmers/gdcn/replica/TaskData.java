@@ -35,6 +35,10 @@ public class TaskData implements TaskCompare, Serializable{
         return jobName;
     }
 
+    public String taskID(){
+        return jobName + taskMeta.getTaskName();
+    }
+
     @Override
     public float value(){
         if(reputationNeeded == 0){

@@ -10,9 +10,7 @@ import java.io.Serializable;
 class Replica2 implements Serializable{
 
     private final ReplicaBox replicaBox;
-
     private final WorkerID worker;
-
 
     /**
      * Replica is the object that job owner holds to keep track of who worked on this replica

@@ -2,6 +2,7 @@ package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
+import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
 
 import java.io.Serializable;
 import java.util.Random;
@@ -13,7 +14,7 @@ public class ReplicaBox implements Serializable {
 
     private static final Random random = new Random();
 
-    private final String replicaID;
+    private final ReplicaID replicaID;
     private final TaskMeta taskMeta;
     private final Number160 resultKey;
 
@@ -59,7 +60,7 @@ public class ReplicaBox implements Serializable {
                 '}';
     }
 
-    public String getReplicaID() {
+    public ReplicaID getReplicaID() {
         return replicaID;
     }
 
@@ -71,8 +72,8 @@ public class ReplicaBox implements Serializable {
         return resultKey;
     }
 
-    private static String generateReplicaID(TaskMeta taskMeta){
-        return taskMeta.getTaskName() + random.nextLong();
+    private static ReplicaID generateReplicaID(TaskMeta taskMeta){
+        return new ReplicaID(taskMeta.getTaskName() + random.nextLong());
         //TODO make deterministic?
         //TODO hash replicaID or something, should not be so obvious, or should it?
     }

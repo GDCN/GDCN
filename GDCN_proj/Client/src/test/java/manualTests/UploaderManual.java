@@ -2,8 +2,6 @@ package manualTests;
 
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.control.PeerOwner;
-import se.chalmers.gdcn.files.JobUploader;
-import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -37,7 +35,7 @@ public class UploaderManual {
         PathManager pathManager = PathManager.jobOwner("Job1");
         ClientInterface client = new PeerOwner();
         client.start(8056);
-
+/*
         try {
             JobUploader jobUploader = JobUploader.create("Job1", client, mainTaskListener, new ReplicaManager(1));
             boolean success = jobUploader.runAndAwait();
@@ -54,5 +52,6 @@ public class UploaderManual {
         } finally {
             client.stop();
         }
+        */
     }
 }

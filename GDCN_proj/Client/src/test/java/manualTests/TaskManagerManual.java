@@ -7,7 +7,6 @@ import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.StringHolder;
-import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -44,7 +43,7 @@ public class TaskManagerManual {
 
         final ClientInterface client = new PeerOwner();
         client.start(11789);
-
+/*
         try {
             TaskManager manager = new TaskManager(firstTaskListener, client);
             manager.uploadJob("Job1", new ReplicaManager(1));
@@ -69,6 +68,7 @@ public class TaskManagerManual {
         } finally {
             client.stop();
         }
+        */
     }
     public static void main2(String[] args){
         ClientInterface client = new PeerOwner();

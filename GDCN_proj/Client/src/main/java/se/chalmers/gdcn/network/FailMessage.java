@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.network;
 
+import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
+
 import java.io.Serializable;
 
 /**
@@ -7,9 +9,9 @@ import java.io.Serializable;
  */
 class FailMessage implements Serializable {
     private final String reason;
-    private final String replicaID;
+    private final ReplicaID replicaID;
 
-    FailMessage(String reason, String replicaID) {
+    FailMessage(String reason, ReplicaID replicaID) {
         this.reason = reason;
         this.replicaID = replicaID;
     }
@@ -18,7 +20,7 @@ class FailMessage implements Serializable {
         return reason;
     }
 
-    public String getReplicaID() {
+    public ReplicaID getReplicaID() {
         return replicaID;
     }
 

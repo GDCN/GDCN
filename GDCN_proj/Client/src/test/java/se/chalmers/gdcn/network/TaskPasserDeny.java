@@ -12,6 +12,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.replica.ReplicaBox;
+import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -114,7 +115,7 @@ public class TaskPasserDeny extends Passer {
      */
     private void workOnTaskDeceitfully(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         final Number160 resultKey = replicaBox.getResultKey();
-        final String replicaID = replicaBox.getReplicaID();
+        final ReplicaID replicaID = replicaBox.getReplicaID();
 
         System.out.println("Task " + replicaID + " finished. Attempt to upload and notify job owner.");
 

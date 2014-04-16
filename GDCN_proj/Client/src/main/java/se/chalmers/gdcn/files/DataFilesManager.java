@@ -1,9 +1,9 @@
 package se.chalmers.gdcn.files;
 
-import se.chalmers.gdcn.control.WorkerNodeManager;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
-import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.replica.ReplicaManager2;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import javax.crypto.SecretKey;
@@ -128,14 +128,13 @@ public class DataFilesManager {
     //REPLICAMANAGER METHODS
     //********************************************\\
 
-    public void saveReplicaManager(ReplicaManager rm) {
+    public void saveReplicaManager(ReplicaManager2 rm) {
 
         try {
             FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            //OBS Must use the clone of ReplicaManager because of how ReplicaTimer is implemented
-            oos.writeObject(rm.clone());
+            oos.writeObject(rm);
 
             oos.close();
         } catch (IOException e) {
@@ -144,13 +143,13 @@ public class DataFilesManager {
 
     }
 
-    public ReplicaManager getReplicaManager() {
+    public ReplicaManager2 getReplicaManager() {
         try {
             FileInputStream fis = new FileInputStream(replicaManagerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            ReplicaManager replicaManager = (ReplicaManager) ois.readObject();
+            ReplicaManager2 replicaManager = (ReplicaManager2) ois.readObject();
 
             ois.close();
 

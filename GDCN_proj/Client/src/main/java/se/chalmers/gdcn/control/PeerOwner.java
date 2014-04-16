@@ -1,10 +1,5 @@
 package se.chalmers.gdcn.control;
 
-import se.chalmers.gdcn.communicationToUI.CommandWord;
-import se.chalmers.gdcn.communicationToUI.ErrorCode;
-import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
-import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
-import se.chalmers.gdcn.files.DataFilesManager;
 import net.tomp2p.futures.*;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
@@ -15,8 +10,14 @@ import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.ErrorCode;
+import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
+import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
+import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.network.TaskPasser;
-import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.replica.ReplicaManager2;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 
@@ -42,7 +43,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager replicaManager;
+    private final ReplicaManager2 replicaManager;
 
     private DataFilesManager dataFilesManager;
 
@@ -80,12 +81,13 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public PeerOwner() {
 
         //TODO Make it possible to have a test replicaManager
-        ReplicaManager replicaManager1;
+        ReplicaManager2 replicaManager1;
         dataFilesManager = new DataFilesManager();
         replicaManager1 = dataFilesManager.getReplicaManager();
 
         if(replicaManager1 == null) {
-            replicaManager = new ReplicaManager(3);
+            //TODO instantiate correctly!
+            replicaManager = new ReplicaManager2((WorkerID)null, 1, 1, 1L);
 
         } else {
             replicaManager = replicaManager1;

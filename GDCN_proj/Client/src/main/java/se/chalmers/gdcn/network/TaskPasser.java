@@ -1,5 +1,9 @@
 package se.chalmers.gdcn.network;
 
+import net.tomp2p.p2p.Peer;
+import net.tomp2p.peers.Number160;
+import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
@@ -11,12 +15,9 @@ import se.chalmers.gdcn.files.FileUtils;
 import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.HashCash;
 import se.chalmers.gdcn.hashcash.Solution;
-import net.tomp2p.p2p.Peer;
-import net.tomp2p.peers.Number160;
-import net.tomp2p.peers.PeerAddress;
-import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.replica.ReplicaBox;
-import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManager2;
+import se.chalmers.gdcn.replica.ReplicaManager2.ReplicaID;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 
 import javax.crypto.KeyGenerator;
@@ -37,7 +38,7 @@ import java.util.TimerTask;
 public class TaskPasser extends Passer {
 
     private final WorkerNodeManager workerNodeManager;
-    private final ReplicaManager replicaManager;
+    private final ReplicaManager2 replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
 
@@ -58,7 +59,7 @@ public class TaskPasser extends Passer {
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
+    public TaskPasser(Peer peer, final ReplicaManager2 replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
@@ -291,7 +292,7 @@ public class TaskPasser extends Passer {
 
         switch (taskMessage.getType()){
             case RESULT_UPLOADED:
-                resultUploaded((String) taskMessage.getActualContent());
+                resultUploaded((ReplicaID) taskMessage.getActualContent());
                 break;
             case TASK_FAIL:
                 FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
@@ -315,7 +316,7 @@ public class TaskPasser extends Passer {
      * Called when the job owner has been notified that a certain result has been uploaded.
      * @param replicaID ID of the replica who's result was uploaded
      */
-    private void resultUploaded(final String replicaID){
+    private void resultUploaded(final ReplicaID replicaID){
         System.out.println("Replica was completed: "+replicaID);
 
         final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);

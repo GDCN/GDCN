@@ -5,6 +5,7 @@ import se.chalmers.gdcn.control.WorkerNodeManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
+import se.chalmers.gdcn.utils.Identifier;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -26,8 +27,9 @@ public class ReplicaManager2 implements Serializable{
     private final WorkerNodeManager workerNodeManager;
     private ReplicaTimer2 replicaTimer = null;
 
-    private final Map<String, Replica2> replicaMap = new HashMap<>();
+    private final Map<ReplicaID, Replica2> replicaMap = new HashMap<>();
     private final Map<String, TaskData> taskDataMap = new HashMap<>();
+    private final Map<String, TaskResultData> resultDataMap = new HashMap<>();
 //    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
@@ -47,10 +49,20 @@ public class ReplicaManager2 implements Serializable{
         }
     }
 
+    public static class ReplicaID extends Identifier{
+        public ReplicaID(String id) {
+            super(id);
+        }
+    }
+
+    /**
+     * Contains information about the status of a task, each String below is a ReplicaID
+     */
     private static class TaskResultData{
-        Set<String> failedReplicas;
-        Set<String> pendingReplicas;
-        Map<String, byte[]> returnedReplicas;
+        final Set<ReplicaID> failedReplicas = new HashSet<>();
+        final Set<ReplicaID> outdatedReplicas = new HashSet<>();
+        final Set<ReplicaID> pendingReplicas = new HashSet<>();
+        final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
     }
 
 
@@ -137,7 +149,7 @@ public class ReplicaManager2 implements Serializable{
 
         alreadyGiven.add(assign);
 
-        final String replicaID = replicaBox.getReplicaID();
+        final ReplicaID replicaID = replicaBox.getReplicaID();
         replicaTimer.add(replicaID, replicaDeadline());
         replicaMap.put(replicaID, new Replica2(replicaBox, worker));
         return replicaBox;
@@ -154,7 +166,7 @@ public class ReplicaManager2 implements Serializable{
      * @param replicaID ID of a replica
      * @return Key for the result file in DHT
      */
-    public synchronized Number160 getReplicaResultKey(String replicaID){
+    public synchronized Number160 getReplicaResultKey(ReplicaID replicaID){
         final Replica2 replica = replicaMap.get(replicaID);
         if(replica == null){
             throw new IllegalStateException("Error: Replica was not found!");
@@ -170,7 +182,7 @@ public class ReplicaManager2 implements Serializable{
      *
      * @param replicaID Replica that was outdated
      */
-    public synchronized void replicaOutdated(String replicaID){
+    public synchronized void replicaOutdated(ReplicaID replicaID){
         //TODO validate now or wait?
 
 //        Replica oldReplica = replicaMap.get(replicaID);
@@ -188,51 +200,36 @@ public class ReplicaManager2 implements Serializable{
 //        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
 //        stagedReplicas.addFirst(replica);
     }
+    public synchronized void replicaFailed(ReplicaID replicaID){
+        //TODO
+    }
 
     /**
      *
      * @param replicaID ID of a replica
      * @param result Computed result of the replica
      */
-    public synchronized void replicaFinished(WorkerID worker, String replicaID, byte[] result){
-        //TODO IMPLEMENT!!!
+    public synchronized void replicaFinished(ReplicaID replicaID, byte[] result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
 
         TaskData taskData = taskDataMap.get(replicaID);
         if(taskData == null){
-            throw new IllegalStateException("Null taskData");
+            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
         }
-        if(! assignedTasks.get(worker).contains(taskData)){
-            throw new IllegalStateException("This TaskData was not found for this worker in assignedTasks!");
-        }
-//
-//        final ReplicaBox replicaBox = replicaBoxMap.remove(replicaID);
-//        if(replicaBox == null){
-//            throw new IllegalStateException("Error: Replica was not found!");
+//        if(! assignedTasks.get(worker).contains(taskData)){
+//            throw new IllegalStateException("This TaskData was not found for this worker in assignedTasks!");
 //        }
 
-//        replica.setResult(result);
-        //TODO results
-//        final TaskMeta taskMeta = replicaBox.getTaskMeta();
-//        final String taskName = taskMeta.getTaskName();
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+        if(! resultData.pendingReplicas.remove(replicaID)){
+            throw new IllegalStateException("Expected replicaID to be in pendingReplicas!");
+        }
+        resultData.returnedReplicas.put(replicaID, result);
 
-        //TODO what if this return is a late-comer? Ie enough replica results have been given already
-//        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
-//        if(returnedReplicas==null){
-//            //This is the First replica to return for this task
-//            List<Replica> list = new ArrayList<>();
-//            list.add(replica);
-//            finishedReplicasTaskMap.put(taskName, list);
-//        } else if(returnedReplicas.size() == EXPECTED_RESULTS-1){
-//            //This is the Last replica to return for this task
-//            finishedReplicasTaskMap.remove(taskName);
-//            returnedReplicas.add(replica);
-//            validateResults(taskMeta, returnedReplicas);
-//        } else {
-//            returnedReplicas.add(replica);
-//        }
+        //TODO decision on wait or not
+        //TODO handle latecomer
     }
 
     /**
@@ -241,7 +238,7 @@ public class ReplicaManager2 implements Serializable{
      * @param replicaID ID of a replica
      * @return true only if worker was assigned this replica, otherwise false.
      */
-    public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, String replicaID){
+    public synchronized boolean isWorkerAssignedReplica(WorkerID workerID, ReplicaID replicaID){
         if(workerID==null || replicaID == null){
             return false;
         }
@@ -249,11 +246,11 @@ public class ReplicaManager2 implements Serializable{
         return replica != null && replica.getWorker().equals(workerID);
     }
 
-//    public synchronized void replicaFailed(String replicaID){
+//    public synchronized void replicaFailed(ReplicaID replicaID){
 //        //TODO implement: note failure as a result. Make comparison later.
 //    }
 //
-//    public synchronized Collection<Replica> pendingReplicas(){
+//    public synchronized Collection<Replica2> pendingReplicas(){
 //        //TODO implement? Want to download results if there have come any to DHT while this job owner was offline
 //        //TODO Actually this would be better handled by ReplicaTimer2... Adding this to Sprint log
 //        return null;
@@ -312,7 +309,7 @@ public class ReplicaManager2 implements Serializable{
          * @param replicaID ID of a replica
          * @param date Expiration date of the replica
          */
-        public synchronized void add(String replicaID, Date date){
+        public synchronized void add(ReplicaID replicaID, Date date){
             ReplicaTimeout2 replicaTimeout = new ReplicaTimeout2(replicaID, date);
             queue.add(replicaTimeout);
         }
@@ -338,14 +335,14 @@ public class ReplicaManager2 implements Serializable{
         private class ReplicaTimeout2 implements Serializable, Comparable<ReplicaTimeout2>{
 
             private final Date date;
-            private final String replicaID;
+            private final ReplicaID replicaID;
 
-            private ReplicaTimeout2(String replicaID, Date date) {
+            private ReplicaTimeout2(ReplicaID replicaID, Date date) {
                 this.date = date;
                 this.replicaID = replicaID;
             }
 
-            public String getReplicaID() {
+            public ReplicaID getReplicaID() {
                 return replicaID;
             }
 

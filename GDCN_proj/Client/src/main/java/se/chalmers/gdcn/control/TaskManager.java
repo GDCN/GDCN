@@ -6,7 +6,7 @@ import se.chalmers.gdcn.files.JobUploader;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.StringHolder;
-import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManager2;
 import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
@@ -124,7 +124,7 @@ public class TaskManager{
      * @param jobName Name of job directory
      * @param replicaManager Manager that will produce replicas of each task
      */
-    public void uploadJob(final String jobName, final ReplicaManager replicaManager){
+    public void uploadJob(final String jobName, final ReplicaManager2 replicaManager){
         threadPool.submit(new Runnable() {
             @Override
             public void run() {
