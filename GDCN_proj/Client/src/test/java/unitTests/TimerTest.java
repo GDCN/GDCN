@@ -25,16 +25,6 @@ public class TimerTest implements Serializable{
     public void setupMethod(){
         timeouts.clear();
     }
-    
-    @Test
-    public void testPositive(){
-        timer = new TestTimer(30);
-        timer.add(stringA, futureDate(60));
-        assert timeouts.size()==0;
-        start(timer);
-        nap(100);
-        assert timeouts.contains(stringA);
-    }
 
 
     @Test
@@ -46,17 +36,40 @@ public class TimerTest implements Serializable{
 
     @Test
     public void singleUpdateTest(){
-        timer = new TestTimer(100);
-        assert timeouts.size() == 0;
+        timer = new TestTimer(30);
+        timer.add(stringA, futureDate(60));
+        assert timeouts.size()==0;
+        start(timer);
+        nap(100);
+        assert timeouts.contains(stringA);
+    }
+
+
+    @Test
+    public void pastTest(){
+        timer = new TestTimer(25);
         start(timer);
 
-        timer.add(stringA, futureDate(500));
-        nap(200);
+        timer.add(stringA, futureDate(0));
+        timer.add(stringB, futureDate(-100));
+        timer.add(stringC, futureDate(-500));
+        nap(30);
+        assert timeouts.size() == 3;
+    }
 
-        assert timeouts.size() == 0;
-        nap(400);
+    @Test
+    public void removeTest(){
+        timer = new TestTimer(20);
+        timer.add(stringA, futureDate(0));
+        timer.add(stringB, futureDate(2));
+        timer.add(stringC, futureDate(-10));
 
-        assert timeouts.size() == 1;
+        timer.remove(stringA);
+
+        start(timer);
+        nap(30);
+        assert ! timeouts.contains(stringA);
+        assert timeouts.size() == 2;
     }
 
     @Test
@@ -88,18 +101,6 @@ public class TimerTest implements Serializable{
 
         nap(350);
         assert timeouts.size() == times;
-    }
-
-    @Test
-    public void pastTest(){
-        timer = new TestTimer(25);
-        start(timer);
-
-        timer.add(stringA, futureDate(0));
-        timer.add(stringB, futureDate(-100));
-        timer.add(stringC, futureDate(-500));
-        nap(30);
-        assert timeouts.size() == 3;
     }
 
     @Test
@@ -169,5 +170,11 @@ public class TimerTest implements Serializable{
         
         timerThread.start();
         return timerThread;
+    }
+
+    private static void print(Set<String> set){
+        for(String s : set){
+            System.out.println(s);
+        }
     }
 }
