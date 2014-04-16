@@ -15,11 +15,15 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Created by joakim on 4/2/14.
+ * Class for test quality of results
  */
 public class QualityControl {
 
+//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
     private final Map<ByteArray, Set<ReplicaID>> resultMap;
+//=======
+//    private final Set<ByteArray> resultSet;
+//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
     private final Map<ByteArray, Trust> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
@@ -30,13 +34,33 @@ public class QualityControl {
     private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
+//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
     public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
 
+//    /**
+//     * A method for testing the quality and validity of result data, using a job owner defined program
+//     * @param jobName the name of the job for the task
+//     * @param taskMeta the task metadata
+//     * @param resultSet the set of results to test quality
+//     * @return a map of the result data with their trust level as values
+//     * @throws IOException
+//     */
+//    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException{
+//        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
+//        return qualityControl.compare();
+//    }
+
     private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
         this.resultMap = resultMap;
+////=======
+//
+//
+//    private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
+//        this.resultSet = resultSet;
+//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
         taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
         waitForAll = new CountDownLatch(resultMap.size());
@@ -49,7 +73,11 @@ public class QualityControl {
 
     private Map<ByteArray, Trust> compare() throws IOException {
         int resultID = 0;
+//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
+//=======
+//        for (ByteArray data : resultSet) {
+//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
             String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
             FileOutputStream fos = new FileOutputStream(resultFile);
             fos.write(entry.getKey().getData());
@@ -70,8 +98,22 @@ public class QualityControl {
         return trustMap;
     }
 
-    private synchronized void reward(ByteArray result) {
-        trustMap.put(result, Trust.TRUSTWORTHY);
+    private synchronized void reward(ByteArray result, int quality) {
+        if (quality == bestQuality) {
+            trustMap.put(result, Trust.TRUSTWORTHY);
+        }
+        else if (quality > bestQuality) {
+            for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
+                if (entry.getValue() == Trust.TRUSTWORTHY) {
+                    entry.setValue(Trust.DECEITFUL);
+                }
+            }
+            trustMap.put(result, Trust.TRUSTWORTHY);
+            bestQuality = quality;
+        }
+        else {
+            trustMap.put(result, Trust.DECEITFUL);
+        }
         waitForAll.countDown();
     }
 
@@ -85,21 +127,16 @@ public class QualityControl {
         waitForAll.countDown();
     }
 
-    private synchronized void punishTrusted(ByteArray result, int newQuality) {
-        for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
-            if (entry.getValue() == Trust.TRUSTWORTHY) {
-                entry.setValue(Trust.DECEITFUL);
-            }
-        }
-        trustMap.put(result, Trust.TRUSTWORTHY);
-        bestQuality = newQuality;
-        waitForAll.countDown();
-    }
-
     private synchronized void addRemaining() {
+//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
                 trustMap.put(entry.getKey(), Trust.UNKNOWN);
+//=======
+//        for (ByteArray data : resultSet) {
+//            if (!trustMap.containsKey(data)) {
+//                trustMap.put(data, Trust.UNKNOWN);
+//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
             }
         }
     }
@@ -130,16 +167,7 @@ public class QualityControl {
 
         @Override
         public void validityOk(int quality) {
-            if (quality == bestQuality) {
-                reward(myResult);
-            }
-            else if (quality > bestQuality) {
-                punishTrusted(myResult, quality);
-
-            }
-            else {
-                punish(myResult);
-            }
+            reward(myResult, quality);
         }
 
         @Override

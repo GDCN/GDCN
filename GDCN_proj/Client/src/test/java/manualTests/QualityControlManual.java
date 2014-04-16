@@ -48,10 +48,17 @@ public class QualityControlManual {
         results.add(Files.readAllBytes(Paths.get(path + "150.raw")));
         results.add(Files.readAllBytes(Paths.get(path + "wrong_type.raw")));
 
+//<<<<<<< HEAD
         Map<ByteArray, Set<ReplicaID>> resultMap = new HashMap<>();
         int id = 0;
         for (byte[] result : results) {
             resultMap.put(new ByteArray(result), new HashSet<ReplicaID>());
+//=======
+//        Set<ByteArray> resultSet = new HashSet<>();
+//        int id = 0;
+//        for (byte[] result : results) {
+//            resultSet.add(new ByteArray(result));
+//>>>>>>> resultcompare
             System.out.println("Result " + id++ + " has id " + result.toString());
         }
 
