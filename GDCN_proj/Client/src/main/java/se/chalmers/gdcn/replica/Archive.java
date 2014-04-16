@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.replica;
 
+import se.chalmers.gdcn.replica.ReplicaManager.TaskID;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,7 +11,7 @@ import java.util.Map;
 public class Archive {
 
     //Map taskName to result
-    private final Map<String, CanonicalResult> resultMap = new HashMap<>();
+    private final Map<TaskID, CanonicalResult> resultMap = new HashMap<>();
 
     //TODO implement
 }
