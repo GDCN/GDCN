@@ -9,7 +9,7 @@ import java.util.*;
 public abstract class SerializableTimer<E> implements Serializable {
 
     private final long UPDATE_TIME;
-    private final PriorityQueue<Timeout> queue = new PriorityQueue<>();
+    private final PriorityQueue<Timeout<E>> queue = new PriorityQueue<>();
 
     /**
      * @param updateTime Number of Milliseconds between check queue
@@ -38,8 +38,14 @@ public abstract class SerializableTimer<E> implements Serializable {
     }
 
     public final synchronized void add(E element, Date date){
-        Timeout timeout = new Timeout(element, date);
+        Timeout<E> timeout = new Timeout<>(element, date);
         queue.add(timeout);
+    }
+
+    public final synchronized boolean remove(E element){
+        //Should work since Timeout equals only depend on element
+        Timeout<E> timeout = new Timeout<>(element, null);
+        return queue.remove(timeout);
     }
 
     /**
@@ -52,14 +58,14 @@ public abstract class SerializableTimer<E> implements Serializable {
             return;
         }
         while(queue.peek()!=null && queue.peek().getDate().compareTo(currentTime) < 0){
-            Timeout outdated = queue.remove();
+            Timeout<E> outdated = queue.remove();
             handleTimeout(outdated.element);
         }
     }
 
     protected abstract void handleTimeout(E element);
 
-    private class Timeout implements Serializable, Comparable<Timeout>{
+    private static class Timeout<E> implements Serializable, Comparable<Timeout>{
 
         private final Date date;
         private final E element;
@@ -75,6 +81,23 @@ public abstract class SerializableTimer<E> implements Serializable {
 
         public Date getDate() {
             return date;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof Timeout)) return false;
+
+            Timeout timeout = (Timeout) o;
+
+            if (!element.equals(timeout.element)) return false;
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return element.hashCode();
         }
 
         /**

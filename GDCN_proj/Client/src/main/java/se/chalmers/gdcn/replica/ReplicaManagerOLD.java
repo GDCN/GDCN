@@ -24,8 +24,8 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
     private final int CALENDAR_VALUE;
 
 //    private final Deque<ReplicaOLD> stagedReplicas = new ArrayDeque<>();
-    private final Map<String, Replica> replicaMap = new HashMap<>();
-    private final Map<String, List<Replica>> finishedReplicasTaskMap = new HashMap<>();
+    private final Map<String, ReplicaOLD> replicaMap = new HashMap<>();
+    private final Map<String, List<ReplicaOLD>> finishedReplicasTaskMap = new HashMap<>();
 
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
 
@@ -165,7 +165,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
      */
     @Override
     public synchronized void replicaOutdated(String replicaID){
-        Replica oldReplica = replicaMap.get(replicaID);
+        ReplicaOLD oldReplica = replicaMap.get(replicaID);
         if(oldReplica==null){
             //It might already be returned! Hence not present in replicaMap
             return;
@@ -178,7 +178,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
 //            replica = new ReplicaOLD(oldReplica.getReplicaBox().getTaskMeta());
 //        }
 //        replicaMap.put(replica.getReplicaBox().getReplicaID(), replica);
-//        stagedReplicas.addFirst(replica);
+//        stagedReplicaOLDs.addFirst(replica);
         //TODO fix reputation
         int workerReputation = 1;
         //todo implement!
@@ -269,7 +269,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
      * @return Key for the result file in DHT
      */
     public synchronized Number160 getReplicaResultKey(String replicaID){
-        final Replica replica = replicaMap.get(replicaID);
+        final ReplicaOLD replica = replicaMap.get(replicaID);
         if(replica == null){
             throw new IllegalStateException("Error: Replica was not found!");
         }
@@ -286,7 +286,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
             throw new IllegalArgumentException("Error: don't give null result!");
         }
 
-        final Replica replica = replicaMap.remove(replicaID);
+        final ReplicaOLD replica = replicaMap.remove(replicaID);
         if(replica == null){
             throw new IllegalStateException("Error: Replica was not found!");
         }
@@ -297,10 +297,10 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
 
         //TODO what if this return is a late-comer? Ie enough replica results have been given already
 
-        List<Replica> returnedReplicas = finishedReplicasTaskMap.get(taskName);
+        List<ReplicaOLD> returnedReplicas = finishedReplicasTaskMap.get(taskName);
         if(returnedReplicas==null){
             //This is the First replica to return for this task
-            List<Replica> list = new ArrayList<>();
+            List<ReplicaOLD> list = new ArrayList<>();
             list.add(replica);
             finishedReplicasTaskMap.put(taskName, list);
         } else if(returnedReplicas.size() == EXPECTED_RESULTS-1){
@@ -323,7 +323,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
         if(workerID==null || replicaID == null){
             return false;
         }
-        Replica replica = replicaMap.get(replicaID);
+        ReplicaOLD replica = replicaMap.get(replicaID);
         if(replica == null){
             return false;
         }
@@ -343,7 +343,7 @@ public class ReplicaManagerOLD implements Serializable, Outdater, Cloneable{
         return null;
     }
 
-    public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
+    public void validateResults(TaskMeta taskMeta, List<ReplicaOLD> replicaList){
 //        String jobName = jobNameOfTask.remove(taskMeta.getTaskName());
         String jobName = "";
         //TODO Use real job name in TaskData!

@@ -2,6 +2,8 @@ package unitTests;
 
 /**
  * Created by Leif on 2014-04-01.
+ *
+ * @deprecated
  */
 public class ReplicaTest {
 /*

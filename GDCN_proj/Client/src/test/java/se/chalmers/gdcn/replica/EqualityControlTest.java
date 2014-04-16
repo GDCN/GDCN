@@ -18,10 +18,10 @@ public class EqualityControlTest {
 
     private TaskMeta taskMeta;
 
-    private Replica replicaA;
-    private Replica replicaB;
-    private Replica replicaC;
-    private Replica replicaD;
+    private ReplicaOLD replicaA;
+    private ReplicaOLD replicaB;
+    private ReplicaOLD replicaC;
+    private ReplicaOLD replicaD;
 
     private WorkerID workerA;
     private WorkerID workerB;
@@ -44,24 +44,24 @@ public class EqualityControlTest {
         //Need a taskMeta dummy for replica creation
         taskMeta = gson.fromJson(TASK_META, TaskMeta.class);
 
-        replicaA = new Replica(taskMeta);
+        replicaA = new ReplicaOLD(taskMeta);
         byte[] resultA = {1, 2, 3, 4};
         workerA = new WorkerID(null);
         replicaA.setResult(resultA);
         replicaA.setWorker(workerA);
 
-        replicaB = new Replica(taskMeta);
+        replicaB = new ReplicaOLD(taskMeta);
         workerB = new WorkerID(null);
         replicaB.setResult(resultA);
         replicaB.setWorker(workerB);
 
-        replicaC = new Replica(taskMeta);
+        replicaC = new ReplicaOLD(taskMeta);
         byte[] resultC = {1, 2, 3, 4};
         workerC = new WorkerID(null);
         replicaC.setResult(resultC);
         replicaC.setWorker(workerC);
 
-        replicaD = new Replica(taskMeta);
+        replicaD = new ReplicaOLD(taskMeta);
         byte[] resultD = {1, 2, 3, 0};
         workerD = new WorkerID(null);
         replicaD.setResult(resultD);
@@ -70,7 +70,7 @@ public class EqualityControlTest {
 
     @Test
     public void compareEqual() {
-        List<Replica> list = new ArrayList<>();
+        List<ReplicaOLD> list = new ArrayList<>();
 
         list.add(replicaA);
         list.add(replicaB);
@@ -88,7 +88,7 @@ public class EqualityControlTest {
 
     @Test
     public void compareInequal() {
-        List<Replica> list = new ArrayList<>();
+        List<ReplicaOLD> list = new ArrayList<>();
 
         list.add(replicaA);
         list.add(replicaD);
@@ -106,7 +106,7 @@ public class EqualityControlTest {
 
     @Test
     public void compareMixed() {
-        List<Replica> list = new ArrayList<>();
+        List<ReplicaOLD> list = new ArrayList<>();
 
         list.add(replicaA);
         list.add(replicaC);

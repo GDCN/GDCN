@@ -33,9 +33,9 @@ class ReplicaOLD implements Serializable{
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Replica)) return false;
+        if (!(o instanceof ReplicaOLD)) return false;
 
-        Replica replica = (Replica) o;
+        ReplicaOLD replica = (ReplicaOLD) o;
 
         return replicaBox.equals(replica.replicaBox);
 

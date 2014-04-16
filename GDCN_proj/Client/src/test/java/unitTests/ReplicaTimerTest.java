@@ -13,6 +13,8 @@ import java.util.GregorianCalendar;
 
 /**
  * Created by HalfLeif on 2014-04-08.
+ *
+ * @deprecated
  */
 public class ReplicaTimerTest {
 

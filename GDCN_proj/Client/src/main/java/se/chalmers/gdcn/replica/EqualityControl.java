@@ -13,11 +13,12 @@ import java.util.Map;
  */
 public class EqualityControl {
 
-    public static Map<ByteArray, List<WorkerID>> compareData(List<Replica> replicas) {
+    public static Map<ByteArray, List<WorkerID>> compareData(List<ReplicaOLD> replicas) {
         Map<ByteArray, List<WorkerID>> map = new HashMap<>();
 
-        for (Replica replica : replicas) {
+        for (ReplicaOLD replica : replicas) {
             ByteArray result = new ByteArray(replica.getResult());
+            //TODO fix all of this, result is stored in a different way after refactor
             List<WorkerID> list = map.get(result);
             if (list == null) {
                 list = new ArrayList<>();
