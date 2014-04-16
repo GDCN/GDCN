@@ -140,11 +140,6 @@ public class ReplicaManager implements Serializable{
             assignedTasks.put(worker, alreadyGiven);
         }
 
-        System.out.println("Already given:");
-        for(TaskData taskData : alreadyGiven){
-            System.out.println(taskData);
-        }
-
         //Shallow copy intended
         TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
         notGiven.removeAll(alreadyGiven);
@@ -228,10 +223,7 @@ public class ReplicaManager implements Serializable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-//        System.out.println("Returned: "+replicaID);
-//        for(ReplicaID r : resultData.pendingReplicas){
-//            System.out.println("\t"+r);
-//        }
+
         if(! resultData.pendingReplicas.remove(replicaID)){
             if(! resultData.outdatedReplicas.remove(replicaID)){
                 throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
