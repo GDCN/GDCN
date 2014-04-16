@@ -47,7 +47,8 @@ public class ReplicaManager implements Serializable{
             } else if(o1.value()<o2.value()){
                 return -1;
             } else{
-                return o1.order().compareTo(o2.order());
+                //negative so that order of "" for the request is sorted correctly
+                return -o1.order().compareTo(o2.order());
             }
         }
     }

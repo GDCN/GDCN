@@ -350,24 +350,26 @@ public class ReplicaManagerTest {
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
         ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
 
-        //Since A has high reputation, should work on same task as B which has no reputation
+        //Since workerA has high reputation, should work on same task as B which has no reputation
         assert replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
     }
 
     @Test
     public void smartChoiceTest(){
         builder.setExpectedReputation(4);
+        builder.setReplicas(2);
         replicaManager = builder.create();
-        promote(workerA, 3);
+        promote(workerA, 4);
+        //Reputation 4 is the limit in this case since floor() is called before ceiling().
 
-        //TODO fails now... check floor vs ceiling printout
         loadMeta(taskMetaA);
         loadMeta(taskMetaB);
 
         ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+        //Here A:4/1, B:4/2
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
 
-        //Since A has high reputation, should work on same task as B which has no reputation
+        //Since workerA has high reputation, should work on same task as B which has no reputation
         assert replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
     }
 
