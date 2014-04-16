@@ -147,10 +147,6 @@ public class TimerTest implements Serializable{
         protected void handleTimeout(String element) {
             timeouts.add(element);
         }
-
-        public Set<String> timeouts(){
-            return timeouts;
-        }
     }
 
     private static Date futureDate(int millis){

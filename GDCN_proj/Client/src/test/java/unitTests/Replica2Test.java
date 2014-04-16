@@ -1,12 +1,27 @@
 package unitTests;
 
+import com.google.gson.Gson;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.replica.ReplicaBox;
+import se.chalmers.gdcn.replica.ReplicaManager;
+
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
 /**
  * Created by Leif on 2014-04-01.
  *
  * @deprecated
  */
 public class Replica2Test {
-/*
+
 
     private ReplicaManager replicaManager;
     private TaskMeta taskMetaA;
@@ -54,7 +69,7 @@ public class Replica2Test {
         assert replicaBoxA.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxA.getReplicaID()));
         assert replicaBoxB.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxB.getReplicaID()));
     }
-
+/*
     @Test
     public void giveWorkTest(){
 
@@ -248,7 +263,7 @@ public class Replica2Test {
 //        }
 //        assert null != deserialized.giveReplicaToWorker(workerC);
     }
-
+*/
     private void loadMeta(TaskMeta taskMeta){
         loadMeta(taskMeta, this.replicaManager);
     }
@@ -258,5 +273,5 @@ public class Replica2Test {
         taskMetas.add(taskMeta);
         replicaManager.loadTasksAndReplicate("jobName", taskMetas);
     }
-    */
+
 }
