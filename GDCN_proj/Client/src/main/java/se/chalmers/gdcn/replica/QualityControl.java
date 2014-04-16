@@ -70,8 +70,22 @@ public class QualityControl {
         return trustMap;
     }
 
-    private synchronized void reward(ByteArray result) {
-        trustMap.put(result, Trust.TRUSTWORTHY);
+    private synchronized void reward(ByteArray result, int quality) {
+        if (quality == bestQuality) {
+            trustMap.put(result, Trust.TRUSTWORTHY);
+        }
+        else if (quality > bestQuality) {
+            for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
+                if (entry.getValue() == Trust.TRUSTWORTHY) {
+                    entry.setValue(Trust.DECEITFUL);
+                }
+            }
+            trustMap.put(result, Trust.TRUSTWORTHY);
+            bestQuality = quality;
+        }
+        else {
+            trustMap.put(result, Trust.DECEITFUL);
+        }
         waitForAll.countDown();
     }
 
@@ -82,17 +96,6 @@ public class QualityControl {
 
     private synchronized void unknown(ByteArray result) {
         trustMap.put(result, Trust.UNKNOWN);
-        waitForAll.countDown();
-    }
-
-    private synchronized void punishTrusted(ByteArray result, int newQuality) {
-        for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
-            if (entry.getValue() == Trust.TRUSTWORTHY) {
-                entry.setValue(Trust.DECEITFUL);
-            }
-        }
-        trustMap.put(result, Trust.TRUSTWORTHY);
-        bestQuality = newQuality;
         waitForAll.countDown();
     }
 
@@ -130,16 +133,7 @@ public class QualityControl {
 
         @Override
         public void validityOk(int quality) {
-            if (quality == bestQuality) {
-                reward(myResult);
-            }
-            else if (quality > bestQuality) {
-                punishTrusted(myResult, quality);
-
-            }
-            else {
-                punish(myResult);
-            }
+            reward(myResult, quality);
         }
 
         @Override
