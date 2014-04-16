@@ -88,6 +88,20 @@ public class ReplicaManager implements Serializable{
         resumeTimer();
     }
 
+    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval, int replicas, int expectedReputation){
+
+        //TODO stop hardcoding values, make Builder class later
+        REPLICAS = replicas;
+        EXPECTED_REPUTATION = expectedReputation;
+        CALENDAR_FIELD = calendarField;
+        CALENDAR_VALUE = calendarValue;
+
+        replicaTimer = new ReplicaTimer2(updateInterval);
+        this.workerNodeManager = workerNodeManager;
+
+        resumeTimer();
+    }
+
     /**
      * Must be called after being deserialized for the timer to start running!
      * Is called in constructor.

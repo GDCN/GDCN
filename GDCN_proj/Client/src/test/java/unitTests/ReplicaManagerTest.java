@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import se.chalmers.gdcn.control.WorkerNodeManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.ReplicaBox;
@@ -18,12 +19,11 @@ import java.util.List;
 /**
  * Created by Leif on 2014-04-01.
  *
- * @deprecated
  */
-public class Replica2Test {
-
+public class ReplicaManagerTest {
 
     private ReplicaManager replicaManager;
+    private WorkerNodeManager workerNodeManager;
     private TaskMeta taskMetaA;
 
     private WorkerID workerA;
@@ -56,7 +56,8 @@ public class Replica2Test {
 
     @BeforeMethod
     public void setupMethod(){
-        replicaManager = new ReplicaManager(myWorkerID, 2, Calendar.MINUTE, 5000);
+        workerNodeManager = new WorkerNodeManager(myWorkerID);
+        replicaManager = new ReplicaManager(workerNodeManager, 2, Calendar.MINUTE, 5000);
     }
 
     @Test
@@ -69,10 +70,9 @@ public class Replica2Test {
         assert replicaBoxA.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxA.getReplicaID()));
         assert replicaBoxB.getResultKey().equals(replicaManager.getReplicaResultKey(replicaBoxB.getReplicaID()));
     }
-/*
+
     @Test
     public void giveWorkTest(){
-
         assert null == replicaManager.giveReplicaToWorker(workerA);
 
         loadMeta(taskMetaA);
@@ -83,10 +83,10 @@ public class Replica2Test {
 
         assert null != replicaManager.giveReplicaToWorker(workerB);
 
-        //No replicas left, only use 2 replicas in this test
-        assert null == replicaManager.giveReplicaToWorker(workerC);
+        //OBS not anymore since reputation...: No replicas left, only use 2 replicas in this test
+//        assert null == replicaManager.giveReplicaToWorker(workerC);
     }
-
+/*
     @Test
     public void finishReplicaTest(){
         boolean exceptionThrown = false;
