@@ -13,12 +13,15 @@ import se.chalmers.gdcn.replica.ReplicaBox;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
+import se.chalmers.gdcn.replica.ReplicaManagerBuilder.Time;
+import utils.TestUtils;
 
 import java.io.IOException;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by Leif on 2014-04-01.
@@ -170,17 +173,67 @@ public class ReplicaManagerTest {
     }
 
     @Test
-    public void replicaOutdatedTest(){
+    public void pendingTest(){
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
         ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
 
-//        assert null == replicaManager.giveReplicaToWorker(workerC);
+        Set<ReplicaID> pending = replicaManager.pendingReplicaIDs();
+        assert pending.size() == 2;
+        assert pending.contains(replicaBoxA.getReplicaID());
+        assert pending.contains(replicaBoxB.getReplicaID());
+    }
 
-        //TODO something is not right here!
+    @Test
+    public void outdateTimerTest(){
+        builder.setTimeoutLength(1, Time.MILLISECOND);
+        builder.setTimerUpdateInterval(15, Time.MILLISECOND);
+        replicaManager = builder.create();
+
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        TestUtils.nap(25);
+        assert replicaManager.pendingReplicaIDs().size() == 0;
+    }
+
+    @Test
+    public void replicaFinishTest(){
+        builder.setTimeoutLength(1, Time.MILLISECOND);
+        replicaManager = builder.create();
+
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        assert replicaManager.pendingReplicaIDs().contains(replicaBoxA.getReplicaID());
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+        assert replicaManager.pendingReplicaIDs().size() == 0;
+    }
+
+
+    @Test
+    public void outdateAfterFinishTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+
+        boolean exceptionThrown = false;
+        try {
+            replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
+        } catch (Exception e) {
+            exceptionThrown = true;
+        }
+        assert exceptionThrown;
+    }
+
+    @Test
+    public void replicaOutdatedTest(){
+        loadMeta(taskMetaA);
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
 
         replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
-        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
 
         assert replicaBoxC != null;
         String taskA = replicaBoxA.getTaskMeta().getTaskName();
@@ -195,89 +248,47 @@ public class ReplicaManagerTest {
         replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
         replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
         replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
-    }
-/*
-    @Test
-    public void outdateFinishTest(){
-        loadMeta(taskMetaA);
-        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
 
-        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
-        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
-        //No exception
+        assert replicaManager.pendingReplicaIDs().size() == 0;
     }
 
-    @Test
-    public void expectedReturnTest(){
-//        ReplicaManager replicaManagerE = new ReplicaManager(myWorkerID, 2, 1);
-//        loadMeta(taskMetaA, replicaManagerE);
-//
-//        ReplicaBox replicaBoxA = replicaManagerE.giveReplicaToWorker(workerA);
-//        replicaManagerE.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
-        //TODO assert validation is called
-    }
-//
 //    @Test
-//    public void constructorTest(){
-//        boolean exceptionThrown = false;
-//        try {
-//            new ReplicaManager(0,0);
-//        } catch (Exception e) {
-//            exceptionThrown = true;
-//        } finally {
-//            assert exceptionThrown;
-//        }
+//    public void latecomerTest(){
+//        loadMeta(taskMetaA);
+//        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+//        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+//        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
 //
-//        exceptionThrown = false;
-//        try {
-//            new ReplicaManager(3,4);
-//        } catch (Exception e) {
-//            exceptionThrown = true;
-//        } finally {
-//            assert exceptionThrown;
-//        }
+//        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
+//
+//        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
+//        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
+//        //TODO assert validation is called
+//
+//        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
+//        //TODO assert replicaManager responds as wanted
 //    }
 
     @Test
-    public void latecomerTest(){
+    public void serializedTimerTestOnReplicaManager() throws IOException, ClassNotFoundException {
+        builder.setTimeoutLength(150, Time.MILLISECOND);
+        builder.setTimerUpdateInterval(30, Time.MILLISECOND);
+        replicaManager = builder.create();
+
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
-        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
-        assert null == replicaManager.giveReplicaToWorker(workerC);
+        Data serialized = new Data(replicaManager);
 
-        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
-        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
+        ReplicaManager deserialized = (ReplicaManager) serialized.getObject();
 
-        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
-        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
-        //TODO assert validation is called
+        assert deserialized.isWorkerAssignedReplica(workerA, replicaBoxA.getReplicaID());
+        assert deserialized.pendingReplicaIDs().contains(replicaBoxA.getReplicaID());
 
-        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
-        //TODO assert replicaManager responds as wanted
+        deserialized.resumeTimer();
+        TestUtils.nap(180);
+        assert deserialized.pendingReplicaIDs().size() == 0;
     }
 
-    @Test
-    public void integrationReplicaTimerTest() throws IOException, ClassNotFoundException {
-//        ReplicaManager replicaManager2 = new ReplicaManager(2, 2, 300, Calendar.MILLISECOND, 50L);
-//        loadMeta(this.taskMetaA, replicaManager2);
-//
-//        ReplicaBox replicaBoxA = replicaManager2.giveReplicaToWorker(workerA);
-//        Data serialized = new Data(replicaManager2.clone());
-//
-//        ReplicaManager deserialized = (ReplicaManager) serialized.getObject();
-//        assert deserialized.isWorkerAssignedReplica(workerA, replicaBoxA.getReplicaID());
-//        assert null != deserialized.giveReplicaToWorker(workerB);
-//        assert null == deserialized.giveReplicaToWorker(workerC);
-//
-//        deserialized.resumeTimer();
-//        try {
-//            Thread.sleep(350);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        assert null != deserialized.giveReplicaToWorker(workerC);
-    }
-*/
     private void loadMeta(TaskMeta taskMeta){
         loadMeta(taskMeta, this.replicaManager);
     }

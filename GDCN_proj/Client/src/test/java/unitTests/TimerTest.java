@@ -4,6 +4,7 @@ import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.utils.SerializableTimer;
+import utils.TestUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -40,7 +41,7 @@ public class TimerTest implements Serializable{
         timer.add(stringA, futureDate(60));
         assert timeouts.size()==0;
         start(timer);
-        nap(100);
+        TestUtils.nap(100);
         assert timeouts.contains(stringA);
     }
 
@@ -53,7 +54,7 @@ public class TimerTest implements Serializable{
         timer.add(stringA, futureDate(0));
         timer.add(stringB, futureDate(-100));
         timer.add(stringC, futureDate(-500));
-        nap(30);
+        TestUtils.nap(30);
         assert timeouts.size() == 3;
     }
 
@@ -67,7 +68,7 @@ public class TimerTest implements Serializable{
         timer.remove(stringA);
 
         start(timer);
-        nap(30);
+        TestUtils.nap(30);
         assert ! timeouts.contains(stringA);
         assert timeouts.size() == 2;
     }
@@ -81,10 +82,10 @@ public class TimerTest implements Serializable{
         timer.add(stringB, futureDate(150));
         timer.add(stringC, futureDate(150));
 
-        nap(50);
+        TestUtils.nap(50);
         assert timeouts.size() == 1;
 
-        nap(130);
+        TestUtils.nap(130);
         assert timeouts.size() == 3;
     }
 
@@ -99,7 +100,7 @@ public class TimerTest implements Serializable{
             timer.add("Id_"+i, futureDate(300+i%5));
         }
 
-        nap(350);
+        TestUtils.nap(350);
         assert timeouts.size() == times;
     }
 
@@ -115,7 +116,7 @@ public class TimerTest implements Serializable{
 
         assert deserialized.timeouts.size() == 0;
         start(deserialized.timer);
-        nap(30);
+        TestUtils.nap(30);
         assert deserialized.timeouts.contains(stringB);
     }
 
@@ -130,9 +131,9 @@ public class TimerTest implements Serializable{
         assert deserialized.timeouts != this.timeouts;
 
         start(deserialized.timer);
-        nap(30);
+        TestUtils.nap(30);
         assert deserialized.timeouts.size() == 0;
-        nap(100);
+        TestUtils.nap(100);
         assert deserialized.timeouts.contains(stringA);
     }
     
@@ -156,14 +157,6 @@ public class TimerTest implements Serializable{
         return calendar.getTime();
     }
 
-    private static void nap(int millis){
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
     private static Thread start(SerializableTimer serializableTimer){
         Thread timerThread = new Thread(serializableTimer.createUpdater());
         timerThread.setDaemon(true);
@@ -172,9 +165,4 @@ public class TimerTest implements Serializable{
         return timerThread;
     }
 
-    private static void print(Set<String> set){
-        for(String s : set){
-            System.out.println(s);
-        }
-    }
 }

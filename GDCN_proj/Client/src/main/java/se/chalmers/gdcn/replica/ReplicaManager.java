@@ -24,7 +24,7 @@ public class ReplicaManager implements Serializable{
     private final int CALENDAR_VALUE;
 
     private final WorkerNodeManager workerNodeManager;
-    private final ReplicaTimer2 replicaTimer;
+    private final SerializableReplicaTimer replicaTimer;
 
     private final Map<ReplicaID, Replica> replicaMap = new HashMap<>();
     private final Map<ReplicaID, TaskData> taskDataMap = new HashMap<>();
@@ -82,7 +82,7 @@ public class ReplicaManager implements Serializable{
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
-        replicaTimer = new ReplicaTimer2(updateInterval);
+        replicaTimer = new SerializableReplicaTimer(updateInterval);
         this.workerNodeManager = workerNodeManager;
 
         resumeTimer();
@@ -96,7 +96,7 @@ public class ReplicaManager implements Serializable{
         CALENDAR_FIELD = calendarField;
         CALENDAR_VALUE = calendarValue;
 
-        replicaTimer = new ReplicaTimer2(updateInterval);
+        replicaTimer = new SerializableReplicaTimer(updateInterval);
         this.workerNodeManager = workerNodeManager;
 
         resumeTimer();
@@ -125,7 +125,7 @@ public class ReplicaManager implements Serializable{
 
     /**
      * @param worker Worker node
-     * @return ReplicaOLD info if there are any. Returns null if queue is empty.
+     * @return Replica info if there are any. Returns null if queue is empty.
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
@@ -210,30 +210,35 @@ public class ReplicaManager implements Serializable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
+//        System.out.println("Returned: "+replicaID);
+//        for(ReplicaID r : resultData.pendingReplicas){
+//            System.out.println("\t"+r);
+//        }
         if(! resultData.pendingReplicas.remove(replicaID)){
-            throw new IllegalStateException("Expected replicaID to be in pendingReplicas!");
+            if(! resultData.outdatedReplicas.remove(replicaID)){
+                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
+            }
         }
         return resultData;
     }
 
     /**
-     * This replica didn't get any answer within given time limit. Create another one.
+     * Should only be used for testing! Called internally.
+     *
+     * This replica didn't get any answer within given time limit.
      * Doesn't have to report worker, he might still come up with an answer.
-     *
-     * If the replica was returned before this is called or if the replicaID doesn't exist, the state is unchanged.
-     *
-     * @param replicaID ReplicaOLD that was outdated
+     * @param replicaID Replica that was outdated
      */
     public synchronized void replicaOutdated(ReplicaID replicaID){
         TaskResultData resultData = returned(replicaID);
         resultData.outdatedReplicas.add(replicaID);
-        //TODO validate now or wait?
+        decideValidate(replicaID);
     }
 
     public synchronized void replicaFailed(ReplicaID replicaID){
         TaskResultData resultData = returned(replicaID);
         resultData.failedReplicas.add(replicaID);
-        //TODO validate now or wait?
+        decideValidate(replicaID);
     }
 
     public synchronized void replicaFinished(ReplicaID replicaID, byte[] result){
@@ -242,9 +247,13 @@ public class ReplicaManager implements Serializable{
         }
         TaskResultData resultData = returned(replicaID);
         resultData.returnedReplicas.put(replicaID, result);
+        decideValidate(replicaID);
+    }
 
+    private void decideValidate(ReplicaID replicaID){
+        //Make sure timeout will not be called on this replicaID
+        replicaTimer.remove(replicaID);
         //TODO validate now or wait?
-
     }
 
     /**
@@ -261,11 +270,25 @@ public class ReplicaManager implements Serializable{
         return replica != null && replica.getWorker().equals(workerID);
     }
 
+    public synchronized Set<ReplicaID> pendingReplicaIDs(){
+        Set<ReplicaID> replicaIDs = new HashSet<>();
+        for(TaskResultData taskResultData : resultDataMap.values()){
+            replicaIDs.addAll(taskResultData.pendingReplicas);
+        }
+        return replicaIDs;
+    }
 
-    public synchronized Collection<Replica> pendingReplicas(){
-        //TODO implement if want this, easy to do now
-        //TODO would be better handled by ReplicaTimer2 ?
-        return null;
+    /**
+     * This method is package access only since Replica is package access only...
+     * //TODO make public? What is really wanted is the resultKey for each replica.
+     * @return Set of pending replicas
+     */
+    synchronized Set<Replica> pendingReplicas(){
+        Set<Replica> replicas = new HashSet<>();
+        for(ReplicaID replicaID : pendingReplicaIDs()){
+            replicas.add(replicaMap.get(replicaID));
+        }
+        return replicas;
     }
 
     public void validateResults(TaskMeta taskMeta, List<Replica> replicaList){
@@ -284,11 +307,11 @@ public class ReplicaManager implements Serializable{
         //TODO Implement choice of automatic or manual result validation
     }
 
-    private class ReplicaTimer2 extends SerializableTimer<ReplicaID>{
+    private class SerializableReplicaTimer extends SerializableTimer<ReplicaID>{
         /**
          * @param updateTime Number of Milliseconds between check queue
          */
-        public ReplicaTimer2(long updateTime) {
+        public SerializableReplicaTimer(long updateTime) {
             super(updateTime);
         }
 

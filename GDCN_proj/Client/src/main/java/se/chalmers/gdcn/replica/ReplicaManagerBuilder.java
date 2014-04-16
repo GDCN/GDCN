@@ -61,7 +61,7 @@ public class ReplicaManagerBuilder {
         return this;
     }
 
-    public ReplicaManagerBuilder setTimerUpdateIntervalMillis(int length, Time unit) {
+    public ReplicaManagerBuilder setTimerUpdateInterval(int length, Time unit) {
         this.timerUpdateIntervalMillis = unit.comparedToMillis*length;
         return this;
     }

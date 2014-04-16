@@ -100,11 +100,6 @@ public abstract class SerializableTimer<E> implements Serializable {
             return element.hashCode();
         }
 
-        /**
-         *
-         * @param replicaTimeout Other ReplicaTimer2
-         * @return comparison
-         */
         @Override
         public int compareTo(Timeout replicaTimeout) {
             if(replicaTimeout==null){

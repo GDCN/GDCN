@@ -42,6 +42,7 @@ public class TaskData implements TaskCompare, Serializable{
 
     @Override
     public float value(){
+        //TODO replicasLeft can get negative as it is now...
         if(reputationNeeded == 0){
             return 0;
         }
