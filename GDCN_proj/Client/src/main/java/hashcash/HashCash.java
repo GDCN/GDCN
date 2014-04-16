@@ -13,6 +13,8 @@ public class HashCash {
     private final SecureRandom random;
     private final Key key;
 
+    //TODO IMPORTANT: At the moment, solutions can be reused. This must be fixed. Jack knows the details. (Use private key instead of randomness?)
+
     /**
      * Creates a new HashCash-cookie instance with standard difficulties.
      * The supplied key is used to validate solutions.
