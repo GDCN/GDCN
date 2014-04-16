@@ -6,6 +6,7 @@ import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
+import se.chalmers.gdcn.utils.SerializableTimer;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -91,7 +92,6 @@ public class ReplicaManager implements Serializable{
 
     /**
      * Must be called after being deserialized for the timer to start running!
-     *
      * Is called in constructor.
      */
     public void resumeTimer(){
@@ -103,7 +103,6 @@ public class ReplicaManager implements Serializable{
 
     /**
      * Load TaskMeta objects to make replicas of
-     *
      * @param tasks List of TaskMeta objects
      */
     public synchronized void loadTasksAndReplicate(String jobName, List<TaskMeta> tasks){
@@ -113,7 +112,6 @@ public class ReplicaManager implements Serializable{
     }
 
     /**
-     *
      * @param worker Worker node
      * @return ReplicaOLD info if there are any. Returns null if queue is empty.
      *
@@ -140,23 +138,35 @@ public class ReplicaManager implements Serializable{
                 return workerReputation;
             }
         };
-        TaskData assign = (TaskData) notGiven.floor(reputationCompare);
-        if(assign == null){
+        //Assign task in a smart manner
+        TaskData taskData = (TaskData) notGiven.floor(reputationCompare);
+        if(taskData == null){
             //Warning, might not fulfill reputation demand!
-            assign = (TaskData) notGiven.ceiling(reputationCompare);
+            //TODO check condition!
+            taskData = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
-        TaskMeta taskMeta = assign.giveTask(workerReputation);
+        TaskMeta taskMeta = taskData.giveTask(workerReputation);
         ReplicaBox replicaBox = new ReplicaBox(taskMeta);
         while (replicaMap.containsKey(replicaBox.getReplicaID())){
             replicaBox = new ReplicaBox(taskMeta);
         }
 
-        alreadyGiven.add(assign);
-
         final ReplicaID replicaID = replicaBox.getReplicaID();
+
+        //Update state:
+        alreadyGiven.add(taskData);
+        taskDataMap.put(replicaID, taskData);
         replicaTimer.add(replicaID, replicaDeadline());
         replicaMap.put(replicaID, new Replica(replicaBox, worker));
+
+        TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
+        if(taskResultData == null){
+            taskResultData = new TaskResultData();
+            resultDataMap.put(taskData.taskID(), taskResultData);
+        }
+        taskResultData.pendingReplicas.add(replicaID);
+
         return replicaBox;
     }
 
@@ -262,95 +272,18 @@ public class ReplicaManager implements Serializable{
         //TODO Implement choice of automatic or manual result validation
     }
 
-    private class ReplicaTimer2 implements Serializable{
-
-        private final long UPDATE_TIME;
-        private final PriorityQueue<ReplicaTimeout2> queue = new PriorityQueue<>();
-
+    private class ReplicaTimer2 extends SerializableTimer<ReplicaID>{
         /**
          * @param updateTime Number of Milliseconds between check queue
          */
         public ReplicaTimer2(long updateTime) {
-            UPDATE_TIME =  updateTime;
+            super(updateTime);
         }
 
-        /**
-         * Clock that updates this timer. This class must be Serializable which {@link java.util.Timer} isn't.
-         * @return Runnable
-         */
-        public Runnable createUpdater(){
-            return new Runnable() {
-                @Override
-                public void run() {
-                    Timer timer = new Timer(true);
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            update();
-                        }
-                    }, UPDATE_TIME/2, UPDATE_TIME);
-                }
-            };
-        }
-
-        /**
-         *
-         * @param replicaID ID of a replica
-         * @param date Expiration date of the replica
-         */
-        public synchronized void add(ReplicaID replicaID, Date date){
-            ReplicaTimeout2 replicaTimeout = new ReplicaTimeout2(replicaID, date);
-            queue.add(replicaTimeout);
-        }
-
-        /**
-         * Called by clock to check the queue. Requires Outdater to be set.
-         */
-        private synchronized void update(){
-            final Date currentTime = new Date();
-            if(queue.peek()==null){
-//            System.out.println("ReplicaTimer2: queue empty on update");
-                return;
-            }
-            while(queue.peek()!=null && queue.peek().getDate().compareTo(currentTime) < 0){
-                ReplicaTimeout2 outdated = queue.remove();
-                replicaOutdated(outdated.getReplicaID());
-            }
-//        long timeDiff = queue.peek().getDate().getTime()-currentTime.getTime();
-//        System.out.println("TimeDiff to next element: "+timeDiff);
-        }
-
-
-        private class ReplicaTimeout2 implements Serializable, Comparable<ReplicaTimeout2>{
-
-            private final Date date;
-            private final ReplicaID replicaID;
-
-            private ReplicaTimeout2(ReplicaID replicaID, Date date) {
-                this.date = date;
-                this.replicaID = replicaID;
-            }
-
-            public ReplicaID getReplicaID() {
-                return replicaID;
-            }
-
-            public Date getDate() {
-                return date;
-            }
-
-            /**
-             *
-             * @param replicaTimeout Other ReplicaTimer2
-             * @return comparison
-             */
-            @Override
-            public int compareTo(ReplicaTimeout2 replicaTimeout) {
-                if(replicaTimeout==null){
-                    return 1;
-                }
-                return date.compareTo(replicaTimeout.date);
-            }
+        @Override
+        protected void handleTimeout(ReplicaID element) {
+            //TODO
         }
     }
+
 }

@@ -4,8 +4,10 @@ import java.io.Serializable;
 
 /**
  * Created by Leif on 2014-04-16.
+ *
+ * More or less a typedef for String. Useful for type checking. Extend to make new ID type.
  */
-public class Identifier implements Serializable{
+public abstract class Identifier implements Serializable{
     private final String id;
 
     public Identifier(String id) {

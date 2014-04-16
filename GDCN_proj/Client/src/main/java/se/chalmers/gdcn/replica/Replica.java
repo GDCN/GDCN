@@ -13,7 +13,7 @@ class Replica implements Serializable{
     private final WorkerID worker;
 
     /**
-     * ReplicaOLD is the object that job owner holds to keep track of who worked on this replica
+     * Replica is the object that job owner holds to keep track of who worked on this replica
      * and what the result of it is before it has been canonized.
      *
      * Generates a ReplicaBox that will be sent to a specific worker node.
