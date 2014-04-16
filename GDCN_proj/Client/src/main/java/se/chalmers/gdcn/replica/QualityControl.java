@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 
 /**
- * Created by joakim on 4/2/14.
+ * Class for test quality of results
  */
 public class QualityControl {
 
@@ -29,6 +29,14 @@ public class QualityControl {
     private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
+    /**
+     * A method for testing the quality and validity of result data, using a job owner defined program
+     * @param jobName the name of the job for the task
+     * @param taskMeta the task metadata
+     * @param resultSet the set of results to test quality
+     * @return a map of the result data with their trust level as values
+     * @throws IOException
+     */
     public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
         return qualityControl.compare();

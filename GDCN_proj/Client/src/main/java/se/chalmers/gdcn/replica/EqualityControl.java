@@ -9,10 +9,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by joakim on 4/2/14.
+ * Class for testing equality of results
  */
 public class EqualityControl {
 
+    /**
+     * A method for testing equality of replica result data
+     * @param replicas the replicas to test
+     * @return a map of data with a list of the workers of this result
+     */
     public static Map<ByteArray, List<WorkerID>> compareData(List<Replica> replicas) {
         Map<ByteArray, List<WorkerID>> map = new HashMap<>();
 
