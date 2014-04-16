@@ -2,7 +2,6 @@ package manualTests;
 
 import com.google.gson.Gson;
 import se.chalmers.gdcn.files.TaskMeta;
-import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.QualityControl;
 import se.chalmers.gdcn.replica.Trust;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
@@ -11,10 +10,7 @@ import se.chalmers.gdcn.utils.ByteArray;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by joakim on 4/16/14.
@@ -51,16 +47,16 @@ public class QualityControlManual {
         results.add(Files.readAllBytes(Paths.get(path + "150.raw")));
         results.add(Files.readAllBytes(Paths.get(path + "wrong_type.raw")));
 
-        Map<ByteArray, List<WorkerID>> resultMap = new HashMap<>();
+        Set<ByteArray> resultSet = new HashSet<>();
         int id = 0;
         for (byte[] result : results) {
-            resultMap.put(new ByteArray(result), new ArrayList<WorkerID>());
+            resultSet.add(new ByteArray(result));
             System.out.println("Result " + id++ + " has id " + result.toString());
         }
 
         System.out.println("\t-------------------");
 
-        Map<ByteArray, Trust> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap);
+        Map<ByteArray, Trust> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultSet);
 
         for (Map.Entry<ByteArray, Trust> entry : qualityMap.entrySet()) {
             System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue());

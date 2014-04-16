@@ -299,7 +299,7 @@ public class ReplicaManager implements Serializable, Outdater, Cloneable{
 
         Map<ByteArray, List<WorkerID>> resultMap = EqualityControl.compareData(replicaList);
         try {
-            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap);
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskMeta, resultMap.keySet());
             //TODO Implement actual reward and punishment of peers
         }
         catch (IOException e) {
