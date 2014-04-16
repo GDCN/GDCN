@@ -62,7 +62,7 @@ public class ReplicaManager implements Serializable{
     /**
      * Contains information about the status of a task, each String below is a ReplicaID
      */
-    private static class TaskResultData{
+    private static class TaskResultData implements Serializable{
         final Set<ReplicaID> failedReplicas = new HashSet<>();
         final Set<ReplicaID> outdatedReplicas = new HashSet<>();
         final Set<ReplicaID> pendingReplicas = new HashSet<>();
