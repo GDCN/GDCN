@@ -19,11 +19,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
     private final Map<ByteArray, Set<ReplicaID>> resultMap;
-//=======
-//    private final Set<ByteArray> resultSet;
-//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
     private final Map<ByteArray, Trust> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
@@ -34,33 +30,21 @@ public class QualityControl {
     private int bestQuality = Integer.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
-//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
+    /**
+     * A method for testing the quality and validity of result data, using a job owner defined program
+     * @param jobName the name of the job for the task
+     * @param taskMeta the task metadata
+     * @param resultMap the map of results to test quality
+     * @return a map of the result data with their trust level as values
+     * @throws IOException
+     */
     public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
 
-//    /**
-//     * A method for testing the quality and validity of result data, using a job owner defined program
-//     * @param jobName the name of the job for the task
-//     * @param taskMeta the task metadata
-//     * @param resultSet the set of results to test quality
-//     * @return a map of the result data with their trust level as values
-//     * @throws IOException
-//     */
-//    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException{
-//        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
-//        return qualityControl.compare();
-//    }
-
     private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
         this.resultMap = resultMap;
-////=======
-//
-//
-//    private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
-//        this.resultSet = resultSet;
-//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
         taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
         waitForAll = new CountDownLatch(resultMap.size());
@@ -73,11 +57,7 @@ public class QualityControl {
 
     private Map<ByteArray, Trust> compare() throws IOException {
         int resultID = 0;
-//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
-//=======
-//        for (ByteArray data : resultSet) {
-//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
             String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
             FileOutputStream fos = new FileOutputStream(resultFile);
             fos.write(entry.getKey().getData());
@@ -128,15 +108,9 @@ public class QualityControl {
     }
 
     private synchronized void addRemaining() {
-//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/compare/QualityControl.java
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
                 trustMap.put(entry.getKey(), Trust.UNKNOWN);
-//=======
-//        for (ByteArray data : resultSet) {
-//            if (!trustMap.containsKey(data)) {
-//                trustMap.put(data, Trust.UNKNOWN);
-//>>>>>>> resultcompare:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/QualityControl.java
             }
         }
     }
