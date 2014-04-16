@@ -6,6 +6,8 @@ import se.chalmers.gdcn.replica.TaskCompare;
 
 import java.io.Serializable;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -30,6 +32,27 @@ public class TreeTest {
         treeSet.add(taskC);
 
         assert treeSet.size() == 2;
+    }
+
+    @Test
+    public void removeTest(){
+        treeSet.add(taskA);
+        treeSet.add(taskB);
+
+        Set<TaskCompare> otherSet = new HashSet<>();
+        otherSet.add(taskC);
+
+        assert treeSet.removeAll(otherSet);
+        assert treeSet.size() == 1;
+    }
+
+    @Test
+    public void cloneTest(){
+        treeSet.add(taskA);
+        treeSet.add(taskB);
+
+        Set<TaskCompare> otherSet = (Set<TaskCompare>) treeSet.clone();
+        assert otherSet.remove(taskC);
     }
 
     private static class TaskDummy implements TaskCompare{

@@ -83,6 +83,7 @@ public class TaskPasser extends Passer {
             e.printStackTrace();
         }
 
+        //TODO ReplicaManager must have workerNodeManager!...
         WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
 
         if (workerNodeManager1 == null) {
@@ -186,7 +187,6 @@ public class TaskPasser extends Passer {
      * @param replicaBox Task (replica) to work on
      */
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
-        //TODO project name?
         final StringHolder stringHolder = new StringHolder();
 
         taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, new TaskListener() {

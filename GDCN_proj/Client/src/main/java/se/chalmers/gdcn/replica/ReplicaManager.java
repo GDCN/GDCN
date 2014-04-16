@@ -140,7 +140,10 @@ public class ReplicaManager implements Serializable{
             assignedTasks.put(worker, alreadyGiven);
         }
 
-
+        System.out.println("Already given:");
+        for(TaskData taskData : alreadyGiven){
+            System.out.println(taskData);
+        }
 
         //Shallow copy intended
         TreeSet<TaskCompare> notGiven = (TreeSet<TaskCompare>) taskDatas.clone();
@@ -156,7 +159,6 @@ public class ReplicaManager implements Serializable{
             public float value() {
                 return workerReputation;
             }
-
             @Override
             public String order() {
                 return "";
