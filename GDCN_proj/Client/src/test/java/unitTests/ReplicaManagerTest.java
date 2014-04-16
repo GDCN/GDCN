@@ -124,8 +124,12 @@ public class ReplicaManagerTest {
         loadMeta(taskMetaA);
         loadMeta(taskMetaB);
 
-        assert null != replicaManager.giveReplicaToWorker(workerA);
-        assert null != replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBox1 = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBox2 = replicaManager.giveReplicaToWorker(workerA);
+
+        assert replicaBox1 != null;
+        assert replicaBox2 != null;
+        assert ! replicaBox1.getReplicaID().equals(replicaBox2.getReplicaID());
 
         //There are only two different tasks
         assert null == replicaManager.giveReplicaToWorker(workerA);
