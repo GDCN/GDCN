@@ -21,6 +21,18 @@ public class ReplicaManagerBuilder {
     private WorkerNodeManager workerNodeManager = null;
     private WorkerID myWorkerID = null;
 
+    public ReplicaManagerBuilder(WorkerID myWorkerID) {
+        this.myWorkerID = myWorkerID;
+    }
+
+    /**
+     * Only used for testing!
+     * @param workerNodeManager WorkerNodeManager
+     */
+    public ReplicaManagerBuilder(WorkerNodeManager workerNodeManager) {
+        this.workerNodeManager = workerNodeManager;
+    }
+
     public ReplicaManager create(){
         if(workerNodeManager == null){
             if(myWorkerID == null){
@@ -33,29 +45,25 @@ public class ReplicaManagerBuilder {
                 replicas, expectedReputation);
     }
 
-    public void setReplicas(int replicas) {
+    public ReplicaManagerBuilder setReplicas(int replicas) {
         this.replicas = replicas;
+        return this;
     }
 
-    public void setExpectedReputation(int expectedReputation) {
+    public ReplicaManagerBuilder setExpectedReputation(int expectedReputation) {
         this.expectedReputation = expectedReputation;
+        return this;
     }
 
-    public void setTimeoutLength(int length, Time unit){
+    public ReplicaManagerBuilder setTimeoutLength(int length, Time unit){
         this.timeoutLengthType = unit.typeConstant;
         this.timeoutLengthValue = length;
+        return this;
     }
 
-    public void setTimerUpdateIntervalMillis(int length, Time unit) {
+    public ReplicaManagerBuilder setTimerUpdateIntervalMillis(int length, Time unit) {
         this.timerUpdateIntervalMillis = unit.comparedToMillis*length;
-    }
-
-    public void setWorkerNodeManager(WorkerNodeManager workerNodeManager) {
-        this.workerNodeManager = workerNodeManager;
-    }
-
-    public void setMyWorkerID(WorkerID myWorkerID) {
-        this.myWorkerID = myWorkerID;
+        return this;
     }
 
     public static enum Time{

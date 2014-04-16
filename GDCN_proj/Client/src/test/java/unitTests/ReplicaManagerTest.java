@@ -9,11 +9,12 @@ import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.ReplicaBox;
 import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
+import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -22,6 +23,7 @@ import java.util.List;
  */
 public class ReplicaManagerTest {
 
+    private ReplicaManagerBuilder builder;
     private ReplicaManager replicaManager;
     private WorkerNodeManager workerNodeManager;
     private TaskMeta taskMetaA;
@@ -52,12 +54,18 @@ public class ReplicaManagerTest {
         workerB = new WorkerID(generator.generateKeyPair().getPublic());
         workerC = new WorkerID(generator.generateKeyPair().getPublic());
         myWorkerID = new WorkerID(generator.generateKeyPair().getPublic());
+
+
     }
 
     @BeforeMethod
     public void setupMethod(){
         workerNodeManager = new WorkerNodeManager(myWorkerID);
-        replicaManager = new ReplicaManager(workerNodeManager, 2, Calendar.MINUTE, 5000);
+
+        builder = new ReplicaManagerBuilder(workerNodeManager);
+        builder.setReplicas(2);
+
+        replicaManager = builder.create();
     }
 
     @Test
@@ -86,12 +94,12 @@ public class ReplicaManagerTest {
         //OBS not anymore since reputation...: No replicas left, only use 2 replicas in this test
 //        assert null == replicaManager.giveReplicaToWorker(workerC);
     }
-/*
+
     @Test
     public void finishReplicaTest(){
         boolean exceptionThrown = false;
         try{
-            replicaManager.replicaFinished("NotARealID", new byte[1]);
+            replicaManager.replicaFinished(new ReplicaID("NotARealID"), new byte[1]);
         } catch (Exception e){
             exceptionThrown = true;
         }
@@ -110,7 +118,7 @@ public class ReplicaManagerTest {
 
         replicaManager.replicaFinished(replicaBox.getReplicaID(), new byte[1]);
     }
-
+/*
     @Test
     public void serializeManagerTest() throws IOException, ClassNotFoundException {
         loadMeta(taskMetaA);
