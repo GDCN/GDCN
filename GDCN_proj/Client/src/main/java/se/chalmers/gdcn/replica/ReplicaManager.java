@@ -39,20 +39,6 @@ public class ReplicaManager implements Serializable{
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
 
 
-    private static class TaskComparator implements Comparator<TaskCompare>, Serializable {
-        @Override
-        public int compare(TaskCompare o1, TaskCompare o2) {
-            if(o1.value()>o2.value()){
-                return 1;
-            } else if(o1.value()<o2.value()){
-                return -1;
-            } else{
-                //negative so that order of "" for the request is sorted correctly
-                return -o1.order().compareTo(o2.order());
-            }
-        }
-    }
-
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
             super(id);
@@ -277,7 +263,10 @@ public class ReplicaManager implements Serializable{
                 throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
             }
         }
+
+        taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
+        taskDatas.add(taskData);
 
         resultData.failedReplicas.add(replicaID);
         decideValidate(replicaID, taskData, resultData);
@@ -299,7 +288,9 @@ public class ReplicaManager implements Serializable{
                 throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
             }
         }
+        taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
+        taskDatas.add(taskData);
 
         resultData.returnedReplicas.put(replicaID, result);
         decideValidate(replicaID, taskData, resultData);

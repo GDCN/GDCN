@@ -1,6 +1,5 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
-import com.google.gson.Gson;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeClass;
@@ -14,11 +13,11 @@ import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 import se.chalmers.gdcn.replica.ReplicaManagerBuilder.Time;
+import utils.TaskHolder;
 import utils.TestUtils;
+import utils.WorkerHolder;
 
 import java.io.IOException;
-import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -42,38 +41,15 @@ public class ReplicaManagerTest {
 
     private WorkerID myWorkerID;
 
-    private final Gson gson = new Gson();
-
-    private final static String TASK_META_A = "{\n" +
-            "    \"taskName\":\"PrimeTask_01\",\n" +
-            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
-            "    \"dependencies\":\n" +
-            "    [\n" +
-            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Primes_2_2000\",\"sticky\":false,\"checkSum\":25}\n" +
-            "    ]\n" +
-            "}";
-
-    private final static String TASK_META_B = "{\n" +
-            "    \"taskName\":\"PrimeTask_02\",\n" +
-            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
-            "    \"dependencies\":\n" +
-            "    [\n" +
-            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Primes_2_2000\",\"sticky\":false,\"checkSum\":25}\n" +
-            "    ]\n" +
-            "}";
-
     @BeforeClass
-    public void setupClass() throws NoSuchAlgorithmException {
-        taskMetaA = gson.fromJson(TASK_META_A, TaskMeta.class);
-        taskMetaB = gson.fromJson(TASK_META_B, TaskMeta.class);
-        KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+    public void setupClass() {
+        taskMetaA = TaskHolder.getTaskA();
+        taskMetaB = TaskHolder.getTaskB();
 
-        workerA = new WorkerID(generator.generateKeyPair().getPublic());
-        workerB = new WorkerID(generator.generateKeyPair().getPublic());
-        workerC = new WorkerID(generator.generateKeyPair().getPublic());
-        myWorkerID = new WorkerID(generator.generateKeyPair().getPublic());
-
-
+        workerA = WorkerHolder.getWorkerA();
+        workerB = WorkerHolder.getWorkerB();
+        workerC = WorkerHolder.getWorkerC();
+        myWorkerID = WorkerHolder.getMyWorkerID();
     }
 
     @BeforeMethod

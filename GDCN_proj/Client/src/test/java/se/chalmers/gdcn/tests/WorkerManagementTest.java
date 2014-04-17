@@ -1,4 +1,4 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
 import se.chalmers.gdcn.control.WorkerNodeManager;
 import se.chalmers.gdcn.network.WorkerID;

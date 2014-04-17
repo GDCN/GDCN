@@ -1,4 +1,4 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;

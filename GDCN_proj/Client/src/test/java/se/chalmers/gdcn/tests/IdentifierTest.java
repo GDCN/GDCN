@@ -1,4 +1,4 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.utils.Identifier;

@@ -1,4 +1,4 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
 import se.chalmers.gdcn.network.NetworkMessage;
 import org.testng.annotations.Test;
