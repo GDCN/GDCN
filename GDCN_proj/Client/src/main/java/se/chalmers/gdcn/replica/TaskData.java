@@ -64,14 +64,27 @@ class TaskData implements TaskCompare, Serializable{
      */
     @Override
     public float value(){
-        //TODO replicasLeft can get negative as it is now...
-        if(reputationNeeded == 0){
-            return 0;
+        //Remember that floor() is called before ceiling()
+
+        if(reputationNeeded > 0 && replicasLeft > 0){
+            //Most common case: give this task to a worker with appropriate reputation
+            return reputationNeeded/replicasLeft;
         }
-        if(replicasLeft == 0){
-            return Float.MAX_VALUE;
+
+        if(reputationNeeded <=0 && replicasLeft > 0){
+            //If two tasks have sufficient reputation already, work on the one with the fewest replicas left.
+            return -replicasLeft;
         }
-        return reputationNeeded/replicasLeft;
+
+        if(reputationNeeded > 0 && replicasLeft <= 0){
+            //Should be worked on by someone with high reputation
+            //Want this last reputation to optimally be solved in one replica
+            return reputationNeeded;
+        }
+
+        //Should be chosen as the very last task to work on
+        //This can happen when there are no other tasks and some replicas was recently given.
+        return Float.MAX_VALUE;
     }
 
     /**
