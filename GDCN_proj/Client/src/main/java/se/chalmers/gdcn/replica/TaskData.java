@@ -1,9 +1,12 @@
 package se.chalmers.gdcn.replica;
 
 import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.ReplicaManager.TaskID;
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by HalfLeif on 2014-04-15.
@@ -13,15 +16,25 @@ class TaskData implements TaskCompare, Serializable{
     private final String jobName;
     private final TaskID taskID;
 
-    private int replicasLeft;
+    private final Map<WorkerID, Float> reputationMap = new HashMap<>();
+    private final Map<WorkerID, Float> timeoutMap = new HashMap<>();
+
+    private int replicasToGive;
     private float reputationNeeded;
+
+    private int replicasToBeReturned;
+    private float reputationToBeReturned;
 
     public TaskData(TaskMeta taskMeta, String jobName, int replicas, float reputationNeeded) {
         this.taskMeta = taskMeta;
         this.jobName = jobName;
-        this.replicasLeft = replicas;
-        this.reputationNeeded = reputationNeeded;
         this.taskID = new TaskID(jobName + taskMeta.getTaskName());
+
+        this.replicasToGive = replicas;
+        this.replicasToBeReturned = replicas;
+
+        this.reputationNeeded = reputationNeeded;
+        this.reputationToBeReturned = reputationNeeded;
     }
 
     /**
@@ -30,18 +43,49 @@ class TaskData implements TaskCompare, Serializable{
      * @param reputation the workers reputation
      * @return task for that worker to work on
      */
-    public TaskMeta giveTask(float reputation){
-        replicasLeft--;
-        reputationNeeded-=reputation;
+    public TaskMeta giveTask(WorkerID workerID, float reputation){
+        reputationMap.put(workerID, reputation);
+        replicasToGive--;
+        reputationNeeded -= reputation;
         return taskMeta;
     }
 
+    public boolean timedOut(WorkerID workerID){
+        Float oldReputation = reputationMap.remove(workerID);
+        if(oldReputation == null){
+            return false;
+        }
+        replicasToGive++;
+        reputationNeeded += oldReputation;
+        timeoutMap.put(workerID, oldReputation);
+        return true;
+    }
+
+    public boolean returned(WorkerID workerID){
+        Float oldReputation = timeoutMap.remove(workerID);
+        if(oldReputation != null){
+            reputationMap.put(workerID, oldReputation);
+            replicasToGive--;
+            reputationNeeded -= oldReputation;
+        } else {
+            oldReputation = reputationMap.get(workerID);
+        }
+
+        replicasToBeReturned--;
+        reputationToBeReturned -= oldReputation;
+        return true;
+    }
+
+    public boolean enoughGiven(){
+        return replicasToGive <=0 && reputationNeeded <= 0;
+    }
+
     /**
-     * Enough replicas has been given for this task. Depends on reputation as well.
+     * Enough replicas with high enough reputation has been returned for this task.
      * @return true if this task can be validated.
      */
-    public boolean enoughGiven(){
-        return replicasLeft <=0 && reputationNeeded <= 0;
+    public boolean enoughReturned(){
+        return replicasToBeReturned <=0 && reputationToBeReturned <= 0;
     }
 
     public TaskMeta getTaskMeta() {
@@ -66,17 +110,17 @@ class TaskData implements TaskCompare, Serializable{
     public float value(){
         //Remember that floor() is called before ceiling()
 
-        if(reputationNeeded > 0 && replicasLeft > 0){
+        if(reputationNeeded > 0 && replicasToGive > 0){
             //Most common case: give this task to a worker with appropriate reputation
-            return reputationNeeded/replicasLeft;
+            return reputationNeeded/ replicasToGive;
         }
 
-        if(reputationNeeded <=0 && replicasLeft > 0){
+        if(reputationNeeded <=0 && replicasToGive > 0){
             //If two tasks have sufficient reputation already, work on the one with the fewest replicas left.
-            return -replicasLeft;
+            return -replicasToGive;
         }
 
-        if(reputationNeeded > 0 && replicasLeft <= 0){
+        if(reputationNeeded > 0 && replicasToGive <= 0){
             //Should be worked on by someone with high reputation
             //Want this last reputation to optimally be solved in one replica
             return reputationNeeded;

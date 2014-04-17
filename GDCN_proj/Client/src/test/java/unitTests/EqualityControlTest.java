@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.replica;
+package unitTests;
 
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.compare.EqualityControl;

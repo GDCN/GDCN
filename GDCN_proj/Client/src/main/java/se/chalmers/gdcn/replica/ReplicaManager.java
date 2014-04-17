@@ -172,7 +172,7 @@ public class ReplicaManager implements Serializable{
 
         taskDatas.remove(taskData);
         //TaskData changes state internally which affects its sorted position! Remove and insert!
-        TaskMeta taskMeta = taskData.giveTask(workerReputation);
+        TaskMeta taskMeta = taskData.giveTask(worker, workerReputation);
         taskDatas.add(taskData);
 
         ReplicaBox replicaBox = new ReplicaBox(taskMeta);
@@ -217,9 +217,32 @@ public class ReplicaManager implements Serializable{
         return replica.getReplicaBox().getResultKey();
     }
 
+//    private TaskResultData returned(ReplicaID replicaID){
+//        //TODO handle latecomer
+//        TaskData taskData = taskDataMap.get(replicaID);
+//        if(taskData == null){
+//            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
+//        }
+//
+//        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+//
+//        if(! resultData.pendingReplicas.remove(replicaID)){
+//            if(! resultData.outdatedReplicas.remove(replicaID)){
+//                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
+//            }
+//        }
+//        return resultData;
+//    }
 
-    private TaskResultData returned(ReplicaID replicaID){
-        //TODO handle latecomer
+    /**
+     * This method should only be used externally for testing!
+     * Is called internally.
+     *
+     * This replica didn't get any answer within given time limit.
+     * Doesn't have to report worker, he might still come up with an answer.
+     * @param replicaID Replica that was outdated
+     */
+    public synchronized void replicaOutdated(ReplicaID replicaID){
         TaskData taskData = taskDataMap.get(replicaID);
         if(taskData == null){
             throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
@@ -232,41 +255,92 @@ public class ReplicaManager implements Serializable{
                 throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
             }
         }
-        return resultData;
-    }
 
-    /**
-     * Should only be used for testing! Called internally.
-     *
-     * This replica didn't get any answer within given time limit.
-     * Doesn't have to report worker, he might still come up with an answer.
-     * @param replicaID Replica that was outdated
-     */
-    public synchronized void replicaOutdated(ReplicaID replicaID){
-        TaskResultData resultData = returned(replicaID);
+        taskDatas.remove(taskData);
+        taskData.timedOut(replicaMap.get(replicaID).getWorker());
+        taskDatas.add(taskData);
+
         resultData.outdatedReplicas.add(replicaID);
-        decideValidate(replicaID);
+        decideValidate(replicaID, taskData, resultData);
     }
 
     public synchronized void replicaFailed(ReplicaID replicaID){
-        TaskResultData resultData = returned(replicaID);
+        TaskData taskData = taskDataMap.get(replicaID);
+        if(taskData == null){
+            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
+        }
+
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+
+        if(! resultData.pendingReplicas.remove(replicaID)){
+            if(! resultData.outdatedReplicas.remove(replicaID)){
+                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
+            }
+        }
+        taskData.returned(replicaMap.get(replicaID).getWorker());
+
         resultData.failedReplicas.add(replicaID);
-        decideValidate(replicaID);
+        decideValidate(replicaID, taskData, resultData);
     }
 
     public synchronized void replicaFinished(ReplicaID replicaID, byte[] result){
         if(result == null){
             throw new IllegalArgumentException("Error: don't give null result!");
         }
-        TaskResultData resultData = returned(replicaID);
+        TaskData taskData = taskDataMap.get(replicaID);
+        if(taskData == null){
+            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
+        }
+
+        TaskResultData resultData = resultDataMap.get(taskData.taskID());
+
+        if(! resultData.pendingReplicas.remove(replicaID)){
+            if(! resultData.outdatedReplicas.remove(replicaID)){
+                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
+            }
+        }
+        taskData.returned(replicaMap.get(replicaID).getWorker());
+
         resultData.returnedReplicas.put(replicaID, result);
-        decideValidate(replicaID);
+        decideValidate(replicaID, taskData, resultData);
     }
 
-    private void decideValidate(ReplicaID replicaID){
-        //Make sure timeout will not be called on this replicaID
+    private void decideValidate(ReplicaID replicaID, TaskData taskData, TaskResultData resultData){
+        //Make sure timeout will not be called on this replicaID:
         replicaTimer.remove(replicaID);
-        //TODO validate now or wait?
+
+        if(! taskData.enoughReturned()){
+            //Ignore - cannot validate yet
+            return;
+        }
+        //Can validate
+
+        if(resultData.pendingReplicas.size() > 0){
+            //TODO wait for them to return/timeout?
+        }
+
+        validateResults(taskData, resultData);
+    }
+
+    /**
+     * @return true if there is a task that has enough reputation worked on it
+     */
+    private boolean isThereTaskWithEnoughReputationAlready(){
+        return taskDatas.first().value() < 0;
+    }
+
+    private void validateResults(TaskData taskData, TaskResultData resultData){
+        String jobName = taskData.getJobName();
+
+        Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
+        try {
+            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
+            //TODO Implement actual reward and punishment of peers
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        //TODO Implement choice of automatic or manual result validation
     }
 
     /**
@@ -303,20 +377,6 @@ public class ReplicaManager implements Serializable{
         return pending;
     }
 
-    public void validateResults(TaskData taskData){
-        String jobName = taskData.getJobName();
-        TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
-        Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
-        try {
-            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
-            //TODO Implement actual reward and punishment of peers
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        //TODO Implement choice of automatic or manual result validation
-    }
 
     private class SerializableReplicaTimer extends SerializableTimer<ReplicaID>{
         /**
