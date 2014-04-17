@@ -292,16 +292,15 @@ public class ReplicaManager implements Serializable{
     }
 
     /**
-     * This method is package access only since Replica is package access only...
-     * //TODO make public? What is really wanted is the resultKey for each replica.
-     * @return Set of pending replicas
+     * @return Map with pending replicas and respective location key. Results may or not be uploaded in DHT
      */
-    synchronized Set<Replica> pendingReplicas(){
-        Set<Replica> replicas = new HashSet<>();
+    public synchronized Map<ReplicaID, Number160> pendingResults(){
+        Map<ReplicaID, Number160> pending = new HashMap<>();
         for(ReplicaID replicaID : pendingReplicaIDs()){
-            replicas.add(replicaMap.get(replicaID));
+            Replica replica = replicaMap.get(replicaID);
+            pending.put(replicaID, replica.getReplicaBox().getResultKey());
         }
-        return replicas;
+        return pending;
     }
 
     public void validateResults(TaskData taskData){
