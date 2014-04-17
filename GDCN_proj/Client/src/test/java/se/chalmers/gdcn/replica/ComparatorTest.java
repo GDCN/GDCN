@@ -78,6 +78,8 @@ public class ComparatorTest {
         taskA.giveTask(workerB, 0f);
         taskA.giveTask(workerC, 0f);
 
+        assert ! taskA.enoughGiven();
+
         assert taskA.value() > 0;
         taskA.returned(workerA);
         taskA.returned(workerB);
@@ -93,6 +95,8 @@ public class ComparatorTest {
 
         taskA.giveTask(workerB, 0f);
         taskA.giveTask(workerC, 0f);
+
+        assert taskA.enoughGiven();
 
         taskA.returned(workerA);
         taskA.returned(workerB);
