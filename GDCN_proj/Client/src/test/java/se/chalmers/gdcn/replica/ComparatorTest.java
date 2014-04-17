@@ -30,14 +30,12 @@ public class ComparatorTest {
     private WorkerID workerA;
     private WorkerID workerB;
     private WorkerID workerC;
-    private WorkerID myWorkerID;
 
     @BeforeClass
     public void setupClass() {
         workerA = WorkerHolder.getWorkerA();
         workerB = WorkerHolder.getWorkerB();
         workerC = WorkerHolder.getWorkerC();
-        myWorkerID = WorkerHolder.getMyWorkerID();
     }
 
     @BeforeMethod
@@ -48,6 +46,9 @@ public class ComparatorTest {
 
         treeSet.clear();
     }
+
+    ///////////////////////////////////////////
+    // Comparator tests
 
     @Test
     public void symmetryTest(){
@@ -71,6 +72,9 @@ public class ComparatorTest {
         taskA.giveTask(workerA, REPUTATION);
         assert comparator.compare(taskA, cloneA) < 0;
     }
+
+    ///////////////////////////////////////////
+    // TaskData tests
 
     @Test
     public void returnLowTest(){
@@ -103,6 +107,29 @@ public class ComparatorTest {
         taskA.returned(workerC);
 
         assert taskA.enoughReturned();
+    }
+
+    @Test
+    public void timeoutTest(){
+        float origValue = taskA.value();
+        assert origValue > 0;
+
+        taskA.giveTask(workerA, REPUTATION);
+        float newValue = taskA.value();
+        assert newValue < 0;
+
+        taskA.timedOut(workerA);
+        assert taskA.value() == origValue;
+
+        taskA.returned(workerA);
+        assert taskA.value() == newValue;
+    }
+
+    @Test
+    public void orderTest(){
+        assert taskA.value() == taskB.value();
+        assert ! taskA.order().equals(taskB.order());
+        assert taskA.order().equals(cloneA.order());
     }
 
     ///////////////////////////////////
