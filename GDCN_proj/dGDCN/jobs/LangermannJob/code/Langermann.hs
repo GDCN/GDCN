@@ -6,7 +6,7 @@ import Control.Monad.State.Lazy
 import System.Random
 
 import Data.ByteString.Lazy (ByteString)
-import GDCN.Trusted.Data.Binary
+import GDCN.Trusted.Data.Binary (encode, decode)
 
 type Vector = [Double]
 type Matrix = [Vector]
@@ -87,6 +87,12 @@ multiSearch = do
 
 fullSearch :: Int -> Vector
 fullSearch seed = evalState multiSearch (mkStdGen seed)
+
+run :: [ByteString] -> (ByteString, String)
+run (seedData:_) = let seed = decode seedData :: Int
+                       result = fullSearch seed
+                       resultData = encode result
+                   in (resultData, show result)
 
 --
 
