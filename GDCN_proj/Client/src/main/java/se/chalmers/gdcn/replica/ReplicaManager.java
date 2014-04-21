@@ -10,6 +10,7 @@ import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
+import se.chalmers.gdcn.utils.Time;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -25,7 +26,7 @@ public class ReplicaManager implements Serializable{
     private final int REPLICAS;
     private final int EXPECTED_REPUTATION;
 
-    private final int CALENDAR_FIELD;
+    private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
     private final WorkerReputationManager workerReputationManager;
@@ -82,12 +83,12 @@ public class ReplicaManager implements Serializable{
     /**
      * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
      */
-    ReplicaManager(WorkerReputationManager workerReputationManager, int calendarValue, int calendarField, long updateInterval, int replicas, int expectedReputation){
+    ReplicaManager(WorkerReputationManager workerReputationManager, int calendarValue, Time timeUnit, long updateInterval, int replicas, int expectedReputation){
 
         //TODO stop hardcoding values, make Builder class later
         REPLICAS = replicas;
         EXPECTED_REPUTATION = expectedReputation;
-        CALENDAR_FIELD = calendarField;
+        TIME_UNIT = timeUnit;
         CALENDAR_VALUE = calendarValue;
 
         replicaTimer = new SerializableReplicaTimer(updateInterval);
@@ -168,8 +169,10 @@ public class ReplicaManager implements Serializable{
         //Update state:
         alreadyGiven.add(taskData);
         taskDataMap.put(replicaID, taskData);
-        replicaTimer.add(replicaID, replicaDeadline());
         replicaMap.put(replicaID, new Replica(replicaBox, worker));
+
+        Date deadline = Time.futureDate(this.TIME_UNIT, CALENDAR_VALUE);
+        replicaTimer.add(replicaID, deadline);
 
         TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
         if(taskResultData == null){
@@ -179,12 +182,6 @@ public class ReplicaManager implements Serializable{
         taskResultData.pendingReplicas.add(replicaID);
 
         return replicaBox;
-    }
-
-    private Date replicaDeadline(){
-        Calendar calendar = new GregorianCalendar();
-        calendar.add(CALENDAR_FIELD, CALENDAR_VALUE);
-        return calendar.getTime();
     }
 
     /**

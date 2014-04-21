@@ -1,6 +1,8 @@
 package se.chalmers.gdcn.utils;
 
 import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
 
 /**
  * Type safe time unit mapping to Calendar constants.
@@ -25,5 +27,11 @@ public enum Time {
 
     public long getComparedToMillis() {
         return comparedToMillis;
+    }
+
+    public static Date futureDate(Time unit, int value){
+        Calendar calendar = new GregorianCalendar();
+        calendar.add(unit.typeConstant, value);
+        return calendar.getTime();
     }
 }

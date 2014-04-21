@@ -4,8 +4,6 @@ import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.Time;
 
-import java.util.Calendar;
-
 /**
  * Created by Leif on 2014-04-16.
  */
@@ -14,7 +12,7 @@ public class ReplicaManagerBuilder {
     private int expectedReputation = 3;
 
     //TODO store milliseconds instead?
-    private int timeoutLengthType = Calendar.MINUTE;
+    private Time timeoutLengthUnit = Time.MINUTE;
     private int timeoutLengthValue = 5;
 
     private long timerUpdateIntervalMillis = 50000;
@@ -45,7 +43,7 @@ public class ReplicaManagerBuilder {
             workerReputationManager = new WorkerReputationManager(myWorkerID);
         }
 
-        return new ReplicaManager(workerReputationManager, timeoutLengthValue, timeoutLengthType, timerUpdateIntervalMillis,
+        return new ReplicaManager(workerReputationManager, timeoutLengthValue, timeoutLengthUnit, timerUpdateIntervalMillis,
                 replicas, expectedReputation);
     }
 
@@ -66,7 +64,7 @@ public class ReplicaManagerBuilder {
      * @return builder object
      */
     public ReplicaManagerBuilder setTimeoutLength(int length, Time unit){
-        this.timeoutLengthType = unit.getTypeConstant();
+        this.timeoutLengthUnit = unit;
         this.timeoutLengthValue = length;
         return this;
     }
