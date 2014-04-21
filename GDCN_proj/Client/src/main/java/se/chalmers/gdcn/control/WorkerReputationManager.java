@@ -32,8 +32,7 @@ public class WorkerReputationManager implements Serializable{
     }
 
     /**
-     *
-     * @param myWorkerID
+     * @param myWorkerID This node's workerID, used for reputation
      * @param removeSoManyPoints So many points are withdrawn from a workers reputation when it misbehaves.
      * @param standardAction Default action to do when reporting
      */
