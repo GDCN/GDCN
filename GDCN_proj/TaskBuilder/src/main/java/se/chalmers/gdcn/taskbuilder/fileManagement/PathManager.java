@@ -85,6 +85,10 @@ public class PathManager {
         return projectName;
     }
 
+    public String getResultFilePath(String taskName){
+        return taskResourcesDir() + taskName + ".result";
+    }
+
     /**
      *
      * @return Project directory path

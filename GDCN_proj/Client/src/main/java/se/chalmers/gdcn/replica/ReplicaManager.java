@@ -7,16 +7,19 @@ import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
+import se.chalmers.gdcn.files.FileUtils;
 import se.chalmers.gdcn.files.SelfWorker;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
 import se.chalmers.gdcn.utils.Time;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
@@ -304,20 +307,41 @@ public class ReplicaManager implements Serializable{
         validateResults(taskData, resultData);
     }
 
-    private void workSelf(TaskData taskData){
-        //todo reuse giveReplica? or do manually?
+    private void workSelf(final TaskData taskData){
         TaskMeta meta = taskData.getTaskMeta();
 
+        //todo nicer replicaID
+        //todo reuse giveReplica method?
+        final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
+
+        taskDatas.remove(taskData);
+        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE);
+        taskDatas.add(taskData);
+
         try {
-            Runnable taskRunner = SelfWorker.workSelf(meta, taskData.getJobName(), new TaskListener() {
+            SelfWorker selfWorker = new SelfWorker(meta, taskData.getJobName());
+            final String resultPath = selfWorker.futureResultFilePath();
+            Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
                 @Override
                 public void taskFinished(String taskName) {
+                    System.out.println("YAY, "+taskName+ "finished");
 
+                    try {
+                        byte[] result = FileUtils.fromFile(new File(resultPath));
+                        TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
+                        taskResultData.returnedReplicas.put(replicaID, result);
+
+                        decideValidate(replicaID, taskData, taskResultData);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
                 public void taskFailed(String taskName, String reason) {
-
+                    System.out.println("ERROR "+taskName+": "+reason);
+                    //TODO report error to UI, use TaskManager for that?
                 }
             });
 
@@ -393,7 +417,6 @@ public class ReplicaManager implements Serializable{
 
         @Override
         protected void handleTimeout(ReplicaID element) {
-            //TODO timeout will always be called now
             ReplicaManager.this.replicaOutdated(element);
         }
     }

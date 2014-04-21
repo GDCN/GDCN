@@ -287,6 +287,10 @@ abstract class AbstractFileMaster{
         return taskMeta.getModule().getFileName().replace(".hs", "");
     }
 
+    public String futureResultFilePath(){
+        return pathManager.getResultFilePath(taskMeta.getTaskName());
+    }
+
     /**
      * Build new Task specified by the meta-file that was parsed earlier.
      * @param listener Listener for success on task

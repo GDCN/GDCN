@@ -9,9 +9,19 @@ import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
  */
 public class SelfWorker {
 
-    public static Runnable workSelf(TaskMeta taskMeta, String jobName, TaskListener listener) throws TaskMetaDataException {
+    private final FileSolver fileSolver;
+    private final String taskName;
 
-        FileSolver fileSolver = new FileSolver(taskMeta, jobName);
+    public SelfWorker(TaskMeta taskMeta, String jobName) throws TaskMetaDataException {
+        fileSolver = new FileSolver(taskMeta, jobName);
+        taskName = taskMeta.getTaskName();
+    }
+
+    public String futureResultFilePath(){
+        return fileSolver.pathManager.getResultFilePath(taskName);
+    }
+
+    public Task workSelf(TaskMeta taskMeta, TaskListener listener) throws TaskMetaDataException {
         return new Task(fileSolver.pathManager.getProjectName(), taskMeta.getTaskName(), fileSolver.getModuleName(), fileSolver.getResourceFiles(), listener);
     }
 

@@ -18,8 +18,6 @@ import utils.TestUtils;
 import utils.WorkerHolder;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -356,13 +354,7 @@ public class ReplicaManagerTest {
     }
 
     private void loadMeta(TaskMeta taskMeta){
-        loadMeta(taskMeta, this.replicaManager);
-    }
-
-    private static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
-        List<TaskMeta> taskMetas = new ArrayList<>();
-        taskMetas.add(taskMeta);
-        replicaManager.loadTasksAndReplicate("jobName", taskMetas);
+        TestUtils.loadMeta(taskMeta, this.replicaManager);
     }
 
 }

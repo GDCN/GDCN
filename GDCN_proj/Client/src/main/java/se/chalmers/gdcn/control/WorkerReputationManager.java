@@ -22,6 +22,8 @@ public class WorkerReputationManager implements Serializable{
     private final DisciplinaryAction standardAction;
     private final int removeSoManyPoints;
 
+    private final WorkerID myWorkerID;
+
     private final Map<WorkerID, Integer> registeredWorkers = new HashMap<>();
 
     /**
@@ -42,6 +44,7 @@ public class WorkerReputationManager implements Serializable{
 
         //The job owner trusts himself
         this.registeredWorkers.put(myWorkerID, 100);
+        this.myWorkerID = myWorkerID;
     }
 
     /**
@@ -55,6 +58,10 @@ public class WorkerReputationManager implements Serializable{
         }
         registeredWorkers.put(worker, 0);
         return true;
+    }
+
+    public WorkerID getMyWorkerID() {
+        return myWorkerID;
     }
 
     /**

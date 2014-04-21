@@ -82,6 +82,7 @@ public class TaskManager{
                         }
                     });
                     boolean success = downloader.runAndAwait();
+                    resultFileNameHolder.setString(downloader.futureResultFilePath());
 
                     if(!success){
                         TaskManager.this.taskListener.taskFailed(taskMeta.getTaskName(), "Unresolved dependencies");
@@ -105,10 +106,6 @@ public class TaskManager{
                             taskListener.taskFailed(taskName, reason);
                         }
                     });
-
-                    final String resultPath = task.getResultFilePath();
-                    resultFileNameHolder.setString(resultPath);
-
                     threadPool.submit(task);
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
