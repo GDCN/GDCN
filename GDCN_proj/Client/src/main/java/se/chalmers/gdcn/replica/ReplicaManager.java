@@ -49,6 +49,7 @@ public class ReplicaManager implements Serializable{
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
 
+    private boolean workSelfIfRequired = true;
 
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
@@ -88,6 +89,14 @@ public class ReplicaManager implements Serializable{
         workerTimeoutManager = new WorkerTimeoutManager(updateInterval*2, timeUnit, calendarValue*3);
 
         resumeTimer();
+    }
+
+    /**
+     * Mainly intended for testing
+     * @param workSelfIfRequired true if allow JobOwner to work himself if there are too few active workers
+     */
+    public void setWorkSelfIfRequired(boolean workSelfIfRequired) {
+        this.workSelfIfRequired = workSelfIfRequired;
     }
 
     /**
@@ -296,7 +305,7 @@ public class ReplicaManager implements Serializable{
         //Make sure timeout will not be called on this replicaID:
         replicaTimer.remove(replicaID);
 
-        if( !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
+        if( workSelfIfRequired && !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
             workSelf(taskData);
         }
 

@@ -26,12 +26,15 @@ public class SelfWorkTest {
         ReplicaManagerBuilder builder = new ReplicaManagerBuilder(WorkerHolder.getMyWorkerID(), emptyTaskManager());
 
         replicaManager = builder.create();
+        replicaManager.setWorkSelfIfRequired(true);
         TestUtils.loadMeta(TaskHolder.getTaskA(), replicaManager);
     }
 
     @Test
     public void oneTest(){
-
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(WorkerHolder.getWorkerA());
+        replicaManager.replicaOutdated(replicaBox.getReplicaID());
+        //...
     }
 
     private TaskManager emptyTaskManager(){

@@ -9,41 +9,21 @@ import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
  */
 public class SelfWorker {
 
-    private final FileSolver fileSolver;
+//    private final FileSolver fileSolver;
     private final String taskName;
+    private final PathManager pathManager;
 
     public SelfWorker(TaskMeta taskMeta, String jobName) throws TaskMetaDataException {
-        fileSolver = new FileSolver(taskMeta, jobName);
         taskName = taskMeta.getTaskName();
+        pathManager = PathManager.jobOwner(jobName);
     }
 
     public String futureResultFilePath(){
-        return fileSolver.pathManager.getResultFilePath(taskName);
+        return pathManager.getResultFilePath(taskName);
     }
 
     public Task workSelf(TaskMeta taskMeta, TaskListener listener) throws TaskMetaDataException {
-        return new Task(fileSolver.pathManager.getProjectName(), taskMeta.getTaskName(), fileSolver.getModuleName(), fileSolver.getResourceFiles(), listener);
-    }
-
-    private static class FileSolver extends AbstractFileMaster{
-
-        public FileSolver(TaskMeta taskMeta, String jobName) throws TaskMetaDataException {
-            super(taskMeta, null, null, null, PathManager.jobOwner(jobName));
-        }
-
-        @Override
-        protected void ifFileExist(FileDep fileDep) {
-
-        }
-
-        @Override
-        protected void ifFileDoNotExist(FileDep fileDep) {
-
-        }
-
-        @Override
-        protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
-
-        }
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileUtils.moduleName(taskMeta),
+                FileUtils.getResourceFiles(pathManager, taskMeta), listener);
     }
 }

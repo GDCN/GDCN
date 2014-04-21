@@ -23,7 +23,7 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void ifFileExist(FileDep fileDep) {
-        System.out.println("Found file :D - " + pathTo(fileDep));
+        System.out.println("Found file :D - " + FileUtils.pathTo(pathManager, fileDep));
         super.fileDependencyResolved(fileDep);
     }
 
@@ -33,7 +33,7 @@ public class Downloader extends AbstractFileMaster {
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
-        System.out.println("Didn't find file " + pathTo(fileDep));
+        System.out.println("Didn't find file " + FileUtils.pathTo(pathManager, fileDep));
         client.get(fileDep.getDhtKey());
         //Handling OperationFinished is done in AbstractFileMaster
     }
@@ -43,7 +43,7 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
-        File file = pathTo(fileDep);
+        File file = FileUtils.pathTo(pathManager, fileDep);
         Data data = (Data) result;
         FileUtils.toFile(file, data.getData());
     }

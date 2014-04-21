@@ -1,9 +1,13 @@
 package se.chalmers.gdcn.files;
 
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+
 import java.io.*;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by HalfLeif on 2014-04-02.
@@ -75,5 +79,38 @@ public class FileUtils {
             }
         }
         return null;
+    }
+
+    /**
+     * @return Name of haskell module this taskmeta uses
+     */
+    public static String moduleName(TaskMeta taskMeta){
+        return taskMeta.getModule().getFileName().replace(".hs", "");
+    }
+
+    public static String futureResultFilePath(PathManager pathManager, TaskMeta taskMeta){
+        return pathManager.getResultFilePath(taskMeta.getTaskName());
+    }
+
+    /**
+     * @param pathManager path manager
+     * @param fileDep file
+     * @return Absolute path to file
+     */
+    static File pathTo(PathManager pathManager, FileDep fileDep){
+        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
+    }
+
+    /**
+     * @return List of paths to all resource files mentioned in taskmetas
+     * @param pathManager path manager
+     * @param taskMeta task meta
+     */
+    static List<String> getResourceFiles(PathManager pathManager, TaskMeta taskMeta) {
+        List<String> resources = new ArrayList<>();
+        for(FileDep fileDep : taskMeta.getDependencies()){
+            resources.add(pathTo(pathManager, fileDep).getAbsolutePath());
+        }
+        return resources;
     }
 }

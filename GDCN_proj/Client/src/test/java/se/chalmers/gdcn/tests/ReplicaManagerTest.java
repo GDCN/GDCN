@@ -61,6 +61,7 @@ public class ReplicaManagerTest {
         builder.setReplicas(2);
 
         replicaManager = builder.create();
+        replicaManager.setWorkSelfIfRequired(false);
     }
 
     @Test
@@ -211,6 +212,7 @@ public class ReplicaManagerTest {
     public void replicaFinishTest(){
         builder.setTimeoutLength(1, Time.MILLISECOND);
         replicaManager = builder.create();
+        replicaManager.setWorkSelfIfRequired(false);
 
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);

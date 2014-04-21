@@ -179,7 +179,7 @@ abstract class AbstractFileMaster{
         Set<FileDep> deps = new HashSet<>(unresolvedFiles.values());
 
         for(FileDep fileDep : deps){
-            File file = pathTo(fileDep);
+            File file = FileUtils.pathTo(pathManager, fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
                     throw new TaskMetaDataException("Files in dependencies should not be directories! File: "+file);
@@ -269,24 +269,6 @@ abstract class AbstractFileMaster{
     }
 
 
-    /**
-     *
-     * @param fileDep file
-     * @return Absolute path to file
-     */
-    protected File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
-    }
-
-
-    /**
-     *
-     * @return Name of haskell module this taskmeta uses
-     */
-    protected String getModuleName(){
-        return taskMeta.getModule().getFileName().replace(".hs", "");
-    }
-
     public String futureResultFilePath(){
         return pathManager.getResultFilePath(taskMeta.getTaskName());
     }
@@ -297,29 +279,7 @@ abstract class AbstractFileMaster{
      * @return Task object
      */
     public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
-    }
-
-    /**
-     *
-     * @param fileDep file
-     * @return Absolute path to file
-     */
-    protected static File pathTo(PathManager pathManager, FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
-    }
-
-    /**
-     *
-     * @return List of paths to all resource files mentioned in taskmetas
-     */
-    protected List<String> getResourceFiles() {
-        List<String> resources = new ArrayList<>();
-        for(FileDep fileDep : taskMeta.getDependencies()){
-            resources.add(pathTo(fileDep).getAbsolutePath());
-        }
-
-        return resources;
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileUtils.moduleName(taskMeta), FileUtils.getResourceFiles(pathManager, taskMeta), listener);
     }
 
     /**
