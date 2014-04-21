@@ -38,9 +38,13 @@ public class WorkerTimeoutManager implements Serializable{
         return new HashSet<>(activeWorkers);
     }
 
-    public void resumeTimer(){
-        SerializableTimer.resume(workTimer);
+    public Runnable timerRunner(){
+        return workTimer.createUpdater();
     }
+
+//    public void resumeTimer(){
+//        SerializableTimer.resume(workTimer);
+//    }
 
     private class WorkTimer extends SerializableTimer<WorkerID>{
 

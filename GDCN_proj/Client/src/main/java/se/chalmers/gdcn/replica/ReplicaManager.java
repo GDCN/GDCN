@@ -4,7 +4,9 @@ import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.compare.EqualityControl;
 import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.compare.Trust;
+import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
+import se.chalmers.gdcn.control.WorkerTimeoutManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
@@ -29,7 +31,9 @@ public class ReplicaManager implements Serializable{
     private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
+    private final TaskManager taskManager;
     private final WorkerReputationManager workerReputationManager;
+    private final WorkerTimeoutManager workerTimeoutManager;
     private final SerializableReplicaTimer replicaTimer;
 
     private final Map<ReplicaID, Replica> replicaMap = new HashMap<>();
@@ -53,7 +57,7 @@ public class ReplicaManager implements Serializable{
     }
 
     /**
-     * Contains information about the status of a task, each String below is a ReplicaID
+     * Contains information about the status of a task
      */
     private static class TaskResultData implements Serializable{
         final Set<ReplicaID> failedReplicas = new HashSet<>();
@@ -62,30 +66,11 @@ public class ReplicaManager implements Serializable{
         final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
     }
 
-
-//    public ReplicaManager(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
-//        this(new WorkerReputationManager(myWorkerID), calendarValue, calendarField, updateInterval);
-//    }
-//
-//    public ReplicaManager(WorkerReputationManager workerReputationManager, int calendarValue, int calendarField, long updateInterval){
-//
-//        REPLICAS = 2;
-//        EXPECTED_REPUTATION = 3;
-//        CALENDAR_FIELD = calendarField;
-//        CALENDAR_VALUE = calendarValue;
-//
-//        replicaTimer = new SerializableReplicaTimer(updateInterval);
-//        this.workerReputationManager = workerReputationManager;
-//
-//        resumeTimer();
-//    }
-
     /**
      * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
      */
-    ReplicaManager(WorkerReputationManager workerReputationManager, int calendarValue, Time timeUnit, long updateInterval, int replicas, int expectedReputation){
-
-        //TODO stop hardcoding values, make Builder class later
+    ReplicaManager(WorkerReputationManager workerReputationManager, TaskManager taskManager, Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
+        this.taskManager = taskManager;
         REPLICAS = replicas;
         EXPECTED_REPUTATION = expectedReputation;
         TIME_UNIT = timeUnit;
@@ -93,6 +78,8 @@ public class ReplicaManager implements Serializable{
 
         replicaTimer = new SerializableReplicaTimer(updateInterval);
         this.workerReputationManager = workerReputationManager;
+        //TODO calibrate: are these acceptable values?
+        workerTimeoutManager = new WorkerTimeoutManager(updateInterval*2, timeUnit, calendarValue*3);
 
         resumeTimer();
     }
@@ -102,7 +89,10 @@ public class ReplicaManager implements Serializable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-        SerializableTimer.resume(replicaTimer);
+        taskManager.submit(replicaTimer.createUpdater());
+        taskManager.submit(workerTimeoutManager.timerRunner());
+//        SerializableTimer.resume(replicaTimer);
+//        workerTimeoutManager.resumeTimer();
     }
 
     /**
@@ -305,6 +295,11 @@ public class ReplicaManager implements Serializable{
         }
 
         validateResults(taskData, resultData);
+    }
+
+    private void workSelf(TaskData task){
+        //todo reuse giveReplica? or do manually?
+        
     }
 
     /**

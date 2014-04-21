@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.replica;
 
+import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.Time;
@@ -18,13 +19,16 @@ public class ReplicaManagerBuilder {
     private long timerUpdateIntervalMillis = 50000;
 
     private WorkerReputationManager workerReputationManager = null;
+    private TaskManager taskManager = null;
     private WorkerID myWorkerID = null;
 
     /**
      * @param myWorkerID this node's workerID, used in WorkerReputationManager
+     * @param taskManager taskManager
      */
-    public ReplicaManagerBuilder(WorkerID myWorkerID) {
+    public ReplicaManagerBuilder(WorkerID myWorkerID, TaskManager taskManager) {
         this.myWorkerID = myWorkerID;
+        this.taskManager = taskManager;
     }
 
     /**
@@ -43,8 +47,8 @@ public class ReplicaManagerBuilder {
             workerReputationManager = new WorkerReputationManager(myWorkerID);
         }
 
-        return new ReplicaManager(workerReputationManager, timeoutLengthValue, timeoutLengthUnit, timerUpdateIntervalMillis,
-                replicas, expectedReputation);
+        return new ReplicaManager(workerReputationManager, taskManager, timeoutLengthUnit, timerUpdateIntervalMillis, replicas, expectedReputation, timeoutLengthValue
+        );
     }
 
     public ReplicaManagerBuilder setReplicas(int replicas) {
