@@ -12,7 +12,7 @@ import java.util.Map;
  * Class to keep track of what peers are registered as workers.
  *
  */
-public class WorkerNodeManager implements Serializable{
+public class WorkerReputationManager implements Serializable{
 
     public static enum DisciplinaryAction{
         REMOVE,
@@ -25,9 +25,9 @@ public class WorkerNodeManager implements Serializable{
     private final Map<WorkerID, Integer> registeredWorkers = new HashMap<>();
 
     /**
-     * Create new WorkerNodeManager with default action REMOVE.
+     * Create new WorkerReputationManager with default action REMOVE.
      */
-    public WorkerNodeManager(WorkerID myWorkerID){
+    public WorkerReputationManager(WorkerID myWorkerID){
         this(myWorkerID, 3, DisciplinaryAction.REMOVE);
     }
 
@@ -37,7 +37,7 @@ public class WorkerNodeManager implements Serializable{
      * @param removeSoManyPoints So many points are withdrawn from a workers reputation when it misbehaves.
      * @param standardAction Default action to do when reporting
      */
-    public WorkerNodeManager(WorkerID myWorkerID, int removeSoManyPoints, DisciplinaryAction standardAction) {
+    public WorkerReputationManager(WorkerID myWorkerID, int removeSoManyPoints, DisciplinaryAction standardAction) {
         this.standardAction = standardAction;
         this.removeSoManyPoints = removeSoManyPoints;
 

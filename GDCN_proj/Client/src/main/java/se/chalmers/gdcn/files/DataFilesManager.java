@@ -2,7 +2,7 @@ package se.chalmers.gdcn.files;
 
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
@@ -178,7 +178,7 @@ public class DataFilesManager {
     //WORKERNODEMANAGER METHODS
     //********************************************\\
 
-    public void saveWorkerNodeManager(WorkerNodeManager wm) {
+    public void saveWorkerNodeManager(WorkerReputationManager wm) {
 
         try {
             FileOutputStream fous = new FileOutputStream(workerNodeMangerLocation);
@@ -193,17 +193,17 @@ public class DataFilesManager {
 
     }
 
-    public WorkerNodeManager getWorkerNodeManager() {
+    public WorkerReputationManager getWorkerNodeManager() {
         try {
             FileInputStream fis = new FileInputStream(workerNodeMangerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            WorkerNodeManager workerNodeManager = (WorkerNodeManager) ois.readObject();
+            WorkerReputationManager workerReputationManager = (WorkerReputationManager) ois.readObject();
 
             ois.close();
 
-            return workerNodeManager;
+            return workerReputationManager;
 
         } catch (FileNotFoundException e) {
             return null;

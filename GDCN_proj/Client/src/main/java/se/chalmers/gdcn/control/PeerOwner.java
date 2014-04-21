@@ -88,7 +88,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
         if(replicaManager1 == null) {
             //TODO instantiate correctly! Need workerID which is in TaskPasser...
-            //TODO WorkerNodeManager on the other hand is contained within ReplicaManager
+            //TODO WorkerReputationManager on the other hand is contained within ReplicaManager
 //            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
             replicaManager = new ReplicaManagerBuilder((WorkerID)null).create();
 

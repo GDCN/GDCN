@@ -9,7 +9,7 @@ import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.files.FileUtils;
 import se.chalmers.gdcn.hashcash.Challenge;
@@ -37,7 +37,7 @@ import java.util.TimerTask;
  */
 public class TaskPasser extends Passer {
 
-    private final WorkerNodeManager workerNodeManager;
+    private final WorkerReputationManager workerReputationManager;
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
@@ -83,13 +83,13 @@ public class TaskPasser extends Passer {
             e.printStackTrace();
         }
 
-        //TODO ReplicaManager must have workerNodeManager!...
-        WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
+        //TODO ReplicaManager must have workerReputationManager!...
+        WorkerReputationManager workerReputationManager1 = dataFilesManager.getWorkerNodeManager();
 
-        if (workerNodeManager1 == null) {
-            workerNodeManager = new WorkerNodeManager(myWorkerID, 3, WorkerNodeManager.DisciplinaryAction.REMOVE);
+        if (workerReputationManager1 == null) {
+            workerReputationManager = new WorkerReputationManager(myWorkerID, 3, WorkerReputationManager.DisciplinaryAction.REMOVE);
         } else {
-            workerNodeManager = workerNodeManager1;
+            workerReputationManager = workerReputationManager1;
         }
 
         timer = new Timer(true);
@@ -97,9 +97,9 @@ public class TaskPasser extends Passer {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+                dataFilesManager.saveWorkerNodeManager(workerReputationManager);
 
-                System.out.println("Saving workerNodeManager");
+                System.out.println("Saving workerReputationManager");
 
             }
         }, 1000 * 120, 1000 * 120);
@@ -246,7 +246,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
-                Challenge challenge = workerNodeManager.hasWorkerReputation(workerID)?
+                Challenge challenge = workerReputationManager.hasWorkerReputation(workerID)?
                         hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
                         : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
@@ -259,7 +259,7 @@ public class TaskPasser extends Passer {
                 try {
                     if(solution.isValid(secretKey)) {
                         if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
-                            workerNodeManager.registerWorker(workerID);
+                            workerReputationManager.registerWorker(workerID);
                         }
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
                         if(replicaBox==null){
@@ -269,7 +269,7 @@ public class TaskPasser extends Passer {
                         return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
                     } else {
-                        workerNodeManager.reportWorker(workerID);
+                        workerReputationManager.reportWorker(workerID);
                         return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
                     }
                 } catch (InvalidKeyException e) {
@@ -307,7 +307,7 @@ public class TaskPasser extends Passer {
                     replicaManager.replicaFailed(failMessage.getReplicaID());
                 } else {
                     System.out.println("Warning! A worker node reported a failure in a task it was not participating in...");
-                    workerNodeManager.reportWorker(worker);
+                    workerReputationManager.reportWorker(worker);
                 }
                 break;
             default:

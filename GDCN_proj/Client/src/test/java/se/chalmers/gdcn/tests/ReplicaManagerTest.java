@@ -5,14 +5,14 @@ import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.replica.ReplicaBox;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
-import se.chalmers.gdcn.replica.ReplicaManagerBuilder.Time;
+import se.chalmers.gdcn.utils.Time;
 import utils.TaskHolder;
 import utils.TestUtils;
 import utils.WorkerHolder;
@@ -30,7 +30,7 @@ public class ReplicaManagerTest {
 
     private ReplicaManagerBuilder builder;
     private ReplicaManager replicaManager;
-    private WorkerNodeManager workerNodeManager;
+    private WorkerReputationManager workerReputationManager;
 
     private TaskMeta taskMetaA;
     private TaskMeta taskMetaB;
@@ -54,12 +54,12 @@ public class ReplicaManagerTest {
 
     @BeforeMethod
     public void setupMethod(){
-        workerNodeManager = new WorkerNodeManager(myWorkerID);
-        workerNodeManager.registerWorker(workerA);
-        workerNodeManager.registerWorker(workerB);
-        workerNodeManager.registerWorker(workerC);
+        workerReputationManager = new WorkerReputationManager(myWorkerID);
+        workerReputationManager.registerWorker(workerA);
+        workerReputationManager.registerWorker(workerB);
+        workerReputationManager.registerWorker(workerC);
 
-        builder = new ReplicaManagerBuilder(workerNodeManager);
+        builder = new ReplicaManagerBuilder(workerReputationManager);
         builder.setReplicas(2);
 
         replicaManager = builder.create();
@@ -351,7 +351,7 @@ public class ReplicaManagerTest {
 
     private void promote(WorkerID workerID, int times){
         for(int i=0; i<times; ++i){
-            workerNodeManager.promoteWorker(workerID);
+            workerReputationManager.promoteWorker(workerID);
         }
     }
 
