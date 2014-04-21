@@ -50,7 +50,7 @@ public class TaskMeta implements Serializable {
         return taskName;
     }
 
-    FileDep getModule() {
+    public FileDep getModule() {
         return module;
     }
 

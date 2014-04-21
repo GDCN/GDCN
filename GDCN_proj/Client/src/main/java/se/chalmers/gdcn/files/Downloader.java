@@ -1,14 +1,12 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
-import net.tomp2p.storage.Data;
-import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
-import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
-import java.io.*;
+import java.io.File;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -48,23 +46,6 @@ public class Downloader extends AbstractFileMaster {
         File file = pathTo(fileDep);
         Data data = (Data) result;
         FileUtils.toFile(file, data.getData());
-    }
-
-    /**
-     *
-     * @return Name of haskell module this taskmeta uses
-     */
-    private String getModuleName(){
-        return taskMeta.getModule().getFileName().replace(".hs", "");
-    }
-
-    /**
-     * Build new Task specified by the meta-file that was parsed earlier.
-     * @param listener Listener for success on task
-     * @return Task object
-     */
-    public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
     }
 
 //    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {

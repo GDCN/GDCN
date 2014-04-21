@@ -20,9 +20,7 @@ public class Task implements Runnable{
     private final String moduleName;
     private final List<String> initDataPaths;
 
-
     private final PathManager pathManager;
-
 
     private final TaskListener listener;
 

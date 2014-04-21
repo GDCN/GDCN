@@ -47,8 +47,8 @@ public class ReplicaManagerBuilder {
             workerReputationManager = new WorkerReputationManager(myWorkerID);
         }
 
-        return new ReplicaManager(workerReputationManager, taskManager, timeoutLengthUnit, timerUpdateIntervalMillis, replicas, expectedReputation, timeoutLengthValue
-        );
+        return new ReplicaManager(workerReputationManager, taskManager, timeoutLengthUnit, timerUpdateIntervalMillis,
+                replicas, expectedReputation, timeoutLengthValue);
     }
 
     public ReplicaManagerBuilder setReplicas(int replicas) {

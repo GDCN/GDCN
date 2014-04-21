@@ -7,8 +7,11 @@ import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
+import se.chalmers.gdcn.files.SelfWorker;
 import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
@@ -89,10 +92,14 @@ public class ReplicaManager implements Serializable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-        taskManager.submit(replicaTimer.createUpdater());
-        taskManager.submit(workerTimeoutManager.timerRunner());
-//        SerializableTimer.resume(replicaTimer);
-//        workerTimeoutManager.resumeTimer();
+        if(taskManager != null){
+            taskManager.submit(replicaTimer.createUpdater());
+            taskManager.submit(workerTimeoutManager.timerRunner());
+        } else {
+            //In testing...
+            SerializableTimer.resume(replicaTimer);
+//            workerTimeoutManager.resumeTimer();
+        }
     }
 
     /**
@@ -297,9 +304,27 @@ public class ReplicaManager implements Serializable{
         validateResults(taskData, resultData);
     }
 
-    private void workSelf(TaskData task){
+    private void workSelf(TaskData taskData){
         //todo reuse giveReplica? or do manually?
-        
+        TaskMeta meta = taskData.getTaskMeta();
+
+        try {
+            Runnable taskRunner = SelfWorker.workSelf(meta, taskData.getJobName(), new TaskListener() {
+                @Override
+                public void taskFinished(String taskName) {
+
+                }
+
+                @Override
+                public void taskFailed(String taskName, String reason) {
+
+                }
+            });
+
+            taskManager.submit(taskRunner);
+        } catch (TaskMetaDataException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
+import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.beans.PropertyChangeEvent;
@@ -276,6 +278,24 @@ abstract class AbstractFileMaster{
         return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
     }
 
+
+    /**
+     *
+     * @return Name of haskell module this taskmeta uses
+     */
+    protected String getModuleName(){
+        return taskMeta.getModule().getFileName().replace(".hs", "");
+    }
+
+    /**
+     * Build new Task specified by the meta-file that was parsed earlier.
+     * @param listener Listener for success on task
+     * @return Task object
+     */
+    public Task buildTask(TaskListener listener){
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
+    }
+
     /**
      *
      * @param fileDep file
@@ -300,7 +320,7 @@ abstract class AbstractFileMaster{
 
     /**
      * Generates a suitable json-String to put in a file, used for debugging
-     * @param args
+     * @param args empty array
      */
     public static void main(String[] args){
         FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
