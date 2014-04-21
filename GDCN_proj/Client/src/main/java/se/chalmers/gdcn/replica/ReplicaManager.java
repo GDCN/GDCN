@@ -121,6 +121,8 @@ public class ReplicaManager implements Serializable{
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
+        workerTimeoutManager.activate(worker);
+
         Set<TaskData> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
@@ -294,6 +296,10 @@ public class ReplicaManager implements Serializable{
         //Make sure timeout will not be called on this replicaID:
         replicaTimer.remove(replicaID);
 
+        if( !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
+            workSelf(taskData);
+        }
+
         if(! taskData.enoughReturned()){
             //Ignore - cannot validate yet
             return;
@@ -305,6 +311,14 @@ public class ReplicaManager implements Serializable{
         }
 
         validateResults(taskData, resultData);
+    }
+
+    private float sumActiveReputation(){
+        float sum = 0;
+        for( WorkerID workerID : workerTimeoutManager.getActiveWorkers() ){
+            sum += workerReputationManager.getReputation(workerID);
+        }
+        return sum;
     }
 
     private void workSelf(final TaskData taskData){
@@ -321,6 +335,8 @@ public class ReplicaManager implements Serializable{
         try {
             SelfWorker selfWorker = new SelfWorker(meta, taskData.getJobName());
             final String resultPath = selfWorker.futureResultFilePath();
+            final TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
+
             Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
                 @Override
                 public void taskFinished(String taskName) {
@@ -328,7 +344,8 @@ public class ReplicaManager implements Serializable{
 
                     try {
                         byte[] result = FileUtils.fromFile(new File(resultPath));
-                        TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
+
+                        //TODO put jobOwner result in special position?
                         taskResultData.returnedReplicas.put(replicaID, result);
 
                         decideValidate(replicaID, taskData, taskResultData);
@@ -342,6 +359,9 @@ public class ReplicaManager implements Serializable{
                 public void taskFailed(String taskName, String reason) {
                     System.out.println("ERROR "+taskName+": "+reason);
                     //TODO report error to UI, use TaskManager for that?
+                    taskResultData.failedReplicas.add(replicaID);
+
+                    decideValidate(replicaID, taskData, taskResultData);
                 }
             });
 
