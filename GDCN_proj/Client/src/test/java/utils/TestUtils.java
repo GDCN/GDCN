@@ -29,6 +29,6 @@ public class TestUtils {
     public static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
         List<TaskMeta> taskMetas = new ArrayList<>();
         taskMetas.add(taskMeta);
-        replicaManager.loadTasksAndReplicate("jobName", taskMetas);
+        replicaManager.loadTasksAndReplicate("Job1", taskMetas);
     }
 }

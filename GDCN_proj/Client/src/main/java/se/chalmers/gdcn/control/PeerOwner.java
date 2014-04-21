@@ -90,7 +90,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             //TODO instantiate correctly! Need workerID which is in TaskPasser...
             //TODO WorkerReputationManager on the other hand is contained within ReplicaManager
 //            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
-            replicaManager = new ReplicaManagerBuilder((WorkerID)null, taskManager).create();
+
+            //TODO peer is null here!
+            WorkerID myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+            replicaManager = new ReplicaManagerBuilder(myWorkerID, taskManager).create();
 
         } else {
             replicaManager = replicaManager1;

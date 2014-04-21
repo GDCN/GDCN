@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * Created by HalfLeif on 2014-04-02.
  */
-public class FileUtils {
+public class FileManagementUtils {
 
     /**
      * Outputs some arbitrary data to file on disk

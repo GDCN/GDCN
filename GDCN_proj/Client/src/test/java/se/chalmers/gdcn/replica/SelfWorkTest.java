@@ -14,12 +14,14 @@ import utils.WorkerHolder;
 
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Leif on 2014-04-21.
  */
 public class SelfWorkTest {
     private ReplicaManager replicaManager;
+    private Semaphore lock;
 
     @BeforeMethod
     public void setupMethod(){
@@ -28,6 +30,8 @@ public class SelfWorkTest {
         replicaManager = builder.create();
         replicaManager.setWorkSelfIfRequired(true);
         TestUtils.loadMeta(TaskHolder.getTaskA(), replicaManager);
+
+        lock = new Semaphore(0);
     }
 
     @Test
@@ -35,18 +39,21 @@ public class SelfWorkTest {
         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(WorkerHolder.getWorkerA());
         replicaManager.replicaOutdated(replicaBox.getReplicaID());
         //...
+
+        lock.acquireUninterruptibly();
     }
 
     private TaskManager emptyTaskManager(){
         return new TaskManager(new TaskListener() {
             @Override
             public void taskFinished(String taskName) {
-
+                lock.release();
             }
 
             @Override
             public void taskFailed(String taskName, String reason) {
-
+                lock.release();
+                throw new AssertionError(reason);
             }
         }, new ClientInterface() {
             @Override

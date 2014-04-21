@@ -11,7 +11,7 @@ import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
-import se.chalmers.gdcn.files.FileUtils;
+import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.HashCash;
 import se.chalmers.gdcn.hashcash.Solution;
@@ -211,7 +211,7 @@ public class TaskPasser extends Passer {
                 //TODO sign result with private key... Might want to use the class 'Box' or similar for signing
                 byte[] result = null;
                 try {
-                    result = FileUtils.fromFile(new File(stringHolder.getString()));
+                    result = FileManagementUtils.fromFile(new File(stringHolder.getString()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     taskFailed(taskName, e.getMessage());

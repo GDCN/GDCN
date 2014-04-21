@@ -57,6 +57,10 @@ public class TaskManager{
         threadPool.submit(runnable);
     }
 
+    public TaskListener getTaskListener() {
+        return taskListener;
+    }
+
     /**
      * Work on this task
      * @param projectName Name of working directory that contains /resources etc

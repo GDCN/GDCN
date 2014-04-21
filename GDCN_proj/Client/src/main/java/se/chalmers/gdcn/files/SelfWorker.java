@@ -1,8 +1,12 @@
 package se.chalmers.gdcn.files;
 
+import org.codehaus.plexus.util.FileUtils;
 import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by Leif on 2014-04-21.
@@ -23,7 +27,20 @@ public class SelfWorker {
     }
 
     public Task workSelf(TaskMeta taskMeta, TaskListener listener) throws TaskMetaDataException {
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileUtils.moduleName(taskMeta),
-                FileUtils.getResourceFiles(pathManager, taskMeta), listener);
+        try {
+            copyFiles(taskMeta);
+        } catch (IOException e) {
+            e.printStackTrace();
+            listener.taskFailed(taskName, e.getMessage());
+        }
+
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileManagementUtils.moduleName(taskMeta),
+                FileManagementUtils.getResourceFiles(pathManager, taskMeta), listener);
+    }
+
+    private void copyFiles(TaskMeta taskMeta) throws IOException {
+        PathManager workPathMan = PathManager.worker(pathManager.getProjectName());
+        FileUtils.copyDirectory( new File(pathManager.taskResourcesDir()), new File(workPathMan.taskResourcesDir()));
+        FileUtils.copyDirectory( new File(pathManager.taskCodeDir()), new File(workPathMan.taskCodeDir()));
     }
 }

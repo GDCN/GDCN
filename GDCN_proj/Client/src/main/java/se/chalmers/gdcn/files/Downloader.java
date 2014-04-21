@@ -23,7 +23,7 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void ifFileExist(FileDep fileDep) {
-        System.out.println("Found file :D - " + FileUtils.pathTo(pathManager, fileDep));
+        System.out.println("Found file :D - " + FileManagementUtils.pathTo(pathManager, fileDep));
         super.fileDependencyResolved(fileDep);
     }
 
@@ -33,7 +33,7 @@ public class Downloader extends AbstractFileMaster {
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
-        System.out.println("Didn't find file " + FileUtils.pathTo(pathManager, fileDep));
+        System.out.println("Didn't find file " + FileManagementUtils.pathTo(pathManager, fileDep));
         client.get(fileDep.getDhtKey());
         //Handling OperationFinished is done in AbstractFileMaster
     }
@@ -43,9 +43,9 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
-        File file = FileUtils.pathTo(pathManager, fileDep);
+        File file = FileManagementUtils.pathTo(pathManager, fileDep);
         Data data = (Data) result;
-        FileUtils.toFile(file, data.getData());
+        FileManagementUtils.toFile(file, data.getData());
     }
 
 //    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {

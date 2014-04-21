@@ -179,7 +179,7 @@ abstract class AbstractFileMaster{
         Set<FileDep> deps = new HashSet<>(unresolvedFiles.values());
 
         for(FileDep fileDep : deps){
-            File file = FileUtils.pathTo(pathManager, fileDep);
+            File file = FileManagementUtils.pathTo(pathManager, fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
                     throw new TaskMetaDataException("Files in dependencies should not be directories! File: "+file);
@@ -279,7 +279,7 @@ abstract class AbstractFileMaster{
      * @return Task object
      */
     public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileUtils.moduleName(taskMeta), FileUtils.getResourceFiles(pathManager, taskMeta), listener);
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileManagementUtils.moduleName(taskMeta), FileManagementUtils.getResourceFiles(pathManager, taskMeta), listener);
     }
 
     /**

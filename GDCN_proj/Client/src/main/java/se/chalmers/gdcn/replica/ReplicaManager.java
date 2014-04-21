@@ -7,7 +7,7 @@ import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
-import se.chalmers.gdcn.files.FileUtils;
+import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.files.SelfWorker;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.files.TaskMetaDataException;
@@ -349,13 +349,14 @@ public class ReplicaManager implements Serializable{
             Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
                 @Override
                 public void taskFinished(String taskName) {
-                    System.out.println("YAY, "+taskName+ "finished");
+                    System.out.println("ReplicaManager#workSelf - YAY, "+taskName+ "finished");
 
                     try {
-                        byte[] result = FileUtils.fromFile(new File(resultPath));
+                        byte[] result = FileManagementUtils.fromFile(new File(resultPath));
 
                         //TODO put jobOwner result in special position?
                         taskResultData.returnedReplicas.put(replicaID, result);
+                        taskManager.getTaskListener().taskFinished(taskName);
 
                         decideValidate(replicaID, taskData, taskResultData);
 
@@ -369,6 +370,7 @@ public class ReplicaManager implements Serializable{
                     System.out.println("ERROR "+taskName+": "+reason);
                     //TODO report error to UI, use TaskManager for that?
                     taskResultData.failedReplicas.add(replicaID);
+                    taskManager.getTaskListener().taskFailed(taskName, reason);
 
                     decideValidate(replicaID, taskData, taskResultData);
                 }
