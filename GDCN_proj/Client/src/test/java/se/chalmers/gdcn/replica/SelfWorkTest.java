@@ -7,6 +7,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import utils.TaskHolder;
 import utils.TestUtils;
@@ -23,6 +24,8 @@ public class SelfWorkTest {
     private ReplicaManager replicaManager;
     private Semaphore lock;
 
+    private WorkerID workerA;
+
     @BeforeMethod
     public void setupMethod(){
         ReplicaManagerBuilder builder = new ReplicaManagerBuilder(WorkerHolder.getMyWorkerID(), emptyTaskManager());
@@ -31,16 +34,27 @@ public class SelfWorkTest {
         replicaManager.setWorkSelfIfRequired(true);
         TestUtils.loadMeta(TaskHolder.getTaskA(), replicaManager);
 
+        workerA = WorkerHolder.getWorkerA();
+
         lock = new Semaphore(0);
     }
 
     @Test
     public void oneTest(){
-        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(WorkerHolder.getWorkerA());
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
         replicaManager.replicaOutdated(replicaBox.getReplicaID());
         //...
 
         lock.acquireUninterruptibly();
+    }
+
+    @Test
+    public void cloneTest() throws CloneNotSupportedException {
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaManager clone = replicaManager.clone();
+
+        assert clone.getReplicaResultKey(replicaBox.getReplicaID()).equals(replicaBox.getResultKey());
+        assert null == replicaManager.giveReplicaToWorker(workerA);
     }
 
     private TaskManager emptyTaskManager(){

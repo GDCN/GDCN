@@ -29,7 +29,7 @@ import java.util.*;
  *
  * //TODO reader-writer synchronization instead of common mutex?
  */
-public class ReplicaManager implements Serializable{
+public class ReplicaManager implements Serializable, Cloneable{
 
     private final int REPLICAS;
     private final int EXPECTED_REPUTATION;
@@ -37,7 +37,8 @@ public class ReplicaManager implements Serializable{
     private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
-    private final TaskManager taskManager;
+    private TaskManager taskManager;
+
     private final WorkerReputationManager workerReputationManager;
     private final WorkerTimeoutManager workerTimeoutManager;
     private final SerializableReplicaTimer replicaTimer;
@@ -91,11 +92,23 @@ public class ReplicaManager implements Serializable{
         resumeTimer();
     }
 
+    @Override
+    public ReplicaManager clone() throws CloneNotSupportedException {
+        //Shallow clone
+        ReplicaManager clone = (ReplicaManager) super.clone();
+        clone.taskManager = null;
+        return clone;
+    }
+
+    public synchronized void setTaskManager(TaskManager taskManager) {
+        this.taskManager = taskManager;
+    }
+
     /**
      * Mainly intended for testing
      * @param workSelfIfRequired true if allow JobOwner to work himself if there are too few active workers
      */
-    public void setWorkSelfIfRequired(boolean workSelfIfRequired) {
+    public synchronized void setWorkSelfIfRequired(boolean workSelfIfRequired) {
         this.workSelfIfRequired = workSelfIfRequired;
     }
 
