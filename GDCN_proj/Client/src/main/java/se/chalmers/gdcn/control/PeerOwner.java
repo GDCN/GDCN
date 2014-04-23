@@ -50,7 +50,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
     private Timer timer;
 
-    private String testPath = File.separator + "TEST";
+    private String testPath = "TEST";
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {

@@ -53,7 +53,7 @@ public class DataFilesManager {
 
         PathManager.loadDefaultLocation();
 
-        testDirectory = PathManager.getSettingsPath() + File.separator + dir;
+        testDirectory = PathManager.getSettingsPath() + dir;
 
         neighbourFileManager = new NeighbourFileManager(dir, subpart);
 
@@ -73,6 +73,14 @@ public class DataFilesManager {
     public void deleteTestDir() {
 
         File file = new File(testDirectory);
+
+        String[] files = file.list();
+
+        for(String s : files) {
+            File f = new File(testDirectory, s);
+
+            f.delete();
+        }
 
         System.out.println("Directory was deleted: " + file.delete());
     }
