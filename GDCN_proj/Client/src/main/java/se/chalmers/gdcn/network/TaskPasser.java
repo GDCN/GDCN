@@ -18,6 +18,7 @@ import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.replica.ReplicaBox;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
+import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 
 import javax.crypto.KeyGenerator;
@@ -55,13 +56,11 @@ public class TaskPasser extends Passer {
      * Message passer for sending messages regarding tasks. OBS! Only ONE Passer may be present for a Peer.
      *
      * @param peer This peer
-     * @param replicaManager Manager to ask for Replicas that are sent to workers
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
+    public TaskPasser(Peer peer, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
-        this.replicaManager = replicaManager;
         this.taskManager = taskManager;
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
         this.client = client;
@@ -92,14 +91,23 @@ public class TaskPasser extends Passer {
             workerNodeManager = workerNodeManager1;
         }
 
+        ReplicaManager replicaManager1 = dataFilesManager.getReplicaManager();
+
+        if (replicaManager1 == null) {
+            ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID);
+
+            replicaManager = replicaManagerBuilder.create();
+        } else {
+            replicaManager = replicaManager1;
+        }
+
         timer = new Timer(true);
 
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 dataFilesManager.saveWorkerNodeManager(workerNodeManager);
-
-                System.out.println("Saving workerNodeManager");
+                dataFilesManager.saveReplicaManager(replicaManager);
 
             }
         }, 1000 * 120, 1000 * 120);
@@ -109,6 +117,9 @@ public class TaskPasser extends Passer {
 
     public void stopTimer() {
         timer.cancel();
+
+        dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+        dataFilesManager.saveReplicaManager(replicaManager);
     }
 
 
@@ -343,6 +354,10 @@ public class TaskPasser extends Passer {
         });
         client.get(resultKey);
 
+    }
+
+    public ReplicaManager getReplicaManager() {
+        return replicaManager;
     }
 
 }

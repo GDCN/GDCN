@@ -16,9 +16,6 @@ import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.network.TaskPasser;
-import se.chalmers.gdcn.network.WorkerID;
-import se.chalmers.gdcn.replica.ReplicaManager;
-import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 
@@ -32,8 +29,6 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 /**
@@ -44,13 +39,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager replicaManager;
 
     private DataFilesManager dataFilesManager;
 
-    private Timer timer;
-
-    private String testPath = File.separator + "TEST";
+    private String testPath = "TEST";
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -77,25 +69,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     @Override
     public void removeListener(PropertyChangeListener listener){
         notifier.removeListener(listener);
-    }
-
-    public PeerOwner() {
-
-        //TODO Make it possible to have a test replicaManager
-        ReplicaManager replicaManager1;
-        dataFilesManager = new DataFilesManager();
-        replicaManager1 = dataFilesManager.getReplicaManager();
-
-        if(replicaManager1 == null) {
-            //TODO instantiate correctly! Need workerID which is in TaskPasser...
-            //TODO WorkerNodeManager on the other hand is contained within ReplicaManager
-//            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
-            replicaManager = new ReplicaManagerBuilder((WorkerID)null).create();
-
-        } else {
-            replicaManager = replicaManager1;
-        }
-
     }
 
     @Override
@@ -131,13 +104,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
             peer.shutdown();
 
-            notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
-
-            timer.cancel();
-
             taskPasser.stopTimer();
 
-            dataFilesManager.saveReplicaManager(replicaManager);
+            notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
+
         }
     }
 
@@ -251,7 +221,8 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
     @Override
     public void push(String jobName) {
-        taskManager.uploadJob(jobName, replicaManager);
+        //TODO Move to other class?
+        taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
     }
 
     @Override
@@ -414,19 +385,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
 
-            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
-
-            timer = new Timer(true);
-
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    dataFilesManager.saveReplicaManager(replicaManager);
-
-                    System.out.println("saving replicaManager");
-
-                }
-            }, 1000 * 120, 1000 * 120);
+            taskPasser = new TaskPasser(peer, taskManager, this, dataFilesManager);
 
 
         } catch (NoSuchAlgorithmException | IOException e) {
