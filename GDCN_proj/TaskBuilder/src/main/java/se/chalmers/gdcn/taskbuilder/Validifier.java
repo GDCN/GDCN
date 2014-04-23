@@ -50,8 +50,7 @@ public class Validifier {
 
                 try {
                     NumberFormat numberFormat = NumberFormat.getInstance();
-                    numberFormat.setParseIntegerOnly(true);
-                    int quality = numberFormat.parse(writer.toString()).intValue();
+                    double quality = numberFormat.parse(writer.toString()).doubleValue();
 
                     // Result accepted
                     listener.validityOk(quality);
@@ -79,7 +78,7 @@ public class Validifier {
     public static void main(String[] args) {
         ValidityListener vl = new ValidityListener() {
             @Override
-            public void validityOk(int quality) {
+            public void validityOk(double quality) {
                 System.out.println("Validity Ok. Q: "+quality);
             }
 

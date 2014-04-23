@@ -11,7 +11,7 @@ public interface ValidityListener {
      * Called when a validation of a workers result of a task has been successful
      * @param quality
      */
-    public void validityOk(int quality);
+    public void validityOk(double quality);
 
     /**
      * Called when a validation of a workers result of a task has found to be corrupt

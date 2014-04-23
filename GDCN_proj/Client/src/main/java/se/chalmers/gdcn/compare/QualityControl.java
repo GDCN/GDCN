@@ -27,7 +27,7 @@ public class QualityControl {
     private final String taskName;
     private final List<String> taskDeps;
 
-    private int bestQuality = Integer.MIN_VALUE;
+    private double bestQuality = Double.MIN_VALUE;
     private final CountDownLatch waitForAll;
 
     /**
@@ -78,7 +78,7 @@ public class QualityControl {
         return trustMap;
     }
 
-    private synchronized void reward(ByteArray result, int quality) {
+    private synchronized void reward(ByteArray result, double quality) {
         if (quality == bestQuality) {
             trustMap.put(result, Trust.TRUSTWORTHY);
         }
@@ -140,7 +140,7 @@ public class QualityControl {
         }
 
         @Override
-        public void validityOk(int quality) {
+        public void validityOk(double quality) {
             reward(myResult, quality);
         }
 
