@@ -7,6 +7,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.control.TaskRunner;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import utils.TaskHolder;
@@ -14,6 +15,8 @@ import utils.TestUtils;
 import utils.WorkerHolder;
 
 import java.beans.PropertyChangeListener;
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
@@ -49,12 +52,56 @@ public class SelfWorkTest {
     }
 
     @Test
-    public void cloneTest() throws CloneNotSupportedException {
+    public void cloneTest() throws CloneNotSupportedException, IOException {
         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
-        ReplicaManager clone = replicaManager.clone();
+        ReplicaManager clone = replicaManager.shallowClone();
+        assert clone != replicaManager;
+        assert clone.getRunner() == null;
+
+        //NotSerializableException?
+        new Data(clone);
 
         assert clone.getReplicaResultKey(replicaBox.getReplicaID()).equals(replicaBox.getResultKey());
         assert null == replicaManager.giveReplicaToWorker(workerA);
+
+        //NotSerializableException?
+        new Data(clone);
+    }
+
+    @Test
+    public void test() throws IOException, CloneNotSupportedException {
+        SerializableRunner runner = new SerializableRunner(emptyTaskManager());
+        runner.taskRunner = null;
+        new Data(runner);
+
+        new Data(runner.clone());
+    }
+
+    private static class NotSerializableClass{}
+
+    private static class SerializableRunner implements TaskRunner, Serializable {
+
+        private NotSerializableClass notSerializableClass = null;
+        private TaskRunner taskRunner;
+
+        @Override
+        protected Object clone() throws CloneNotSupportedException {
+            return super.clone();
+        }
+
+        private SerializableRunner(TaskRunner taskRunner) {
+            this.taskRunner = taskRunner;
+        }
+
+        @Override
+        public void submit(Runnable runnable) {
+            taskRunner.submit(runnable);
+        }
+
+        @Override
+        public TaskListener getTaskListener() {
+            return taskRunner.getTaskListener();
+        }
     }
 
     private TaskManager emptyTaskManager(){

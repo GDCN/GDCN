@@ -28,7 +28,6 @@ import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -83,26 +82,26 @@ public class TaskPasser extends Passer {
             e.printStackTrace();
         }
 
-        //TODO ReplicaManager must have workerReputationManager!...
-        WorkerReputationManager workerReputationManager1 = dataFilesManager.getWorkerNodeManager();
-
-        if (workerReputationManager1 == null) {
-            workerReputationManager = new WorkerReputationManager(myWorkerID, 3, WorkerReputationManager.DisciplinaryAction.REMOVE);
-        } else {
-            workerReputationManager = workerReputationManager1;
-        }
+        workerReputationManager = replicaManager.getWorkerReputationManager();
+//        WorkerReputationManager workerReputationManager1 = dataFilesManager.getWorkerNodeManager();
+//
+//        if (workerReputationManager1 == null) {
+//            workerReputationManager = new WorkerReputationManager(myWorkerID, 3, WorkerReputationManager.DisciplinaryAction.REMOVE);
+//        } else {
+//            workerReputationManager = workerReputationManager1;
+//        }
 
         timer = new Timer(true);
 
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                dataFilesManager.saveWorkerNodeManager(workerReputationManager);
-
-                System.out.println("Saving workerReputationManager");
-
-            }
-        }, 1000 * 120, 1000 * 120);
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                dataFilesManager.saveWorkerNodeManager(workerReputationManager);
+//
+//                System.out.println("Saving workerReputationManager");
+//
+//            }
+//        }, 1000 * 120, 1000 * 120);
 
 
     }

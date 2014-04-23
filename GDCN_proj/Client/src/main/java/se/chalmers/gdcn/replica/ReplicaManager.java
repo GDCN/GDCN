@@ -4,7 +4,7 @@ import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.compare.EqualityControl;
 import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.compare.Trust;
-import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.control.TaskRunner;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
 import se.chalmers.gdcn.files.FileManagementUtils;
@@ -37,7 +37,7 @@ public class ReplicaManager implements Serializable, Cloneable{
     private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
-    private TaskManager taskManager;
+    private TaskRunner runner;
 
     private final WorkerReputationManager workerReputationManager;
     private final WorkerTimeoutManager workerTimeoutManager;
@@ -74,11 +74,11 @@ public class ReplicaManager implements Serializable, Cloneable{
         final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
     }
 
+
     /**
      * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
      */
-    ReplicaManager(WorkerReputationManager workerReputationManager, TaskManager taskManager, Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
-        this.taskManager = taskManager;
+    ReplicaManager(WorkerReputationManager workerReputationManager, TaskRunner runner, Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
         REPLICAS = replicas;
         EXPECTED_REPUTATION = expectedReputation;
         TIME_UNIT = timeUnit;
@@ -89,19 +89,34 @@ public class ReplicaManager implements Serializable, Cloneable{
         //TODO calibrate: are these acceptable values?
         workerTimeoutManager = new WorkerTimeoutManager(updateInterval*2, timeUnit, calendarValue*3);
 
+        this.runner = runner;
         resumeTimer();
     }
 
-    @Override
-    public ReplicaManager clone() throws CloneNotSupportedException {
+//    private ReplicaManager(ReplicaManager original){
+//
+//    }
+
+    /**
+     * Used for Serialization
+     * @return Shallow clone with TaskManager set as <code>null<code/>
+     */
+    public ReplicaManager shallowClone(){
         //Shallow clone
-        ReplicaManager clone = (ReplicaManager) super.clone();
-        clone.taskManager = null;
-        return clone;
+//        return new ReplicaManager(this);
+        return null;
     }
 
-    public synchronized void setTaskManager(TaskManager taskManager) {
-        this.taskManager = taskManager;
+    public synchronized void setTaskManager(TaskRunner taskManager) {
+        this.runner = taskManager;
+    }
+
+    public TaskRunner getRunner() {
+        return runner;
+    }
+
+    public WorkerReputationManager getWorkerReputationManager() {
+        return workerReputationManager;
     }
 
     /**
@@ -117,9 +132,9 @@ public class ReplicaManager implements Serializable, Cloneable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-        if(taskManager != null){
-            taskManager.submit(replicaTimer.createUpdater());
-            taskManager.submit(workerTimeoutManager.timerRunner());
+        if(runner != null){
+            runner.submit(replicaTimer.createUpdater());
+            runner.submit(workerTimeoutManager.timerRunner());
         } else {
             //In testing...
             SerializableTimer.resume(replicaTimer);
@@ -369,7 +384,7 @@ public class ReplicaManager implements Serializable, Cloneable{
 
                         //TODO put jobOwner result in special position?
                         taskResultData.returnedReplicas.put(replicaID, result);
-                        taskManager.getTaskListener().taskFinished(taskName);
+                        runner.getTaskListener().taskFinished(taskName);
 
                         decideValidate(replicaID, taskData, taskResultData);
 
@@ -383,13 +398,13 @@ public class ReplicaManager implements Serializable, Cloneable{
                     System.out.println("ERROR "+taskName+": "+reason);
                     //TODO report error to UI, use TaskManager for that?
                     taskResultData.failedReplicas.add(replicaID);
-                    taskManager.getTaskListener().taskFailed(taskName, reason);
+                    runner.getTaskListener().taskFailed(taskName, reason);
 
                     decideValidate(replicaID, taskData, taskResultData);
                 }
             });
 
-            taskManager.submit(taskRunner);
+            runner.submit(taskRunner);
         } catch (TaskMetaDataException e) {
             e.printStackTrace();
         }

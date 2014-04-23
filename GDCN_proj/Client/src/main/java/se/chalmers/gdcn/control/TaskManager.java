@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * Manager of running tasks. Can run multiple tasks concurrently.
  */
-public class TaskManager{
+public class TaskManager implements TaskRunner {
 
     private final TaskListener taskListener;
     private final ClientInterface client;
@@ -53,10 +53,12 @@ public class TaskManager{
      *
      * @param runnable Runnable
      */
+    @Override
     public void submit(Runnable runnable){
         threadPool.submit(runnable);
     }
 
+    @Override
     public TaskListener getTaskListener() {
         return taskListener;
     }

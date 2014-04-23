@@ -44,7 +44,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
-    private final ReplicaManager replicaManager;
+    private ReplicaManager replicaManager;
 
     private DataFilesManager dataFilesManager;
 
@@ -82,23 +82,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public PeerOwner() {
 
         //TODO Make it possible to have a test replicaManager
-        ReplicaManager replicaManager1;
         dataFilesManager = new DataFilesManager();
-        replicaManager1 = dataFilesManager.getReplicaManager();
-
-        if(replicaManager1 == null) {
-            //TODO instantiate correctly! Need workerID which is in TaskPasser...
-            //TODO WorkerReputationManager on the other hand is contained within ReplicaManager
-//            replicaManager = new ReplicaManager((WorkerID)null, 1, 1, 1L);
-
-            //TODO peer is null here!
-            WorkerID myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
-            replicaManager = new ReplicaManagerBuilder(myWorkerID, taskManager).create();
-
-        } else {
-            replicaManager = replicaManager1;
-        }
-
     }
 
     @Override
@@ -414,13 +398,22 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             }
 
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
-
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
+
+            ReplicaManager replicaManager1 = dataFilesManager.getReplicaManager();
+
+            if(replicaManager1 == null) {
+                WorkerID myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+                ReplicaManagerBuilder builder = new ReplicaManagerBuilder(myWorkerID, taskManager);
+                replicaManager = builder.create();
+            } else {
+                replicaManager1.setTaskManager(taskManager);
+                replicaManager = replicaManager1;
+            }
 
             taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
 
             timer = new Timer(true);
-
             timer.schedule(new TimerTask() {
                 @Override
                 public void run() {
