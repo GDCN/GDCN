@@ -7,6 +7,7 @@ import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,8 @@ import java.util.Map;
  * Class for tasks, compiling and executing Haskell code
  */
 public class Task implements Runnable{
+
+    private static final String[] trustedPackages = {"base", "bytestring", "mtl", "random", "gdcn-trusted"};
 
     private final String projectName;
     private final String taskName;
@@ -55,10 +58,17 @@ public class Task implements Runnable{
         }
 
         //TODO Manage trust in a non hardcoded way
-        String[] command = {"ghc", "-o", compiledModule(),
+        String[] commandInit = {"ghc", "-o", compiledModule(),
                 "-DMODULE=" + moduleName, "-i" + pathManager.taskCodeDir(), pathManager.header(),
-                "-outputdir", pathManager.taskTempDir(taskName),
-                "-trust", "base", "-trust", "bytestring", "-trust", "gdcn-trusted"};
+                "-outputdir", pathManager.taskTempDir(taskName)};
+
+        List<String> command = new ArrayList<>();
+        command.addAll(Arrays.asList(commandInit));
+
+        for (int i = 0; i < trustedPackages.length; i++) {
+            command.add("-trust");
+            command.add(trustedPackages[i]);
+        }
 
         System.out.println("\nCompile command:");
         for(String c : command){
