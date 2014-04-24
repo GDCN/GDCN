@@ -100,10 +100,8 @@ public class TaskPasser extends Passer {
 //            workerReputationManager = workerReputationManager1;
 //        }
 
-
         timer = new Timer(true);
 
-//<<<<<<< HEAD
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -112,19 +110,6 @@ public class TaskPasser extends Passer {
 
             }
         }, 1000 * 120, 1000 * 120);
-//=======
-//        timer.schedule(new TimerTask() {
-//            @Override
-//            public void run() {
-//                dataFilesManager.saveWorkerNodeManager(workerReputationManager);
-//
-//                System.out.println("Saving workerReputationManager");
-//
-//            }
-//        }, 1000 * 120, 1000 * 120);
-//>>>>>>> omrep
-
-
     }
 
     public void stopTimer() {
