@@ -44,10 +44,10 @@ lookupMatrix matrix (x, y) = (matrix !! (x - 1)) !! (y - 1)
 
 -- Random functions
 
-randomVector :: State StdGen [Double]
+randomVector :: State StdGen Vector
 randomVector = randomVector' dimensions []
 
-randomVector' :: Int -> [Double] -> State StdGen [Double]
+randomVector' :: Int -> Vector -> State StdGen Vector
 randomVector' 0 nums = return nums
 randomVector' n nums = do
     gen <- get
@@ -80,19 +80,19 @@ search depth = do
     results <- repeatM randomLangermann depth
     return $ maximumBy (\a b -> compare (snd a) (snd b)) results
 
-multiSearch :: State StdGen Vector
+multiSearch :: State StdGen (Vector, Double)
 multiSearch = do
     results <- repeatM (search 10000) (tests `div` 10000)
-    return $ fst $ maximumBy (\a b -> compare (snd a) (snd b)) results
+    return $ maximumBy (\a b -> compare (snd a) (snd b)) results
 
-fullSearch :: Int -> Vector
+fullSearch :: Int -> (Vector, Double)
 fullSearch seed = evalState multiSearch (mkStdGen seed)
 
 run :: [ByteString] -> (ByteString, String)
 run (seedData:_) = let seed = decode seedData :: Int
-                       result = fullSearch seed
-                       resultData = encode result
-                   in (resultData, show result)
+                       (resultVec, resultN) = fullSearch seed
+                       resultData = encode resultVec
+                   in (resultData, show resultVec ++ " -> " ++ show resultN)
 
 --
 
