@@ -37,7 +37,7 @@ public class ReplicaManager implements Serializable, Cloneable{
     private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
-    private TaskRunner runner;
+    private transient TaskRunner runner;
 
     private final WorkerReputationManager workerReputationManager;
     private final WorkerTimeoutManager workerTimeoutManager;
@@ -103,8 +103,7 @@ public class ReplicaManager implements Serializable, Cloneable{
      */
     public ReplicaManager shallowClone(){
         //Shallow clone
-//        return new ReplicaManager(this);
-        return null;
+        return this;
     }
 
     public synchronized void setTaskManager(TaskRunner taskManager) {

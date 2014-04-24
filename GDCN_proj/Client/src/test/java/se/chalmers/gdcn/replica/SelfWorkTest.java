@@ -52,17 +52,17 @@ public class SelfWorkTest {
     }
 
     @Test
-    public void cloneTest() throws CloneNotSupportedException, IOException {
+    public void cloneTest() throws CloneNotSupportedException, IOException, ClassNotFoundException {
         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
         ReplicaManager clone = replicaManager.shallowClone();
-        assert clone != replicaManager;
-        assert clone.getRunner() == null;
 
         //NotSerializableException?
-        new Data(clone);
+        Data data = new Data(clone);
+        ReplicaManager deserialized = (ReplicaManager) data.getObject();
 
-        assert clone.getReplicaResultKey(replicaBox.getReplicaID()).equals(replicaBox.getResultKey());
-        assert null == replicaManager.giveReplicaToWorker(workerA);
+        assert deserialized != clone;
+        assert deserialized.getReplicaResultKey(replicaBox.getReplicaID()).equals(replicaBox.getResultKey());
+        assert null == deserialized.giveReplicaToWorker(workerA);
 
         //NotSerializableException?
         new Data(clone);
@@ -79,7 +79,7 @@ public class SelfWorkTest {
 
     private static class NotSerializableClass{}
 
-    private static class SerializableRunner implements TaskRunner, Serializable {
+    private static class SerializableRunner implements TaskRunner, Serializable, Cloneable {
 
         private NotSerializableClass notSerializableClass = null;
         private TaskRunner taskRunner;
