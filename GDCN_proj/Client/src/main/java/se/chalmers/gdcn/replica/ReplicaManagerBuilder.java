@@ -1,9 +1,9 @@
 package se.chalmers.gdcn.replica;
 
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.network.WorkerID;
-
-import java.util.Calendar;
+import se.chalmers.gdcn.utils.Time;
 
 /**
  * Created by Leif on 2014-04-16.
@@ -13,39 +13,42 @@ public class ReplicaManagerBuilder {
     private int expectedReputation = 3;
 
     //TODO store milliseconds instead?
-    private int timeoutLengthType = Calendar.MINUTE;
+    private Time timeoutLengthUnit = Time.MINUTE;
     private int timeoutLengthValue = 5;
 
     private long timerUpdateIntervalMillis = 50000;
 
-    private WorkerNodeManager workerNodeManager = null;
+    private WorkerReputationManager workerReputationManager = null;
+    private TaskManager taskManager = null;
     private WorkerID myWorkerID = null;
 
     /**
-     * @param myWorkerID this node's workerID, used in WorkerNodeManager
+     * @param myWorkerID this node's workerID, used in WorkerReputationManager
+     * @param taskManager taskManager
      */
-    public ReplicaManagerBuilder(WorkerID myWorkerID) {
+    public ReplicaManagerBuilder(WorkerID myWorkerID, TaskManager taskManager) {
         this.myWorkerID = myWorkerID;
+        this.taskManager = taskManager;
     }
 
     /**
      * Only used for testing!
-     * @param workerNodeManager WorkerNodeManager
+     * @param workerReputationManager WorkerReputationManager
      */
-    public ReplicaManagerBuilder(WorkerNodeManager workerNodeManager) {
-        this.workerNodeManager = workerNodeManager;
+    public ReplicaManagerBuilder(WorkerReputationManager workerReputationManager) {
+        this.workerReputationManager = workerReputationManager;
     }
 
     public ReplicaManager create(){
-        if(workerNodeManager == null){
+        if(workerReputationManager == null){
             if(myWorkerID == null){
-                throw new IllegalStateException("WorkerID or WorkerNodeManager must be set before creation!");
+                throw new IllegalStateException("WorkerID or WorkerReputationManager must be set before creation!");
             }
-            workerNodeManager = new WorkerNodeManager(myWorkerID);
+            workerReputationManager = new WorkerReputationManager(myWorkerID);
         }
 
-        return new ReplicaManager(workerNodeManager, timeoutLengthValue, timeoutLengthType, timerUpdateIntervalMillis,
-                replicas, expectedReputation);
+        return new ReplicaManager(workerReputationManager, taskManager, timeoutLengthUnit, timerUpdateIntervalMillis,
+                replicas, expectedReputation, timeoutLengthValue);
     }
 
     public ReplicaManagerBuilder setReplicas(int replicas) {
@@ -65,7 +68,7 @@ public class ReplicaManagerBuilder {
      * @return builder object
      */
     public ReplicaManagerBuilder setTimeoutLength(int length, Time unit){
-        this.timeoutLengthType = unit.typeConstant;
+        this.timeoutLengthUnit = unit;
         this.timeoutLengthValue = length;
         return this;
     }
@@ -78,25 +81,8 @@ public class ReplicaManagerBuilder {
      * @return builder object
      */
     public ReplicaManagerBuilder setTimerUpdateInterval(int length, Time unit) {
-        this.timerUpdateIntervalMillis = unit.comparedToMillis*length;
+        this.timerUpdateIntervalMillis = unit.getComparedToMillis()*length;
         return this;
     }
 
-    /**
-     * Type safe time unit mapping to Calendar constants.
-     */
-    public static enum Time{
-        MILLISECOND(Calendar.MILLISECOND, 1),
-        SECOND(Calendar.SECOND, 1000),
-        MINUTE(Calendar.MINUTE, 60*SECOND.comparedToMillis),
-        HOUR(Calendar.HOUR, 3600*SECOND.comparedToMillis),
-        ;
-        private final int typeConstant;
-        private final long comparedToMillis;
-
-        Time(int typeConstant, long comparedToMillis) {
-            this.typeConstant = typeConstant;
-            this.comparedToMillis = comparedToMillis;
-        }
-    }
 }

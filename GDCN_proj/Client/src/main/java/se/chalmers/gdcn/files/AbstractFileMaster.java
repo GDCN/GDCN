@@ -4,7 +4,9 @@ import com.google.gson.Gson;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
+import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.beans.PropertyChangeEvent;
@@ -177,7 +179,7 @@ abstract class AbstractFileMaster{
         Set<FileDep> deps = new HashSet<>(unresolvedFiles.values());
 
         for(FileDep fileDep : deps){
-            File file = pathTo(fileDep);
+            File file = FileManagementUtils.pathTo(pathManager, fileDep);
             if(file.exists()){
                 if(file.isDirectory()){
                     throw new TaskMetaDataException("Files in dependencies should not be directories! File: "+file);
@@ -267,40 +269,22 @@ abstract class AbstractFileMaster{
     }
 
 
-    /**
-     *
-     * @param fileDep file
-     * @return Absolute path to file
-     */
-    protected File pathTo(FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
+    public String futureResultFilePath(){
+        return pathManager.getResultFilePath(taskMeta.getTaskName());
     }
 
     /**
-     *
-     * @param fileDep file
-     * @return Absolute path to file
+     * Build new Task specified by the meta-file that was parsed earlier.
+     * @param listener Listener for success on task
+     * @return Task object
      */
-    protected static File pathTo(PathManager pathManager, FileDep fileDep){
-        return new File(pathManager.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
-    }
-
-    /**
-     *
-     * @return List of paths to all resource files mentioned in taskmetas
-     */
-    protected List<String> getResourceFiles() {
-        List<String> resources = new ArrayList<>();
-        for(FileDep fileDep : taskMeta.getDependencies()){
-            resources.add(pathTo(fileDep).getAbsolutePath());
-        }
-
-        return resources;
+    public Task buildTask(TaskListener listener){
+        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileManagementUtils.moduleName(taskMeta), FileManagementUtils.getResourceFiles(pathManager, taskMeta), listener);
     }
 
     /**
      * Generates a suitable json-String to put in a file, used for debugging
-     * @param args
+     * @param args empty array
      */
     public static void main(String[] args){
         FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);

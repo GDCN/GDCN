@@ -21,7 +21,7 @@ import java.util.concurrent.ThreadFactory;
  *
  * Manager of running tasks. Can run multiple tasks concurrently.
  */
-public class TaskManager{
+public class TaskManager implements TaskRunner {
 
     private final TaskListener taskListener;
     private final ClientInterface client;
@@ -53,8 +53,14 @@ public class TaskManager{
      *
      * @param runnable Runnable
      */
+    @Override
     public void submit(Runnable runnable){
         threadPool.submit(runnable);
+    }
+
+    @Override
+    public TaskListener getTaskListener() {
+        return taskListener;
     }
 
     /**
@@ -82,6 +88,7 @@ public class TaskManager{
                         }
                     });
                     boolean success = downloader.runAndAwait();
+                    resultFileNameHolder.setString(downloader.futureResultFilePath());
 
                     if(!success){
                         TaskManager.this.taskListener.taskFailed(taskMeta.getTaskName(), "Unresolved dependencies");
@@ -105,10 +112,6 @@ public class TaskManager{
                             taskListener.taskFailed(taskName, reason);
                         }
                     });
-
-                    final String resultPath = task.getResultFilePath();
-                    resultFileNameHolder.setString(resultPath);
-
                     threadPool.submit(task);
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();

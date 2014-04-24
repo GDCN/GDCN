@@ -1,5 +1,10 @@
 package utils;
 
+import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.replica.ReplicaManager;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -19,5 +24,11 @@ public class TestUtils {
         for(String s : set){
             System.out.println(s);
         }
+    }
+
+    public static void loadMeta(TaskMeta taskMeta, ReplicaManager replicaManager){
+        List<TaskMeta> taskMetas = new ArrayList<>();
+        taskMetas.add(taskMeta);
+        replicaManager.loadTasksAndReplicate("Job1", taskMetas);
     }
 }

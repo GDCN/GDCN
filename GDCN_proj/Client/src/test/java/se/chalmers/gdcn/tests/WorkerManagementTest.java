@@ -1,6 +1,6 @@
 package se.chalmers.gdcn.tests;
 
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.network.WorkerID;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
@@ -15,7 +15,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class WorkerManagementTest {
 
-    private WorkerNodeManager workerNodeManager;
+    private WorkerReputationManager workerReputationManager;
 
     private KeyPair keyPairA;
     private WorkerID workerA;
@@ -34,56 +34,56 @@ public class WorkerManagementTest {
 
     @BeforeMethod
     public void setupTest(){
-        workerNodeManager = new WorkerNodeManager(myWorkerID, DEMOTE_REPUTATION, WorkerNodeManager.DisciplinaryAction.REMOVE);
+        workerReputationManager = new WorkerReputationManager(myWorkerID, DEMOTE_REPUTATION, WorkerReputationManager.DisciplinaryAction.REMOVE);
     }
 
     @Test
     public void registerTest() throws NoSuchAlgorithmException {
-        assert ! workerNodeManager.hasWorkerReputation(workerA);
-        assert workerNodeManager.registerWorker(workerA);
+        assert ! workerReputationManager.hasWorkerReputation(workerA);
+        assert workerReputationManager.registerWorker(workerA);
 
-        assert ! workerNodeManager.hasWorkerReputation(workerA);
-        workerNodeManager.promoteWorker(workerA);
+        assert ! workerReputationManager.hasWorkerReputation(workerA);
+        workerReputationManager.promoteWorker(workerA);
 
-        assert workerNodeManager.hasWorkerReputation(workerA);
-        assert workerNodeManager.hasWorkerReputation(new WorkerID(keyPairA.getPublic()));
+        assert workerReputationManager.hasWorkerReputation(workerA);
+        assert workerReputationManager.hasWorkerReputation(new WorkerID(keyPairA.getPublic()));
     }
 
     @Test
     public void removeTest(){
-        assert workerNodeManager.registerWorker(workerA);
-        workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.REMOVE);
+        assert workerReputationManager.registerWorker(workerA);
+        workerReputationManager.reportWorker(workerA, WorkerReputationManager.DisciplinaryAction.REMOVE);
 
-        assert ! workerNodeManager.hasWorkerReputation(workerA);
+        assert ! workerReputationManager.hasWorkerReputation(workerA);
     }
 
     @Test
     public void reputationTest(){
-        workerNodeManager.registerWorker(workerA);
+        workerReputationManager.registerWorker(workerA);
 
-        assert 0 == workerNodeManager.getReputation(workerA);
-        workerNodeManager.promoteWorker(workerA);
-        assert 1 == workerNodeManager.getReputation(workerA);
+        assert 0 == workerReputationManager.getReputation(workerA);
+        workerReputationManager.promoteWorker(workerA);
+        assert 1 == workerReputationManager.getReputation(workerA);
 
-        workerNodeManager.reportWorker(workerA, WorkerNodeManager.DisciplinaryAction.DEMOTE);
-        assert 1-DEMOTE_REPUTATION == workerNodeManager.getReputation(workerA);
+        workerReputationManager.reportWorker(workerA, WorkerReputationManager.DisciplinaryAction.DEMOTE);
+        assert 1-DEMOTE_REPUTATION == workerReputationManager.getReputation(workerA);
     }
 
     @Test
     public void trustHimselfTest(){
-        assert workerNodeManager.hasWorkerReputation(myWorkerID);
+        assert workerReputationManager.hasWorkerReputation(myWorkerID);
     }
 
     @Test
     public void exceptionTestReputation(){
-        assert 0 == workerNodeManager.getReputation(workerA);
+        assert 0 == workerReputationManager.getReputation(workerA);
     }
 
     @Test
     public void exceptionTestPromote(){
         boolean exceptionThrown = false;
         try{
-            workerNodeManager.promoteWorker(workerA);
+            workerReputationManager.promoteWorker(workerA);
         } catch (IllegalArgumentException e){
             exceptionThrown = true;
         }

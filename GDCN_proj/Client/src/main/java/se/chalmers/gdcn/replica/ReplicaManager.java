@@ -4,13 +4,22 @@ import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.compare.EqualityControl;
 import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.compare.Trust;
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.TaskRunner;
+import se.chalmers.gdcn.control.WorkerReputationManager;
+import se.chalmers.gdcn.control.WorkerTimeoutManager;
+import se.chalmers.gdcn.files.FileManagementUtils;
+import se.chalmers.gdcn.files.SelfWorker;
 import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.taskbuilder.Task;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
+import se.chalmers.gdcn.utils.Time;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
@@ -20,15 +29,18 @@ import java.util.*;
  *
  * //TODO reader-writer synchronization instead of common mutex?
  */
-public class ReplicaManager implements Serializable{
+public class ReplicaManager implements Serializable, Cloneable{
 
     private final int REPLICAS;
     private final int EXPECTED_REPUTATION;
 
-    private final int CALENDAR_FIELD;
+    private final Time TIME_UNIT;
     private final int CALENDAR_VALUE;
 
-    private final WorkerNodeManager workerNodeManager;
+    private transient TaskRunner runner;
+
+    private final WorkerReputationManager workerReputationManager;
+    private final WorkerTimeoutManager workerTimeoutManager;
     private final SerializableReplicaTimer replicaTimer;
 
     private final Map<ReplicaID, Replica> replicaMap = new HashMap<>();
@@ -38,6 +50,7 @@ public class ReplicaManager implements Serializable{
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
 
+    private boolean workSelfIfRequired = true;
 
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
@@ -52,7 +65,7 @@ public class ReplicaManager implements Serializable{
     }
 
     /**
-     * Contains information about the status of a task, each String below is a ReplicaID
+     * Contains information about the status of a task
      */
     private static class TaskResultData implements Serializable{
         final Set<ReplicaID> failedReplicas = new HashSet<>();
@@ -62,38 +75,42 @@ public class ReplicaManager implements Serializable{
     }
 
 
-//    public ReplicaManager(WorkerID myWorkerID, int calendarValue, int calendarField, long updateInterval){
-//        this(new WorkerNodeManager(myWorkerID), calendarValue, calendarField, updateInterval);
-//    }
-//
-//    public ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval){
-//
-//        REPLICAS = 2;
-//        EXPECTED_REPUTATION = 3;
-//        CALENDAR_FIELD = calendarField;
-//        CALENDAR_VALUE = calendarValue;
-//
-//        replicaTimer = new SerializableReplicaTimer(updateInterval);
-//        this.workerNodeManager = workerNodeManager;
-//
-//        resumeTimer();
-//    }
-
     /**
      * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
      */
-    ReplicaManager(WorkerNodeManager workerNodeManager, int calendarValue, int calendarField, long updateInterval, int replicas, int expectedReputation){
-
-        //TODO stop hardcoding values, make Builder class later
+    ReplicaManager(WorkerReputationManager workerReputationManager, TaskRunner runner, Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
         REPLICAS = replicas;
         EXPECTED_REPUTATION = expectedReputation;
-        CALENDAR_FIELD = calendarField;
+        TIME_UNIT = timeUnit;
         CALENDAR_VALUE = calendarValue;
 
         replicaTimer = new SerializableReplicaTimer(updateInterval);
-        this.workerNodeManager = workerNodeManager;
+        this.workerReputationManager = workerReputationManager;
+        //TODO calibrate: are these acceptable values?
+        workerTimeoutManager = new WorkerTimeoutManager(updateInterval*2, timeUnit, calendarValue*3);
 
+        this.runner = runner;
         resumeTimer();
+    }
+
+    public synchronized void setTaskManager(TaskRunner taskManager) {
+        this.runner = taskManager;
+    }
+
+    public TaskRunner getRunner() {
+        return runner;
+    }
+
+    public WorkerReputationManager getWorkerReputationManager() {
+        return workerReputationManager;
+    }
+
+    /**
+     * Mainly intended for testing
+     * @param workSelfIfRequired true if allow JobOwner to work himself if there are too few active workers
+     */
+    public synchronized void setWorkSelfIfRequired(boolean workSelfIfRequired) {
+        this.workSelfIfRequired = workSelfIfRequired;
     }
 
     /**
@@ -101,10 +118,14 @@ public class ReplicaManager implements Serializable{
      * Is called in constructor.
      */
     public void resumeTimer(){
-        Thread timerThread = new Thread(replicaTimer.createUpdater());
-        timerThread.setDaemon(true);
-
-        timerThread.start();
+        if(runner != null){
+            runner.submit(replicaTimer.createUpdater());
+            runner.submit(workerTimeoutManager.timerRunner());
+        } else {
+            //In testing...
+            SerializableTimer.resume(replicaTimer);
+//            workerTimeoutManager.resumeTimer();
+        }
     }
 
     /**
@@ -123,6 +144,8 @@ public class ReplicaManager implements Serializable{
      *
      */
     public synchronized ReplicaBox giveReplicaToWorker(WorkerID worker){
+        workerTimeoutManager.activate(worker);
+
         Set<TaskData> alreadyGiven = assignedTasks.get(worker);
         if(alreadyGiven == null){
             alreadyGiven = new HashSet<>();
@@ -137,7 +160,7 @@ public class ReplicaManager implements Serializable{
             return null;
         }
 
-        final int workerReputation = workerNodeManager.getReputation(worker);
+        final int workerReputation = workerReputationManager.getReputation(worker);
         TaskCompare reputationCompare = new TaskCompare() {
             @Override
             public float value() {
@@ -171,8 +194,10 @@ public class ReplicaManager implements Serializable{
         //Update state:
         alreadyGiven.add(taskData);
         taskDataMap.put(replicaID, taskData);
-        replicaTimer.add(replicaID, replicaDeadline());
         replicaMap.put(replicaID, new Replica(replicaBox, worker));
+
+        Date deadline = Time.futureDate(this.TIME_UNIT, CALENDAR_VALUE);
+        replicaTimer.add(replicaID, deadline);
 
         TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
         if(taskResultData == null){
@@ -182,12 +207,6 @@ public class ReplicaManager implements Serializable{
         taskResultData.pendingReplicas.add(replicaID);
 
         return replicaBox;
-    }
-
-    private Date replicaDeadline(){
-        Calendar calendar = new GregorianCalendar();
-        calendar.add(CALENDAR_FIELD, CALENDAR_VALUE);
-        return calendar.getTime();
     }
 
     /**
@@ -300,6 +319,10 @@ public class ReplicaManager implements Serializable{
         //Make sure timeout will not be called on this replicaID:
         replicaTimer.remove(replicaID);
 
+        if( workSelfIfRequired && !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
+            workSelf(taskData);
+        }
+
         if(! taskData.enoughReturned()){
             //Ignore - cannot validate yet
             return;
@@ -311,6 +334,66 @@ public class ReplicaManager implements Serializable{
         }
 
         validateResults(taskData, resultData);
+    }
+
+    private float sumActiveReputation(){
+        float sum = 0;
+        for( WorkerID workerID : workerTimeoutManager.getActiveWorkers() ){
+            sum += workerReputationManager.getReputation(workerID);
+        }
+        return sum;
+    }
+
+    private void workSelf(final TaskData taskData){
+        TaskMeta meta = taskData.getTaskMeta();
+
+        //todo nicer replicaID
+        //todo reuse giveReplica method?
+        final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
+
+        taskDatas.remove(taskData);
+        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE);
+        taskDatas.add(taskData);
+
+        try {
+            SelfWorker selfWorker = new SelfWorker(meta, taskData.getJobName());
+            final String resultPath = selfWorker.futureResultFilePath();
+            final TaskResultData taskResultData = resultDataMap.get(taskData.taskID());
+
+            Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
+                @Override
+                public void taskFinished(String taskName) {
+                    System.out.println("ReplicaManager#workSelf - YAY, "+taskName+ "finished");
+
+                    try {
+                        byte[] result = FileManagementUtils.fromFile(new File(resultPath));
+
+                        //TODO put jobOwner result in special position?
+                        taskResultData.returnedReplicas.put(replicaID, result);
+                        runner.getTaskListener().taskFinished(taskName);
+
+                        decideValidate(replicaID, taskData, taskResultData);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void taskFailed(String taskName, String reason) {
+                    System.out.println("ERROR "+taskName+": "+reason);
+                    //TODO report error to UI, use TaskManager for that?
+                    taskResultData.failedReplicas.add(replicaID);
+                    runner.getTaskListener().taskFailed(taskName, reason);
+
+                    decideValidate(replicaID, taskData, taskResultData);
+                }
+            });
+
+            runner.submit(taskRunner);
+        } catch (TaskMetaDataException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -379,7 +462,6 @@ public class ReplicaManager implements Serializable{
 
         @Override
         protected void handleTimeout(ReplicaID element) {
-            //TODO timeout will always be called now
             ReplicaManager.this.replicaOutdated(element);
         }
     }

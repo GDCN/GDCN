@@ -1,14 +1,12 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
-import net.tomp2p.storage.Data;
-import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
-import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
-import java.io.*;
+import java.io.File;
 
 /**
  * Created by HalfLeif on 2014-03-05.
@@ -25,7 +23,7 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void ifFileExist(FileDep fileDep) {
-        System.out.println("Found file :D - " + pathTo(fileDep));
+        System.out.println("Found file :D - " + FileManagementUtils.pathTo(pathManager, fileDep));
         super.fileDependencyResolved(fileDep);
     }
 
@@ -35,7 +33,7 @@ public class Downloader extends AbstractFileMaster {
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
-        System.out.println("Didn't find file " + pathTo(fileDep));
+        System.out.println("Didn't find file " + FileManagementUtils.pathTo(pathManager, fileDep));
         client.get(fileDep.getDhtKey());
         //Handling OperationFinished is done in AbstractFileMaster
     }
@@ -45,26 +43,9 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
-        File file = pathTo(fileDep);
+        File file = FileManagementUtils.pathTo(pathManager, fileDep);
         Data data = (Data) result;
-        FileUtils.toFile(file, data.getData());
-    }
-
-    /**
-     *
-     * @return Name of haskell module this taskmeta uses
-     */
-    private String getModuleName(){
-        return taskMeta.getModule().getFileName().replace(".hs", "");
-    }
-
-    /**
-     * Build new Task specified by the meta-file that was parsed earlier.
-     * @param listener Listener for success on task
-     * @return Task object
-     */
-    public Task buildTask(TaskListener listener){
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), getModuleName(), getResourceFiles(), listener);
+        FileManagementUtils.toFile(file, data.getData());
     }
 
 //    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {

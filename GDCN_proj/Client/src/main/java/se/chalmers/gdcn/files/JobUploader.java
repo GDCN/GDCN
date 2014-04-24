@@ -61,7 +61,7 @@ public class JobUploader extends AbstractFileMaster{
 
         List<TaskMeta> taskMetas = new ArrayList<>();
         for(FileDep fileDep : dependencyTasks){
-            TaskMeta taskMeta = AbstractFileMaster.readMetaFile( AbstractFileMaster.pathTo(manager, fileDep));
+            TaskMeta taskMeta = AbstractFileMaster.readMetaFile( FileManagementUtils.pathTo(manager, fileDep));
             taskMetas.add(taskMeta);
             allFileDependencies.add(taskMeta.getModule());
             allFileDependencies.addAll(taskMeta.getDependencies());
@@ -82,17 +82,17 @@ public class JobUploader extends AbstractFileMaster{
      */
     @Override
     protected void ifFileExist(FileDep fileDep) {
-        File file = super.pathTo(fileDep);
+        File file = FileManagementUtils.pathTo(pathManager, fileDep);
 
         try {
-            System.out.println("Put " + pathTo(fileDep));
-            Data data = new Data(FileUtils.fromFile(file));
+            System.out.println("Put " + FileManagementUtils.pathTo(pathManager, fileDep));
+            Data data = new Data(FileManagementUtils.fromFile(file));
             client.put(fileDep.getDhtKey(), data);
             //Handling OperationFinished is done in AbstractFileMaster
 
         } catch (IOException e) {
             e.printStackTrace();
-            taskFailureListener.taskFailed(taskMeta.getTaskName(), "Failed to serialize: " + pathTo(fileDep) +
+            taskFailureListener.taskFailed(taskMeta.getTaskName(), "Failed to serialize: " + FileManagementUtils.pathTo(pathManager, fileDep) +
                     "\n"+e.getMessage());
         }
     }
@@ -102,7 +102,7 @@ public class JobUploader extends AbstractFileMaster{
      */
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
-        taskFailureListener.taskFailed(taskMeta.getTaskName(), "Unable to resolve "+pathTo(fileDep));
+        taskFailureListener.taskFailed(taskMeta.getTaskName(), "Unable to resolve "+ FileManagementUtils.pathTo(pathManager, fileDep));
     }
 
     /**

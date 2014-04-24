@@ -40,6 +40,18 @@ public abstract class SerializableTimer<E> implements Serializable {
     }
 
     /**
+     * @param timer Timer to be resumed
+     * @return Daemon thread that runs the timer
+     */
+    public static Thread resume(SerializableTimer timer){
+        Thread timerThread = new Thread(timer.createUpdater());
+        timerThread.setDaemon(true);
+
+        timerThread.start();
+        return timerThread;
+    }
+
+    /**
      * Add timeout. Will call {@link se.chalmers.gdcn.utils.SerializableTimer#handleTimeout(E)} after specified time.
      * @param element element
      * @param date absolute date when <code>handleTimeout()</code> will be called
@@ -58,6 +70,20 @@ public abstract class SerializableTimer<E> implements Serializable {
         //Should work since Timeout equals only depend on element
         Timeout<E> timeout = new Timeout<>(element, null);
         return queue.remove(timeout);
+    }
+
+    /**
+     * @param element Element to reset
+     * @param date Future date
+     * @return if element was removed before adding
+     */
+    public final synchronized boolean reset(E element, Date date){
+        boolean removed = false;
+        if(remove(element)){
+            removed = true;
+        }
+        add(element, date);
+        return removed;
     }
 
     /**

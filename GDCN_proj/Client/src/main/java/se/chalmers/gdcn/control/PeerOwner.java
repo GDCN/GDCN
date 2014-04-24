@@ -39,6 +39,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     //Peer implemented by TomP2P
     private Peer peer  = null;
     private TaskPasser taskPasser = null;
+//<<<<<<< HEAD
+//=======
+//    private ReplicaManager replicaManager;
+//>>>>>>> omrep
 
     private DataFilesManager dataFilesManager;
 
@@ -71,6 +75,15 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         notifier.removeListener(listener);
     }
 
+//<<<<<<< HEAD
+//=======
+//    public PeerOwner() {
+//
+//        //TODO Make it possible to have a test replicaManager
+//        dataFilesManager = new DataFilesManager();
+//    }
+//
+//>>>>>>> omrep
     @Override
     public void start(int port){
 
@@ -382,10 +395,35 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             }
 
             peer = new PeerMaker( keyPair).setPorts(port).makeAndListen();
-
             peer.getPeerBean().getPeerMap().addPeerMapChangeListener(dataFilesManager.getPeerMapListener());
 
+//<<<<<<< HEAD
             taskPasser = new TaskPasser(peer, taskManager, this, dataFilesManager);
+//=======
+//            ReplicaManager replicaManager1 = dataFilesManager.getReplicaManager();
+//
+//            if(replicaManager1 == null) {
+//                WorkerID myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+//                ReplicaManagerBuilder builder = new ReplicaManagerBuilder(myWorkerID, taskManager);
+//                replicaManager = builder.create();
+//            } else {
+//                replicaManager1.setTaskManager(taskManager);
+//                replicaManager = replicaManager1;
+//            }
+//
+//            taskPasser = new TaskPasser(peer, replicaManager, taskManager, this, dataFilesManager);
+//
+//            timer = new Timer(true);
+//            timer.schedule(new TimerTask() {
+//                @Override
+//                public void run() {
+//                    dataFilesManager.saveReplicaManager(replicaManager);
+//
+//                    System.out.println("saving replicaManager");
+//
+//                }
+//            }, 1000 * 120, 1000 * 120);
+//>>>>>>> omrep
 
 
         } catch (NoSuchAlgorithmException | IOException e) {

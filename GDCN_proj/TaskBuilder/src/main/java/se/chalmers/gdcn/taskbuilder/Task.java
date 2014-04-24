@@ -23,9 +23,7 @@ public class Task implements Runnable{
     private final String moduleName;
     private final List<String> initDataPaths;
 
-
     private final PathManager pathManager;
-
 
     private final TaskListener listener;
 
@@ -109,17 +107,13 @@ public class Task implements Runnable{
         }
     }
 
-    public String getResultFilePath(){
-        return pathManager.taskResourcesDir() + taskName + ".result";
-    }
-
     /**
      * Executes a task
      */
     public void execute(){
         List<String> command = new ArrayList<String>();
         command.add(compiledModule());
-        final String resultFile = pathManager.taskResourcesDir() + taskName + ".result";
+        final String resultFile = pathManager.getResultFilePath(taskName);
         command.add(resultFile);
         command.addAll(initDataPaths);
 

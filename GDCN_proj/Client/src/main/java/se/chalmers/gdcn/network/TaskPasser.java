@@ -9,9 +9,9 @@ import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
-import se.chalmers.gdcn.control.WorkerNodeManager;
+import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
-import se.chalmers.gdcn.files.FileUtils;
+import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.HashCash;
 import se.chalmers.gdcn.hashcash.Solution;
@@ -38,7 +38,7 @@ import java.util.TimerTask;
  */
 public class TaskPasser extends Passer {
 
-    private final WorkerNodeManager workerNodeManager;
+    private final WorkerReputationManager workerReputationManager;
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
@@ -82,35 +82,47 @@ public class TaskPasser extends Passer {
             e.printStackTrace();
         }
 
-        //TODO ReplicaManager must have workerNodeManager!...
-        WorkerNodeManager workerNodeManager1 = dataFilesManager.getWorkerNodeManager();
-
-        if (workerNodeManager1 == null) {
-            workerNodeManager = new WorkerNodeManager(myWorkerID, 3, WorkerNodeManager.DisciplinaryAction.REMOVE);
-        } else {
-            workerNodeManager = workerNodeManager1;
-        }
-
         ReplicaManager replicaManager1 = dataFilesManager.getReplicaManager();
 
         if (replicaManager1 == null) {
-            ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID);
-
+            ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID, taskManager);
             replicaManager = replicaManagerBuilder.create();
         } else {
             replicaManager = replicaManager1;
+            replicaManager.setTaskManager(taskManager);
         }
+        workerReputationManager = replicaManager.getWorkerReputationManager();
+//        WorkerReputationManager workerReputationManager1 = dataFilesManager.getWorkerNodeManager();
+//
+//        if (workerReputationManager1 == null) {
+//            workerReputationManager = new WorkerReputationManager(myWorkerID, 3, WorkerReputationManager.DisciplinaryAction.REMOVE);
+//        } else {
+//            workerReputationManager = workerReputationManager1;
+//        }
+
 
         timer = new Timer(true);
 
+//<<<<<<< HEAD
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+//                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
                 dataFilesManager.saveReplicaManager(replicaManager);
 
             }
         }, 1000 * 120, 1000 * 120);
+//=======
+//        timer.schedule(new TimerTask() {
+//            @Override
+//            public void run() {
+//                dataFilesManager.saveWorkerNodeManager(workerReputationManager);
+//
+//                System.out.println("Saving workerReputationManager");
+//
+//            }
+//        }, 1000 * 120, 1000 * 120);
+//>>>>>>> omrep
 
 
     }
@@ -118,7 +130,7 @@ public class TaskPasser extends Passer {
     public void stopTimer() {
         timer.cancel();
 
-        dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+//        dataFilesManager.saveWorkerNodeManager(workerNodeManager);
         dataFilesManager.saveReplicaManager(replicaManager);
     }
 
@@ -171,7 +183,7 @@ public class TaskPasser extends Passer {
                                 switch (taskMessage2.getType()) {
                                     case TASK:
                                         ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
-                                        System.out.println("Start processing task, \n\tResultKey: "+replicaBox.getResultKey());
+                                        System.out.println("Start processing task, \n\tResultKey: " + replicaBox.getResultKey());
 
                                         workOnTask(jobOwner, replicaBox);
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
@@ -182,7 +194,7 @@ public class TaskPasser extends Passer {
                                     case CHALLENGE_FAIL:
                                         throw new IllegalStateException("Solution failed: " + taskMessage2.getActualContent());
                                     default:
-                                        throw new IllegalStateException("Should be a Challenge response here! "+taskMessage2.getType().name());
+                                        throw new IllegalStateException("Should be a Challenge response here! " + taskMessage2.getType().name());
                                 }
                             }
                         });
@@ -222,7 +234,7 @@ public class TaskPasser extends Passer {
                 //TODO sign result with private key... Might want to use the class 'Box' or similar for signing
                 byte[] result = null;
                 try {
-                    result = FileUtils.fromFile(new File(stringHolder.getString()));
+                    result = FileManagementUtils.fromFile(new File(stringHolder.getString()));
                 } catch (IOException e) {
                     e.printStackTrace();
                     taskFailed(taskName, e.getMessage());
@@ -257,7 +269,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
-                Challenge challenge = workerNodeManager.hasWorkerReputation(workerID)?
+                Challenge challenge = workerReputationManager.hasWorkerReputation(workerID)?
                         hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
                         : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
@@ -270,7 +282,7 @@ public class TaskPasser extends Passer {
                 try {
                     if(solution.isValid(secretKey)) {
                         if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
-                            workerNodeManager.registerWorker(workerID);
+                            workerReputationManager.registerWorker(workerID);
                         }
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);
                         if(replicaBox==null){
@@ -280,7 +292,7 @@ public class TaskPasser extends Passer {
                         return new TaskMessage(TaskMessageType.TASK, myWorkerID, replicaBox);
 
                     } else {
-                        workerNodeManager.reportWorker(workerID);
+                        workerReputationManager.reportWorker(workerID);
                         return new TaskMessage(TaskMessageType.CHALLENGE_FAIL, myWorkerID, "Provided solution was FALSE!");
                     }
                 } catch (InvalidKeyException e) {
@@ -318,7 +330,7 @@ public class TaskPasser extends Passer {
                     replicaManager.replicaFailed(failMessage.getReplicaID());
                 } else {
                     System.out.println("Warning! A worker node reported a failure in a task it was not participating in...");
-                    workerNodeManager.reportWorker(worker);
+                    workerReputationManager.reportWorker(worker);
                 }
                 break;
             default:
