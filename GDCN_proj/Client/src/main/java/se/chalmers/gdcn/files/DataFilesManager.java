@@ -134,7 +134,7 @@ public class DataFilesManager {
             FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            oos.writeObject(rm.shallowClone());
+            oos.writeObject(rm);
 
             oos.close();
         } catch (IOException e) {

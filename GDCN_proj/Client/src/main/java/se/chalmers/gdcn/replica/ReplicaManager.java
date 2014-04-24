@@ -93,19 +93,6 @@ public class ReplicaManager implements Serializable, Cloneable{
         resumeTimer();
     }
 
-//    private ReplicaManager(ReplicaManager original){
-//
-//    }
-
-    /**
-     * Used for Serialization
-     * @return Shallow clone with TaskManager set as <code>null<code/>
-     */
-    public ReplicaManager shallowClone(){
-        //Shallow clone
-        return this;
-    }
-
     public synchronized void setTaskManager(TaskRunner taskManager) {
         this.runner = taskManager;
     }
