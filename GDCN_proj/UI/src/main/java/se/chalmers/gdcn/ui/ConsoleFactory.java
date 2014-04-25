@@ -111,8 +111,8 @@ public class ConsoleFactory {
             @Override
             public void execute(List<String> args) {
 
-                String host = "narrens.olf.sgsnet.se";
-                int port = 4001;
+                String host;
+                int port;
 
                 if(args.size()==0){
                     host = "narrens.olf.sgsnet.se";
