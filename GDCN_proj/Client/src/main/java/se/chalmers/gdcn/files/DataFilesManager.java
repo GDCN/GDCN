@@ -82,9 +82,7 @@ public class DataFilesManager {
             f.delete();
         }
 
-
-
-        System.out.println("Directory was deleted: " + file.delete());
+        file.delete();
     }
 
 
@@ -94,13 +92,18 @@ public class DataFilesManager {
 
     public void saveKeyPair(KeyPair keyPair) {
 
+        ObjectOutputStream oos;
+
         try {
             FileOutputStream fous = new FileOutputStream(keyPairLocation);
-            ObjectOutputStream oos = new ObjectOutputStream(fous);
+            oos = new ObjectOutputStream(fous);
+            try {
 
-            oos.writeObject(keyPair);
-
-            oos.close();
+                oos.writeObject(keyPair);
+            }
+            finally {
+                oos.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -108,27 +111,28 @@ public class DataFilesManager {
     }
 
     public KeyPair getKeypair() {
+        KeyPair keypair = null;
 
         try {
             FileInputStream fis = new FileInputStream(keyPairLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            KeyPair keypair = (KeyPair) ois.readObject();
+            try {
+                keypair = (KeyPair) ois.readObject();
+            }
+            finally {
+                ois.close();
+            }
 
-            ois.close();
-
-            return keypair;
 
         } catch (FileNotFoundException e) {
-            return null;
-        } catch (ClassNotFoundException e) {
+
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
         }
+
+        return keypair;
     }
 
     public void removeKeyFile() {
@@ -144,9 +148,13 @@ public class DataFilesManager {
             FileOutputStream fous = new FileOutputStream(replicaManagerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            oos.writeObject(rm);
+            try {
+                oos.writeObject(rm);
+            }
 
-            oos.close();
+            finally {
+                oos.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -154,30 +162,28 @@ public class DataFilesManager {
     }
 
     public ReplicaManager getReplicaManager() {
+        ReplicaManager replicaManager = null;
         try {
             FileInputStream fis = new FileInputStream(replicaManagerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            ReplicaManager replicaManager = (ReplicaManager) ois.readObject();
+            try {
+                replicaManager = (ReplicaManager) ois.readObject();
+                replicaManager.resumeTimer();
+            }
 
-            ois.close();
-
-            replicaManager.resumeTimer();
-            return replicaManager;
+            finally {
+                ois.close();
+            }
 
         } catch (FileNotFoundException e) {
-            return null;
-        } catch (ClassNotFoundException e) {
+
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        } finally {
-            ;
-            //TODO close stream here!
         }
+
+        return replicaManager;
     }
 
     public void removeReplicaManagerFile() {
@@ -194,9 +200,13 @@ public class DataFilesManager {
             FileOutputStream fous = new FileOutputStream(workerNodeMangerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            oos.writeObject(wm);
+            try {
+                oos.writeObject(wm);
+            }
+            finally {
+                oos.close();
+            }
 
-            oos.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -204,26 +214,29 @@ public class DataFilesManager {
     }
 
     public WorkerReputationManager getWorkerNodeManager() {
+        WorkerReputationManager workerReputationManager = null;
+
         try {
             FileInputStream fis = new FileInputStream(workerNodeMangerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            WorkerReputationManager workerReputationManager = (WorkerReputationManager) ois.readObject();
+            try {
+                workerReputationManager = (WorkerReputationManager) ois.readObject();
+            }
 
-            ois.close();
+            finally {
+                ois.close();
+            }
 
-            return workerReputationManager;
 
         } catch (FileNotFoundException e) {
-            return null;
-        } catch (ClassNotFoundException e) {
+
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
         }
+
+        return workerReputationManager;
     }
 
     public void removeWorkerNodeManagerFile() {
@@ -240,9 +253,13 @@ public class DataFilesManager {
             FileOutputStream fous = new FileOutputStream(secretKeyLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
-            oos.writeObject(secretKey);
+            try {
+                oos.writeObject(secretKey);
+            }
 
-            oos.close();
+            finally {
+                oos.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -250,27 +267,28 @@ public class DataFilesManager {
     }
 
     public SecretKey getSecretKey() {
+        SecretKey sk = null;
+
         try {
             FileInputStream fis = new FileInputStream(secretKeyLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
-            SecretKey sk = (SecretKey) ois.readObject();
+            try {
+                sk = (SecretKey) ois.readObject();
+            }
 
-            ois.close();
+            finally {
+                ois.close();
+            }
 
-            return sk;
 
         } catch (FileNotFoundException e) {
-            return null;
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
 
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+        return sk;
     }
 
     public void removeSecretKeyFile() {

@@ -100,9 +100,13 @@ public class NeighbourFileManager {
 
             output = output + peerAddress.portTCP() + "\n";
 
-            out.write(output);
+            try {
+                out.write(output);
+            }
 
-            out.close();
+            finally {
+                out.close();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -120,15 +124,20 @@ public class NeighbourFileManager {
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
-            while((line = in.readLine()) != null) {
 
-                address = line.split(" ");
+            try {
+                while((line = in.readLine()) != null) {
 
-                fileNeigh.add(new PeerAddress(new Number160(address[0]), address[1],
-                        Integer.parseInt(address[2]),Integer.parseInt(address[2])));
+                    address = line.split(" ");
+
+                    fileNeigh.add(new PeerAddress(new Number160(address[0]), address[1],
+                            Integer.parseInt(address[2]),Integer.parseInt(address[2])));
+                }
+            }
+            finally {
+                in.close();
             }
 
-            in.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,27 +157,29 @@ public class NeighbourFileManager {
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
-            while((line = in.readLine()) != null) {
+            try {
+                while((line = in.readLine()) != null) {
 
-                address = line.split(" ");
+                    address = line.split(" ");
 
-                if(!found && new Number160(address[0]).equals(peerAddress.getID())) {
-                    output = output + (peerAddress.getID().toString() + " ");
+                    if(!found && new Number160(address[0]).equals(peerAddress.getID())) {
+                        output = output + (peerAddress.getID().toString() + " ");
 
-                    output = output + peerAddress.getInetAddress().getHostAddress() + " ";
+                        output = output + peerAddress.getInetAddress().getHostAddress() + " ";
 
-                    output = output + peerAddress.portTCP() + "\n";
+                        output = output + peerAddress.portTCP() + "\n";
 
-                    found = true;
+                        found = true;
 
-                } else {
-                    output = line + "\n";
+                    } else {
+                        output = line + "\n";
+                    }
                 }
-
-
             }
 
-            in.close();
+            finally {
+                in.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -176,9 +187,14 @@ public class NeighbourFileManager {
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(neighbourFile));
 
-            out.write(output);
+            try {
+                out.write(output);
+            }
 
-            out.close();
+            finally {
+                out.close();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -207,5 +223,4 @@ public class NeighbourFileManager {
         neighbourFile.renameTo(new File(fileName));
 
     }
-
 }
