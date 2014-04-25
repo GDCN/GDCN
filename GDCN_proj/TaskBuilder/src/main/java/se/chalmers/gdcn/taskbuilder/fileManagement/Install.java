@@ -21,6 +21,7 @@ public class Install {
     public static final String PATH_DATA = APPDATA + "pathdata.prop";
     public static final String HEADER_NAME = "Header.hs";
     public static final String HPKG_NAME = "gdcn-trusted";
+    public static final String BOOTSTRAP_NODE_NAME = "bootstrapnodes";
 
     public static final String LIB_DIR = APPDATA + "lib";
     public static final String HDB_DIR = APPDATA + "hdb.conf.d";
@@ -65,9 +66,9 @@ public class Install {
             }
         }
 
-    if (pathData != null) {
-        installHaskellLibraries(pathData.getProperty("bin_path"));
-    }
+        if (pathData != null) {
+            installHaskellLibraries(pathData.getProperty("bin_path"));
+        }
     }
 
     /**
@@ -158,5 +159,29 @@ public class Install {
         catch (ExitFailureException e) {
             e.printStackTrace();
         }
+    }
+
+    private static void writeBootstrapNodes() {
+
+        String host = "narrens.olf.sgsnet.se";
+        int port = 4001;
+
+        File bootstrapFile = new File(paths().getProperty("settings_path" + BOOTSTRAP_NODE_NAME));
+
+
+        try {
+            BufferedWriter outputStream = new BufferedWriter(new FileWriter(bootstrapFile));
+
+            try {
+                outputStream.write(host + port + "\n");
+
+            } finally {
+                outputStream.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 }

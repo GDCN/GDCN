@@ -9,6 +9,7 @@ import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 import javax.crypto.SecretKey;
 import java.io.*;
 import java.security.KeyPair;
+import java.util.ArrayList;
 import java.util.HashSet;
 
 /**
@@ -291,6 +292,10 @@ public class DataFilesManager {
 
     public PeerMapChangeListener getPeerMapListener() {
         return neighbourFileManager.getPeerMapListener();
+    }
+
+    public ArrayList<String[]> getBootstrapNodes() {
+        return neighbourFileManager.getBootstrapNodes();
     }
 
 

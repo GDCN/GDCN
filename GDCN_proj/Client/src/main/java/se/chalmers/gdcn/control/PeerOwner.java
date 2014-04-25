@@ -30,10 +30,7 @@ import java.net.UnknownHostException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 
 /**
@@ -138,6 +135,18 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             taskPasser.stopTimer();
 
             dataFilesManager.saveReplicaManager(replicaManager);
+        }
+    }
+
+    @Override
+    public void bootstrap() {
+        ArrayList<String[]> bsn = dataFilesManager.getBootstrapNodes();
+
+        for(String[] s : bsn) {
+            bootstrap(s[0], Integer.parseInt(s[1]));
+            if(getNeighbours().size() > 0) {
+                return;
+            }
         }
     }
 
