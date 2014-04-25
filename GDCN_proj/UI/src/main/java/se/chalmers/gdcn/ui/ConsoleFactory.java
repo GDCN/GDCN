@@ -115,16 +115,17 @@ public class ConsoleFactory {
                 int port;
 
                 if(args.size()==0){
-                    host = "narrens.olf.sgsnet.se";
-                    port = 4001;
+                    client.bootstrap();
+                    System.out.println("bootstraping to bootstrap node");
                 } else if(args.size()==2){
                     host = args.get(0);
                     port = Integer.parseInt(args.get(1));
+                    System.out.println("connecting to other node");
+                    client.bootstrap(host, port);
                 } else {
                     System.out.println("Must take two arguments! Host and Port");
                     return;
                 }
-                client.bootstrap(host, port);
             }
         });
 

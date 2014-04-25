@@ -52,6 +52,8 @@ public class NeighbourFileManager {
 
             if(bootstrap) {
                 return;
+            } else {
+                System.out.println("is not bootstrap");
             }
 
             Boolean added = fileNeighbours.add(peerAddress);
@@ -118,12 +120,14 @@ public class NeighbourFileManager {
         String[] address;
 
         try {
-            BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
+            BufferedReader in = new BufferedReader(new FileReader(bootstrapNodeFile));
 
             try {
                 while((line = in.readLine()) != null) {
 
                     address = line.split(" ");
+
+                    System.out.println(address[0] + " " + address[1]);
 
                     bootNodes.add(new String[]{address[0], address[1]});
                 }
