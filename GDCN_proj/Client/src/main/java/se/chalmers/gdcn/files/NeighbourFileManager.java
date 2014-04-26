@@ -44,7 +44,6 @@ public class NeighbourFileManager {
                 if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
                         s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
                     if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
-                        System.out.println("is bootstrapNode");
                         bootstrap = true;
                     }
                 }
@@ -52,14 +51,11 @@ public class NeighbourFileManager {
 
             if(bootstrap) {
                 return;
-            } else {
-                System.out.println("is not bootstrap");
             }
 
             Boolean added = fileNeighbours.add(peerAddress);
 
             if(added) {
-                System.out.println("peer is added " + peerAddress.getID());
                 writeNeighbours(peerAddress);
             }
         }
@@ -71,6 +67,22 @@ public class NeighbourFileManager {
 
         @Override
         public void peerUpdated(PeerAddress peerAddress) {
+
+            Boolean bootstrap = false;
+
+            for(String [] s: bootstrapNodes) {
+                if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
+                        s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
+                    if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
+                        bootstrap = true;
+                    }
+                }
+            }
+
+            if(bootstrap) {
+                return;
+            }
+
 
             fileNeighbours.remove(peerAddress);
             fileNeighbours.add(peerAddress);
@@ -126,8 +138,6 @@ public class NeighbourFileManager {
                 while((line = in.readLine()) != null) {
 
                     address = line.split(" ");
-
-                    System.out.println(address[0] + " " + address[1]);
 
                     bootNodes.add(new String[]{address[0], address[1]});
                 }

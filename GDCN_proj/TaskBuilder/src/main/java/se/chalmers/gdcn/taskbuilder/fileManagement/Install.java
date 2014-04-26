@@ -67,7 +67,7 @@ public class Install {
         }
 
         if (pathData != null) {
-//            installHaskellLibraries(pathData.getProperty("bin_path"));
+            installHaskellLibraries(pathData.getProperty("bin_path"));
         }
 
         writeBootstrapNodes();
@@ -164,38 +164,23 @@ public class Install {
     }
 
     private static void writeBootstrapNodes() {
-
-        System.out.println("Starting");
-
         String host = "narrens.olf.sgsnet.se";
         int port = 4001;
 
-        System.out.println(paths() == null);
-
         String s = paths().getProperty("settings_path") + BOOTSTRAP_NODE_NAME;
 
-        System.out.println(s == null);
-
         File bootstrapFile = new File(s);
-
-        System.out.println("Created File");
 
         try {
             BufferedWriter outputStream = new BufferedWriter(new FileWriter(bootstrapFile));
 
             try {
-                System.out.println("Writing");
                 outputStream.write(host + " " + port + "\n");
-
-                System.out.println("Wrote");
             } finally {
                 outputStream.close();
-                System.out.println("Closed");
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-
     }
 }

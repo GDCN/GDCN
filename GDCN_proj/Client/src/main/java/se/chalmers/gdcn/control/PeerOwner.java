@@ -362,7 +362,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
     @Override
     public void setNeighbourFile(String file){
-        //dataFilesManager.changeNeighbourFileName(file);
+//        dataFilesManager.changeNeighbourFileName(file);
     }
 
     @Override
