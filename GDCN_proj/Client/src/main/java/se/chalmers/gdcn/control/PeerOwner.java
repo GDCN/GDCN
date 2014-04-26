@@ -284,7 +284,14 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         for(PeerAddress p : fileNeighbours) {
             bootstrap(p.getInetAddress().getHostAddress(),p.portTCP());
         }
+        if(!enoughNeighbours()) {
+            bootstrap();
+        }
 
+    }
+
+    private boolean enoughNeighbours() {
+        return peer.getPeerBean().getPeerMap().getAll().size() > 0;
     }
 
     @Override
