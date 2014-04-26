@@ -83,11 +83,7 @@ public class DataFilesManager {
             f.delete();
         }
 
-<<<<<<< HEAD
         file.delete();
-=======
-        System.out.println("Directory was deleted: " + file.delete());
->>>>>>> bootstrapFix
     }
 
 

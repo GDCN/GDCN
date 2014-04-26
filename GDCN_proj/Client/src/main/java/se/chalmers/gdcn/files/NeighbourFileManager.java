@@ -293,12 +293,8 @@ public class NeighbourFileManager {
         neighbourFile.renameTo(new File(fileName));
 
     }
-<<<<<<< HEAD
-=======
 
     public ArrayList<String[]> getBootstrapNodes() {
         return bootstrapNodes;
     }
-
->>>>>>> bootstrapFix
 }
