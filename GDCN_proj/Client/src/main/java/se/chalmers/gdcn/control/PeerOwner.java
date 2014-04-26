@@ -111,6 +111,18 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
+    public void bootstrap() {
+        List<String[]> bsn = dataFilesManager.getBootstrapNodes();
+
+        for(String[] s : bsn) {
+            bootstrap(s[0], Integer.parseInt(s[1]));
+            if(getNeighbours().size() > 0) {
+                return;
+            }
+        }
+    }
+
+    @Override
     public void bootstrap(final String host, final int port){
         try {
             final InetAddress inetAddress = InetAddress.getByName(host);
@@ -323,7 +335,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
     @Override
     public void setNeighbourFile(String file){
-        //dataFilesManager.changeNeighbourFileName(file);
+//        dataFilesManager.changeNeighbourFileName(file);
     }
 
     @Override

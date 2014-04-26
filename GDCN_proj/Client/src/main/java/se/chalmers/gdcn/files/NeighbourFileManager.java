@@ -3,9 +3,11 @@ package se.chalmers.gdcn.files;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +19,8 @@ public class NeighbourFileManager {
     //List containing the addresses which are in the neighbour file
     private Set<PeerAddress> fileNeighbours = new HashSet<>();
 
+    private ArrayList<String[]> bootstrapNodes = new ArrayList<>();
+
     //The name of the neighbour file
     private String fileName;
 
@@ -27,15 +31,31 @@ public class NeighbourFileManager {
     //The actual neighbour file
     private File neighbourFile;
 
+    private File bootstrapNodeFile = new File(PathManager.getSettingsPath() + Install.BOOTSTRAP_NODE_NAME);
+
     //Listener used by PeerOwner to know when the addressmap changes in the Peer
     private final PeerMapChangeListener peerMapChangeListener = new PeerMapChangeListener() {
         @Override
         public void peerInserted(PeerAddress peerAddress) {
 
+            Boolean bootstrap = false;
+
+            for(String [] s: bootstrapNodes) {
+                if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
+                        s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
+                    if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
+                        bootstrap = true;
+                    }
+                }
+            }
+
+            if(bootstrap) {
+                return;
+            }
+
             Boolean added = fileNeighbours.add(peerAddress);
 
             if(added) {
-                System.out.println("peer is added " + peerAddress.getID());
                 writeNeighbours(peerAddress);
             }
         }
@@ -47,6 +67,22 @@ public class NeighbourFileManager {
 
         @Override
         public void peerUpdated(PeerAddress peerAddress) {
+
+            Boolean bootstrap = false;
+
+            for(String [] s: bootstrapNodes) {
+                if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
+                        s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
+                    if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
+                        bootstrap = true;
+                    }
+                }
+            }
+
+            if(bootstrap) {
+                return;
+            }
+
 
             fileNeighbours.remove(peerAddress);
             fileNeighbours.add(peerAddress);
@@ -80,6 +116,40 @@ public class NeighbourFileManager {
 
         fileNeighbours.addAll(readNeighbours());
 
+        bootstrapNodes = readBootstrapNodes();
+
+    }
+
+    private ArrayList<String[]> readBootstrapNodes() {
+
+        ArrayList<String[]> bootNodes = new ArrayList<>();
+
+        if(!bootstrapNodeFile.exists()) {
+            return bootNodes;
+        }
+
+        String line;
+        String[] address;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(bootstrapNodeFile));
+
+            try {
+                while((line = in.readLine()) != null) {
+
+                    address = line.split(" ");
+
+                    bootNodes.add(new String[]{address[0], address[1]});
+                }
+            } finally {
+                in.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return bootNodes;
     }
 
 
@@ -223,4 +293,12 @@ public class NeighbourFileManager {
         neighbourFile.renameTo(new File(fileName));
 
     }
+<<<<<<< HEAD
+=======
+
+    public ArrayList<String[]> getBootstrapNodes() {
+        return bootstrapNodes;
+    }
+
+>>>>>>> bootstrapFix
 }

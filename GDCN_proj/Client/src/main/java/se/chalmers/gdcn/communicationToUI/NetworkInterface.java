@@ -22,6 +22,8 @@ public interface NetworkInterface {
 
     void bootstrap(String host, int port);
 
+    void bootstrap();
+
     void put(String name, Data value);
 
     void put(Number160 key, Data value);
