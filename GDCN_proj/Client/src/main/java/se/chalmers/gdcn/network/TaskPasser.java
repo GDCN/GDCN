@@ -105,7 +105,7 @@ public class TaskPasser extends Passer {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
+//                dataFilesManager.saveWorkerNodeManager(workerNodeManager);
                 dataFilesManager.saveReplicaManager(replicaManager);
 
             }
