@@ -37,7 +37,7 @@ public class ProblemTests {
 
 //        findKeys();
 
-        deleteContent();
+//        deleteContent();
 //        deleteContent2();
 
 //        for(int i = 10; i < calls; i++) {
@@ -49,7 +49,16 @@ public class ProblemTests {
 //        uploaderRejoin();
 //        masterrRejoin();
 
+        printout();
 
+
+    }
+
+    private static void printout() throws IOException, NoSuchAlgorithmException {
+
+        initialize(3, 4000, 0, 0);
+
+        System.out.println(peerOwner.equals(peers[0].getPeerID()));
     }
 
     private static void deleteContent() throws IOException, NoSuchAlgorithmException, InterruptedException {
