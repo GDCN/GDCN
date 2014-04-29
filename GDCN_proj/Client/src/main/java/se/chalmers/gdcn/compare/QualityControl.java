@@ -19,8 +19,10 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private final Map<ByteArray, Set<ReplicaID>> resultMap;
-    private final Map<ByteArray, TrustQuality> trustMap = new HashMap<>();
+    private Map<ByteArray, Set<ReplicaID>> resultMap;
+    private Map<ByteArray, TrustQuality> trustMap;
+    private ByteArray singleResult;
+    private TrustQuality singleTrust;
 
     private final PathManager pathMan;
     private final String program;
@@ -28,7 +30,7 @@ public class QualityControl {
     private final List<String> taskDeps;
 
     private double bestQuality = Double.MIN_VALUE;
-    private final CountDownLatch waitForAll;
+    private CountDownLatch waitForAll;
 
     /**
      * A method for testing the quality and validity of result data, using a job owner defined program
@@ -43,11 +45,26 @@ public class QualityControl {
         return qualityControl.compare();
     }
 
+    public static TrustQuality singleQualityTest(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException{
+        QualityControl qualityControl = new QualityControl(jobName, taskMeta, data);
+        return qualityControl.quality();
+    }
+
     private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
+        this(jobName, taskMeta);
+        trustMap = new HashMap<>();
         this.resultMap = resultMap;
+        waitForAll = new CountDownLatch(resultMap.size());
+    }
+
+    private QualityControl(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException {
+        this(jobName, taskMeta);
+        singleResult = data;
+    }
+
+    private QualityControl(String jobName, TaskMeta taskMeta) throws IOException {
         taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
-        waitForAll = new CountDownLatch(resultMap.size());
         program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
         taskDeps = new ArrayList<>();
         for (FileDep fileDep : taskMeta.getDependencies()) {
@@ -58,10 +75,7 @@ public class QualityControl {
     private Map<ByteArray, TrustQuality> compare() throws IOException {
         int resultID = 0;
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
-            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
-            FileOutputStream fos = new FileOutputStream(resultFile);
-            fos.write(entry.getKey().getData());
-            fos.close();
+            String resultFile = writeResultFile(entry.getKey().getData(), resultID++);
             Listener listener = new Listener(entry.getKey());
             Validifier validifier = new Validifier(listener);
             ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
@@ -76,6 +90,30 @@ public class QualityControl {
         }
 
         return trustMap;
+    }
+
+    private TrustQuality quality() throws IOException {
+        String resultFile = writeResultFile(singleResult.getData(), Math.abs(singleResult.hashCode()));
+        ListenerSingle listener = new ListenerSingle();
+        Validifier validifier = new Validifier(listener);
+        validifier.testResult(program, resultFile, taskDeps);
+        return singleTrust;
+    }
+
+    private String writeResultFile(byte[] data, int resultID) throws IOException {
+        FileOutputStream output = null;
+        try {
+            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID;
+            File parent = new File(resultFile).getParentFile();
+            parent.mkdirs();
+            output = new FileOutputStream(resultFile);
+            output.write(data);
+            return resultFile;
+        }
+        finally {
+            if (output != null)
+                output.close();
+        }
     }
 
     private synchronized void reward(ByteArray result, double quality) {
@@ -152,6 +190,24 @@ public class QualityControl {
         @Override
         public void validityError(String reason) {
             unknown(myResult);
+        }
+    }
+
+    private class ListenerSingle implements ValidityListener {
+
+        @Override
+        public void validityOk(double quality) {
+            singleTrust = new TrustQuality(Trust.TRUSTWORTHY, quality);
+        }
+
+        @Override
+        public void validityCorrupt() {
+            singleTrust = new TrustQuality(Trust.DECEITFUL);
+        }
+
+        @Override
+        public void validityError(String reason) {
+            singleTrust = new TrustQuality(Trust.UNKNOWN);
         }
     }
 }
