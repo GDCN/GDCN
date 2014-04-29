@@ -86,8 +86,12 @@ public class Challenge implements Serializable {
         return macGen.doFinal(ByteBuffer.allocate(4).putInt(difficulty).array());
     }
 
-    public boolean isAuthentic(Key key, byte[] seed) throws InvalidKeyException {
-        return Arrays.equals(this.mac, generateMAC(key)) && seed.equals(this.seed);
+    public boolean isAuthentic(Key key) throws InvalidKeyException {
+        return Arrays.equals(this.mac, generateMAC(key));
+    }
+
+    public byte[] getSeed() {
+        return seed.clone();
     }
 
     /**

@@ -282,7 +282,7 @@ public class TaskPasser extends Passer {
                 }
 
                 try {
-                    if(hashCash.validateSolution(solution,secretKey,myWorkerID,workerID,score)) {
+                    if(HashCash.validateSolution(solution, secretKey, myWorkerID, workerID, score)) {
                         synchronized (workerChallengesManager) {
                             workerChallengesManager.solvedChallenge(workerID,solution);
                         }

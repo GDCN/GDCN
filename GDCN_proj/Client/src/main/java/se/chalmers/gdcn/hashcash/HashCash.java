@@ -1,6 +1,5 @@
 package se.chalmers.gdcn.hashcash;
 
-import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.network.WorkerID;
 
 import javax.crypto.SecretKey;
@@ -73,13 +72,13 @@ public class HashCash {
         return generateChallenge(Purpose.AUTH, seed, easyDifficulty);
     }
 
-    public boolean validateSolution(Solution solution, SecretKey key, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
-        String seed = jobOwner.toString() + worker + score;
+    public static boolean validateSolution(Solution solution, SecretKey key, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
+        byte[] seed = hash(jobOwner.toString() + worker + score);
 
-        return solution.isValid(key,hash(seed));
+        return solution.isValid(key,seed);
     }
 
-    private byte[] hash(String message) {
+    private static byte[] hash(String message) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance(HASH_ALGORITHM);
