@@ -29,6 +29,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Semaphore;
 
 
 /**
@@ -43,6 +44,9 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     private DataFilesManager dataFilesManager;
 
     private String testPath = "TEST";
+
+    private boolean hasSearchedForResults = false;
+    private Semaphore mutex = new Semaphore(1);
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -106,6 +110,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
             taskPasser.stopTimer();
 
+            mutex.acquireUninterruptibly();
+            hasSearchedForResults = false;
+            mutex.release();
+
             notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
 
         }
@@ -154,6 +162,18 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                             }
                             notifier.fireOperationFinished(CommandWord.BOOTSTRAP,
                                     new OperationBuilder<InetAddress>(true).setResult(inetAddress).create());
+
+                            mutex.acquireUninterruptibly();
+                            boolean doSearch = false;
+                            if(! hasSearchedForResults){
+                                hasSearchedForResults = true;
+                                doSearch = true;
+                            }
+                            mutex.release();
+
+                            if(doSearch){
+                                downloadEventualResults();
+                            }
                         }
                     });
                 }
