@@ -412,9 +412,13 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         notifier.fireOperationFinished(CommandWord.START,
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
-        downloadEventualResults();
+//        downloadEventualResults();
     }
 
+    /**
+     * Attempts to download results to previously given keys.
+     * Need to be connected to the DHT in order for this to be useful
+     */
     private void downloadEventualResults(){
         final ReplicaManager replicaManager = taskPasser.getReplicaManager();
         Map<ReplicaID,Number160> pendingResults = replicaManager.pendingResults();
