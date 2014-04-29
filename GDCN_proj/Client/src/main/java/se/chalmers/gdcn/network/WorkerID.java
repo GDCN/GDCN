@@ -23,9 +23,7 @@ public class WorkerID implements Serializable {
 
         WorkerID workerID = (WorkerID) o;
 
-        if (!publicKey.equals(workerID.publicKey)) return false;
-
-        return true;
+        return publicKey.equals(workerID.publicKey);
     }
 
     @Override
