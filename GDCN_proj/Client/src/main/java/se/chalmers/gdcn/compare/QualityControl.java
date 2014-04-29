@@ -20,7 +20,7 @@ import java.util.concurrent.CountDownLatch;
 public class QualityControl {
 
     private final Map<ByteArray, Set<ReplicaID>> resultMap;
-    private final Map<ByteArray, Trust> trustMap = new HashMap<>();
+    private final Map<ByteArray, TrustQuality> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
     private final String program;
@@ -38,7 +38,7 @@ public class QualityControl {
      * @return a map of the result data with their trust level as values
      * @throws IOException
      */
-    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
+    public static Map<ByteArray, TrustQuality> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
@@ -55,7 +55,7 @@ public class QualityControl {
         }
     }
 
-    private Map<ByteArray, Trust> compare() throws IOException {
+    private Map<ByteArray, TrustQuality> compare() throws IOException {
         int resultID = 0;
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
@@ -80,37 +80,37 @@ public class QualityControl {
 
     private synchronized void reward(ByteArray result, double quality) {
         if (quality == bestQuality) {
-            trustMap.put(result, Trust.TRUSTWORTHY);
+            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
         }
         else if (quality > bestQuality) {
-            for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
-                if (entry.getValue() == Trust.TRUSTWORTHY) {
-                    entry.setValue(Trust.DECEITFUL);
+            for (Map.Entry<ByteArray, TrustQuality> entry : trustMap.entrySet()) {
+                if (entry.getValue().getTrust() == Trust.TRUSTWORTHY) {
+                    entry.getValue().setTrust(Trust.DECEITFUL);
                 }
             }
-            trustMap.put(result, Trust.TRUSTWORTHY);
+            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
             bestQuality = quality;
         }
         else {
-            trustMap.put(result, Trust.DECEITFUL);
+            trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
         }
         waitForAll.countDown();
     }
 
     private synchronized void punish(ByteArray result) {
-        trustMap.put(result, Trust.DECEITFUL);
+        trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
         waitForAll.countDown();
     }
 
     private synchronized void unknown(ByteArray result) {
-        trustMap.put(result, Trust.UNKNOWN);
+        trustMap.put(result, new TrustQuality(Trust.UNKNOWN));
         waitForAll.countDown();
     }
 
     private synchronized void addRemaining() {
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
-                trustMap.put(entry.getKey(), Trust.UNKNOWN);
+                trustMap.put(entry.getKey(), new TrustQuality(Trust.UNKNOWN));
             }
         }
     }
