@@ -46,10 +46,18 @@ public class CanonicalResult {
         }
     }
 
+    /**
+     *
+     * @return quality of the canonical result
+     */
     public double getQuality() {
         return quality;
     }
 
+    /**
+     *
+     * @return the advocating workers of this result
+     */
     public Set<WorkerID> getAdvocatingWorkers() {
         return advocatingWorkers;
     }
