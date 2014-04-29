@@ -318,9 +318,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         //Can validate
 
         if(resultData.pendingReplicas.size() > 0){
+            //Wait for some more replicas that was given previously
+            //However don't wait on "excess" replicas
             return;
-            //TODO wait for them to return/timeout?
-            //TODO only wait for replicas that were given before could validate
         }
 
         validateResults(taskData, resultData);
@@ -399,7 +399,26 @@ public class ReplicaManager implements Serializable, Cloneable{
         Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
         try {
             Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
-            //TODO Implement actual reward and punishment of peers
+
+            for(ByteArray byteArray : trustMap.keySet()){
+                Trust trust = trustMap.get(byteArray);
+                Set<ReplicaID> replicaIDs = resultMap.get(byteArray);
+
+                for(ReplicaID replicaID:replicaIDs){
+                    WorkerID worker = replicaMap.get(replicaID).getWorker();
+                    switch (trust){
+                        case TRUSTWORTHY:
+                            workerReputationManager.promoteWorker(worker);
+                            break;
+                        case DECEITFUL:
+                            workerReputationManager.reportWorker(worker);
+                            break;
+                        case UNKNOWN:
+                            //ignore
+                            break;
+                    }
+                }
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
