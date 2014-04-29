@@ -10,12 +10,12 @@ import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import se.chalmers.gdcn.communicationToUI.CommandWord;
-import se.chalmers.gdcn.communicationToUI.ErrorCode;
+import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
-import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.network.TaskPasser;
+import se.chalmers.gdcn.replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 
@@ -28,6 +28,7 @@ import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -411,5 +412,34 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         notifier.fireOperationFinished(CommandWord.START,
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
+        downloadEventualResults();
+    }
+
+    private void downloadEventualResults(){
+        final ReplicaManager replicaManager = taskPasser.getReplicaManager();
+        Map<ReplicaID,Number160> pendingResults = replicaManager.pendingResults();
+        for(final ReplicaID replicaID : pendingResults.keySet()){
+            System.out.println("See if "+replicaID+" has uploaded something");
+
+            Number160 key = pendingResults.get(replicaID);
+            addListener(new OperationFinishedListener(this, key, CommandWord.PUT) {
+                @Override
+                protected void operationFinished(Operation operation) {
+                    if(operation.isSuccess()){
+                        Data result = (Data) operation.getResult();
+                        try {
+                            byte[] resultObject = (byte[]) result.getObject();
+                            System.out.println("Result downloaded for "+replicaID+" on "+resultObject.length+" bytes.");
+                            replicaManager.replicaFinished(replicaID, resultObject);
+                        } catch (ClassNotFoundException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+            this.get(key);
+        }
     }
 }
