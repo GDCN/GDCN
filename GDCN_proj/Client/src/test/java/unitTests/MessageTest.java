@@ -1,16 +1,12 @@
 package unitTests;
 
-import network.Crypto;
 import network.NetworkMessage;
 import org.testng.annotations.Test;
 
 import javax.crypto.SealedObject;
-import java.io.IOException;
 import java.math.BigInteger;
-import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.SignatureException;
 import java.util.Random;
 
 /**
@@ -31,8 +27,8 @@ public class MessageTest {
         KeyPair otherKeyPair = keygen.generateKeyPair();
         NetworkMessage message = new NetworkMessage(randomString(), NetworkMessage.Type.REQUEST);
 
-        SealedObject encrypted = message.signAndEncrypt(myKeyPair.getPrivate(), otherKeyPair.getPublic());
-        NetworkMessage decrypted = NetworkMessage.decryptAndVerify(encrypted, otherKeyPair.getPrivate(), myKeyPair.getPublic());
+        SealedObject encrypted = message.encrypt(myKeyPair.getPrivate(), otherKeyPair.getPublic());
+        NetworkMessage decrypted = NetworkMessage.decrypt(encrypted, otherKeyPair.getPrivate(), myKeyPair.getPublic());
 
         assert decrypted.equals(message);
     }
