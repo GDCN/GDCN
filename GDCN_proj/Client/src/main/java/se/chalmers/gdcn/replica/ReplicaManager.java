@@ -71,6 +71,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         final Set<ReplicaID> failedReplicas = new HashSet<>();
         final Set<ReplicaID> outdatedReplicas = new HashSet<>();
         final Set<ReplicaID> pendingReplicas = new HashSet<>();
+        final Set<ReplicaID> excessPendingReplicas = new HashSet<>();
         final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
     }
 
@@ -204,7 +205,12 @@ public class ReplicaManager implements Serializable, Cloneable{
             taskResultData = new TaskResultData();
             resultDataMap.put(taskData.taskID(), taskResultData);
         }
-        taskResultData.pendingReplicas.add(replicaID);
+
+        if(taskData.enoughReturned()){
+            taskResultData.excessPendingReplicas.add(replicaID);
+        } else {
+            taskResultData.pendingReplicas.add(replicaID);
+        }
 
         return replicaBox;
     }
@@ -222,23 +228,6 @@ public class ReplicaManager implements Serializable, Cloneable{
         return replica.getReplicaBox().getResultKey();
     }
 
-//    private TaskResultData returned(ReplicaID replicaID){
-//        //TODO handle latecomer
-//        TaskData taskData = taskDataMap.get(replicaID);
-//        if(taskData == null){
-//            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
-//        }
-//
-//        TaskResultData resultData = resultDataMap.get(taskData.taskID());
-//
-//        if(! resultData.pendingReplicas.remove(replicaID)){
-//            if(! resultData.outdatedReplicas.remove(replicaID)){
-//                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-//            }
-//        }
-//        return resultData;
-//    }
-
     /**
      * This method should only be used externally for testing!
      * Is called internally.
@@ -254,12 +243,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
 
         taskDatas.remove(taskData);
         taskData.timedOut(replicaMap.get(replicaID).getWorker());
@@ -276,12 +260,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
 
         taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
@@ -302,17 +281,26 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
 
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
         taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
         taskDatas.add(taskData);
 
         resultData.returnedReplicas.put(replicaID, result);
         decideValidate(replicaID, taskData, resultData);
+    }
+
+    private void awaitingReplica(TaskResultData resultData, ReplicaID replicaID){
+        if(resultData.pendingReplicas.remove(replicaID)){
+           return;
+        }
+        if(resultData.outdatedReplicas.remove(replicaID)){
+            return;
+        }
+        if(resultData.excessPendingReplicas.remove(replicaID)){
+            return;
+        }
+        throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
     }
 
     private void decideValidate(ReplicaID replicaID, TaskData taskData, TaskResultData resultData){
@@ -330,7 +318,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         //Can validate
 
         if(resultData.pendingReplicas.size() > 0){
+            return;
             //TODO wait for them to return/timeout?
+            //TODO only wait for replicas that were given before could validate
         }
 
         validateResults(taskData, resultData);
