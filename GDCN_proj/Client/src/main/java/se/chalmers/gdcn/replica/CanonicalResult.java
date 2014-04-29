@@ -28,10 +28,17 @@ public class CanonicalResult {
         FileManagementUtils.toFile(location, data.getData());
     }
 
-    public boolean compareNewWorker(ByteArray data, Set<WorkerID> newWorkers) throws IOException {
+    /**
+     * Compares the canonical result with a new result and if they are equal add the new worker as an advocating worker
+     * @param data the new worker's data result
+     * @param newWorker the new worker ID
+     * @return true when the results are equal
+     * @throws IOException if the file cannot be read
+     */
+    public boolean compareNewWorker(ByteArray data, WorkerID newWorker) throws IOException {
         if (hash != data.hashCode()) return false;
         if (Arrays.equals(FileManagementUtils.fromFile(location), data.getData())) {
-            advocatingWorkers.addAll(newWorkers);
+            advocatingWorkers.add(newWorker);
             return true;
         }
         else {
