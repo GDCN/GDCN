@@ -9,6 +9,7 @@ import net.tomp2p.p2p.builder.GetBuilder;
 import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
+import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
@@ -29,7 +30,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Semaphore;
 
 
 /**
@@ -44,9 +44,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     private DataFilesManager dataFilesManager;
 
     private String testPath = "TEST";
-
-    private boolean hasSearchedForResults = false;
-    private Semaphore mutex = new Semaphore(1);
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -110,10 +107,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
             taskPasser.stopTimer();
 
-            mutex.acquireUninterruptibly();
-            hasSearchedForResults = false;
-            mutex.release();
-
             notifier.fireOperationFinished(CommandWord.STOP, new OperationBuilder(true).create());
 
         }
@@ -162,18 +155,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                             }
                             notifier.fireOperationFinished(CommandWord.BOOTSTRAP,
                                     new OperationBuilder<InetAddress>(true).setResult(inetAddress).create());
-
-                            mutex.acquireUninterruptibly();
-                            boolean doSearch = false;
-                            if(! hasSearchedForResults){
-                                hasSearchedForResults = true;
-                                doSearch = true;
-                            }
-                            mutex.release();
-
-                            if(doSearch){
-                                downloadEventualResults();
-                            }
                         }
                     });
                 }
@@ -433,6 +414,24 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
 //        downloadEventualResults();
+        peer.getPeerBean().getPeerMap().addPeerMapChangeListener(new PeerMapChangeListener() {
+            @Override
+            public void peerInserted(PeerAddress peerAddress) {
+                if(getNeighbours().size()<2){
+                    downloadEventualResults();
+                }
+            }
+
+            @Override
+            public void peerRemoved(PeerAddress peerAddress) {
+                //ignore
+            }
+
+            @Override
+            public void peerUpdated(PeerAddress peerAddress) {
+                //ignore
+            }
+        });
     }
 
     /**
