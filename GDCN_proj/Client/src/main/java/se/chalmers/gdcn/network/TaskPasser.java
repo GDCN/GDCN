@@ -9,6 +9,7 @@ import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.control.ThreadService;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.files.FileManagementUtils;
@@ -155,7 +156,7 @@ public class TaskPasser extends Passer {
                 final Challenge challenge = (Challenge) taskMessage.getActualContent();
                 System.out.println("Challenge received: "+challenge.toString());
 
-                taskManager.submit(new Runnable() {
+                ThreadService.submit(new Runnable() {
                     @Override
                     public void run() {
                         Solution challengeSolution = challenge.solve();

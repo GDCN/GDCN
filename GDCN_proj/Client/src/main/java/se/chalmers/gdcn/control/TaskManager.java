@@ -12,9 +12,6 @@ import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 
 import java.io.FileNotFoundException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 /**
  * Created by HalfLeif on 2014-02-28.
@@ -25,15 +22,6 @@ public class TaskManager implements TaskRunner {
 
     private final TaskListener taskListener;
     private final ClientInterface client;
-
-    private final ExecutorService threadPool = Executors.newFixedThreadPool(4, new ThreadFactory() {
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
-            thread.setDaemon(true);
-            return thread;
-        }
-    });
 
     /**
      *
@@ -55,7 +43,7 @@ public class TaskManager implements TaskRunner {
      */
     @Override
     public void submit(Runnable runnable){
-        threadPool.submit(runnable);
+        ThreadService.submit(runnable);
     }
 
     @Override
@@ -73,7 +61,7 @@ public class TaskManager implements TaskRunner {
     public void startTask(final String projectName, final TaskMeta taskMeta, final StringHolder resultFileNameHolder,
                           final TaskListener subjectListener){
 
-        threadPool.submit(new Runnable() {
+        ThreadService.submit(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to client (ie PeerOwner). Makes call to his listeners
@@ -112,7 +100,7 @@ public class TaskManager implements TaskRunner {
                             taskListener.taskFailed(taskName, reason);
                         }
                     });
-                    threadPool.submit(task);
+                    ThreadService.submit(task);
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
                     //TODO handle job owner error
@@ -128,7 +116,7 @@ public class TaskManager implements TaskRunner {
      * @param replicaManager Manager that will produce replicas of each task
      */
     public void uploadJob(final String jobName, final ReplicaManager replicaManager){
-        threadPool.submit(new Runnable() {
+        ThreadService.submit(new Runnable() {
             @Override
             public void run() {
                 try {
