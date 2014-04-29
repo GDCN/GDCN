@@ -2,6 +2,8 @@ package se.chalmers.gdcn.compare;
 
 /**
  * Created by joakim on 4/29/14.
+ *
+ * Class for storing trust and the quality of a result
  */
 public class TrustQuality {
 
