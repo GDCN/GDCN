@@ -1,6 +1,5 @@
 package network;
 
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
@@ -9,14 +8,13 @@ import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.security.InvalidParameterException;
-import java.security.PublicKey;
 import java.security.SignedObject;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,7 +30,7 @@ abstract class Passer {
 
     private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
 
-    private final Map<PeerAddress,PublicKey> knownPeers = new HashMap<>();
+    private final Map<PeerAddress,SecretKey> knownPeers = new HashMap<>();
 
     public Passer(final Peer peer) {
         this.peer = peer;
@@ -61,7 +59,7 @@ abstract class Passer {
 
                 senderKey = knownPeers.get(sender);
 
-                NetworkMessage message = NetworkMessage.decryptAndVerify((SealedObject) request, getPrivateKey(), senderKey);
+                NetworkMessage message = NetworkMessage.decrypt((SealedObject) request, getPrivateKey(), senderKey);
 
                 if(message == null){
                     //Error has occured in decrypt
@@ -120,15 +118,15 @@ abstract class Passer {
         } else {
             NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
 
-            PublicKey receiverKey = knownPeers.get(receiver);
+            SecretKey receiverKey = knownPeers.get(receiver);
 
             if (receiverKey == null) {
-                System.out.println("receiver has not shaken hands, cannot encrypt.");
+                System.out.println("receiver has not shaken hands, cannot encrypt. "+receiver);
                 return;
             }
 
             try {
-                readyMessage = networkMessage.signAndEncrypt(getPrivateKey(), receiverKey);
+                readyMessage = networkMessage.encrypt(getPrivateKey(), receiverKey);
             } catch (InvalidKeyException|IOException|SignatureException e) {
                 e.printStackTrace();
                 System.out.println("in Passer: Error when encrypting and signing message. Message: "+networkMessage);
@@ -167,17 +165,17 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.NO_REPLY);
 
-        PublicKey receiverKey = knownPeers.get(receiver);
+        SecretKey receiverKey = knownPeers.get(receiver);
 
         if(receiverKey == null) {
-            System.out.println("receiver has not shaken hands, cannot encrypt.");
+            System.out.println("receiver has not shaken hands, cannot encrypt. "+receiver);
             return;
         }
 
         FutureDHT futureDHT = null;
         try {
             //TODO Get PublicKey from receiver...
-            futureDHT = sendBuilder.setObject( networkMessage.signAndEncrypt(getPrivateKey(), receiverKey) ).setRequestP2PConfiguration(requestConfiguration).start();
+            futureDHT = sendBuilder.setObject( networkMessage.encrypt(receiverKey) ).setRequestP2PConfiguration(requestConfiguration).start();
         } catch (InvalidKeyException|SignatureException|IOException e) {
             e.printStackTrace();
             System.out.println("in Passer: Failure during encryption!");
