@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.compare;
 
+import se.chalmers.gdcn.control.ThreadService;
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -79,8 +80,9 @@ public class QualityControl {
             Listener listener = new Listener(entry.getKey());
             Validifier validifier = new Validifier(listener);
             ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
-            // TODO Limit amount of threads?
-            new Thread(runner).start();
+
+            ThreadService.submit(runner);
+            //new Thread(runner).start();
         }
         try {
             waitForAll.await();

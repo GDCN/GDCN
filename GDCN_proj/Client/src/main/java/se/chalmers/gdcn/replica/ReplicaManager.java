@@ -489,8 +489,22 @@ public class ReplicaManager implements Serializable, Cloneable{
                 workerReputationManager.promoteWorker(worker);
 
             } else {
-                //TODO use real quality!!!
-                double lateQuality = 1;
+                TrustQuality trustQuality = QualityControl.singleQualityTest(taskData.getJobName(), taskData.getTaskMeta(), byteArray);
+
+                switch (trustQuality.getTrust()){
+                    case TRUSTWORTHY:
+                        //continue down
+                        break;
+                    case DECEITFUL:
+                        workerReputationManager.reportWorker(worker);
+                        return;
+                    case UNKNOWN:
+                        //Might be some error with test code.
+                        //TODO report error
+                        return;
+                }
+
+                double lateQuality = trustQuality.getQuality();
 
                 if(archivedResult.getQuality() > lateQuality){
                     workerReputationManager.reportWorker(worker);
