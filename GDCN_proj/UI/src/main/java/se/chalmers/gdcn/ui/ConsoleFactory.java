@@ -187,7 +187,11 @@ public class ConsoleFactory {
                 String key = args.get(0);
                 String domain = args.get(1);
                 String value = args.get(2);
-                client.put(key, Number160.createHash(domain), value);
+                try {
+                    client.put(key, Number160.createHash(domain), new Data(value));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
         });
 
