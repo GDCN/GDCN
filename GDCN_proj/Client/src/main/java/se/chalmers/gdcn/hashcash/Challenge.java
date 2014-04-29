@@ -19,7 +19,7 @@ import java.util.Random;
 public class Challenge implements Serializable {
     public final HashCash.Purpose purpose;
     private final byte[] seed, mac;
-    private final int difficulty;
+    public final int difficulty;
 
     //TODO Remove this, it is only used for testing purposes!
     public Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
@@ -88,6 +88,10 @@ public class Challenge implements Serializable {
 
     public boolean isAuthentic(Key key) throws InvalidKeyException {
         return Arrays.equals(this.mac, generateMAC(key));
+    }
+
+    public byte[] getSeed() {
+        return seed.clone();
     }
 
     /**

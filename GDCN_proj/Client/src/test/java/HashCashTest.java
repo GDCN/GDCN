@@ -102,16 +102,28 @@ public class HashCashTest {
 
     @Test
     public void testAuthSolution() throws Exception {
-        Challenge challenge = hc.generateAuthenticationChallenge(randomWorkerID(), randomWorkerID());
+        WorkerID jobOwner = randomWorkerID();
+        WorkerID worker = randomWorkerID();
+        int score = random.nextInt();
 
-        assert challenge.solve().isValid(key1);
+        Challenge challenge = hc.generateAuthenticationChallenge(jobOwner, worker, score);
+        Solution solution = challenge.solve();
+
+        assert HashCash.validateSolution(solution, key1, jobOwner, worker, score);
+        assert !HashCash.validateSolution(solution, key1, jobOwner, worker, score+1);
     }
 
     @Test
     public void testRegSolution() throws Exception {
-        Challenge challenge = hc.generateRegistrationChallenge(randomWorkerID(), randomWorkerID());
+        WorkerID jobOwner = randomWorkerID();
+        WorkerID worker = randomWorkerID();
+        int score = random.nextInt();
 
-        assert challenge.solve().isValid(key1);
+        Challenge challenge = hc.generateRegistrationChallenge(jobOwner, worker, score);
+        Solution solution = challenge.solve();
+
+        assert HashCash.validateSolution(solution, key1, jobOwner, worker, score);
+        assert !HashCash.validateSolution(solution, key1, jobOwner, worker, score+1);
     }
 
     @Test

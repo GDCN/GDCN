@@ -3,6 +3,7 @@ package se.chalmers.gdcn.hashcash;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.Key;
+import java.util.Arrays;
 
 /**
  * Created by Leif on 2014-03-29.
@@ -16,6 +17,10 @@ public class Solution implements Serializable {
         this.challenge = challenge;
     }
 
+    public int getDifficulty() {
+        return challenge.difficulty;
+    }
+
     /**
      * Gets the purpose of the challenge this solution claims to solve.
      * @return The identity of the challenge if it exists, null otherwise.
@@ -27,6 +32,16 @@ public class Solution implements Serializable {
     //TODO Remove, this is only used for testing purposes...
     public byte[] getToken() {
         return token.clone();
+    }
+
+    /**
+     * Checks whether the solution is a valid solution to the challenge it claims to solve.
+     * @param key The key used when creating the challenge.
+     * @return True if the solution solves the challenge and is authentic.
+     * @throws InvalidKeyException
+     */
+    public boolean isValid(Key key, byte[] seed) throws InvalidKeyException {
+        return isValid(key) && Arrays.equals(seed,challenge.getSeed());
     }
 
     /**

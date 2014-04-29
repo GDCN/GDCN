@@ -2,6 +2,7 @@ package se.chalmers.gdcn.files;
 
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
+import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -23,7 +24,9 @@ public class DataFilesManager {
 
     private File secretKeyLocation;
 
-    private File workerNodeMangerLocation;
+    private File workerNodeManagerLocation;
+
+    private File workerChallengesManagerLocation;
 
 
     private String filePath;
@@ -33,6 +36,7 @@ public class DataFilesManager {
     private String replicaManagerFileName = "replicaManager";
     private String seretKeyFileName = "secretKey";
     private String workerNodeManagerFileName = "workerNodeManager";
+    private String workerChallengesManagerFileName = "workerChallengesManager";
 
     private String testDirectory;
 
@@ -66,7 +70,7 @@ public class DataFilesManager {
         keyPairLocation = new File(filePath + keyFileName);
         replicaManagerLocation = new File(filePath + replicaManagerFileName);
         secretKeyLocation = new File(filePath + seretKeyFileName);
-        workerNodeMangerLocation = new File(filePath + workerNodeManagerFileName);
+        workerNodeManagerLocation = new File(filePath + workerNodeManagerFileName);
 
 
     }
@@ -198,7 +202,7 @@ public class DataFilesManager {
     public void saveWorkerNodeManager(WorkerReputationManager wm) {
 
         try {
-            FileOutputStream fous = new FileOutputStream(workerNodeMangerLocation);
+            FileOutputStream fous = new FileOutputStream(workerNodeManagerLocation);
             ObjectOutputStream oos = new ObjectOutputStream(fous);
 
             try {
@@ -218,7 +222,7 @@ public class DataFilesManager {
         WorkerReputationManager workerReputationManager = null;
 
         try {
-            FileInputStream fis = new FileInputStream(workerNodeMangerLocation);
+            FileInputStream fis = new FileInputStream(workerNodeManagerLocation);
 
             ObjectInputStream ois = new ObjectInputStream(fis);
 
@@ -241,7 +245,59 @@ public class DataFilesManager {
     }
 
     public void removeWorkerNodeManagerFile() {
-        workerNodeMangerLocation.delete();
+        workerNodeManagerLocation.delete();
+
+    }
+
+    //WORKERCHALLENGESMANAGER METHODS
+    //********************************************\\
+    public void saveWorkerChallengesManager(WorkerChallengesManager wm) {
+
+        try {
+            FileOutputStream fous = new FileOutputStream(workerChallengesManagerLocation);
+            ObjectOutputStream oos = new ObjectOutputStream(fous);
+
+            try {
+                oos.writeObject(wm);
+            }
+            finally {
+                oos.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public WorkerChallengesManager getWorkerChallengesManager() {
+        WorkerChallengesManager workerChallengesManager = null;
+
+        try {
+            FileInputStream fis = new FileInputStream(workerChallengesManagerLocation);
+
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            try {
+                workerChallengesManager = (WorkerChallengesManager) ois.readObject();
+            }
+
+            finally {
+                ois.close();
+            }
+
+
+        } catch (FileNotFoundException e) {
+
+        } catch (ClassNotFoundException | IOException e) {
+            e.printStackTrace();
+        }
+
+        return workerChallengesManager;
+    }
+
+    public void removeWorkerChallengesManagerFile() {
+        workerChallengesManagerLocation.delete();
 
     }
 
@@ -317,7 +373,4 @@ public class DataFilesManager {
     public ArrayList<String[]> getBootstrapNodes() {
         return neighbourFileManager.getBootstrapNodes();
     }
-
-
-
 }

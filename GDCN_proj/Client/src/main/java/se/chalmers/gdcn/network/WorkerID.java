@@ -23,13 +23,16 @@ public class WorkerID implements Serializable {
 
         WorkerID workerID = (WorkerID) o;
 
-        if (!publicKey.equals(workerID.publicKey)) return false;
-
-        return true;
+        return publicKey.equals(workerID.publicKey);
     }
 
     @Override
     public int hashCode() {
         return publicKey.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return publicKey.toString();
     }
 }
