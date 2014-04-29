@@ -1,8 +1,12 @@
 package se.chalmers.gdcn.replica;
 
+import edu.emory.mathcs.backport.java.util.Arrays;
+import org.apache.commons.io.IOUtils;
+import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.network.WorkerID;
+import se.chalmers.gdcn.utils.ByteArray;
 
-import java.io.File;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -13,15 +17,24 @@ import java.util.Set;
  */
 public class CanonicalResult {
     private final double quality;
-    private final String hash;
+    private final int hash; //TODO Use better hash algorithm?
     private final File location;
     private final Set<WorkerID> advocatingWorkers = new HashSet<>();
 
-    public CanonicalResult() {
-        hash = null;
-        quality = -1;
-        location = null;
+    CanonicalResult(ByteArray data, double quality, Set<WorkerID> advocatingWorkers, File location) {
+        this.hash = data.hashCode();
+        this.quality = quality;
+        this.location = location;
+        this.advocatingWorkers.addAll(advocatingWorkers);
+        FileManagementUtils.toFile(location, data.getData());
     }
-    //etc.
-    //TODO implement
+
+    public void addAdvocatingWorker(WorkerID worker) {
+        advocatingWorkers.add(worker);
+    }
+
+    public boolean equalsByteArray(ByteArray data) throws IOException {
+        if (hash != data.hashCode()) return false;
+        return Arrays.equals(FileManagementUtils.fromFile(location), data.getData());
+    }
 }
