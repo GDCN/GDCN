@@ -262,10 +262,7 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
-                int score;
-                synchronized (workerChallengesManager) {
-                    score = workerChallengesManager.getCurrentScore(workerID);
-                }
+                int score = workerChallengesManager.getCurrentScore(workerID);
 
                 Challenge challenge = workerReputationManager.hasWorkerReputation(workerID)?
                         hashCash.generateAuthenticationChallenge(myWorkerID, workerID, score)
