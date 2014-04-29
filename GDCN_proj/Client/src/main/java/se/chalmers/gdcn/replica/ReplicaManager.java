@@ -19,6 +19,8 @@ import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
 import se.chalmers.gdcn.utils.Time;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -50,7 +52,9 @@ public class ReplicaManager implements Serializable, Cloneable{
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
 
+    //For testing:
     private boolean workSelfIfRequired = true;
+    private transient PropertyChangeListener validationListener = null;
 
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
@@ -96,6 +100,14 @@ public class ReplicaManager implements Serializable, Cloneable{
 
     public synchronized void setTaskManager(TaskRunner taskManager) {
         this.runner = taskManager;
+    }
+
+    /**
+     * Only for testing!!!
+     * @param validationListener validation listener
+     */
+    public void setValidationListener(PropertyChangeListener validationListener) {
+        this.validationListener = validationListener;
     }
 
     public TaskRunner getRunner() {
@@ -395,8 +407,14 @@ public class ReplicaManager implements Serializable, Cloneable{
 
     private void validateResults(TaskData taskData, TaskResultData resultData){
         String jobName = taskData.getJobName();
-
         Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
+
+        if(validationListener != null){
+            //For testing:
+            validationListener.propertyChange(new PropertyChangeEvent(this, jobName, taskData, resultMap));
+            return;
+        }
+
         try {
             Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
 
