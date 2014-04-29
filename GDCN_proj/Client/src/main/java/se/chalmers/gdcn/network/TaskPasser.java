@@ -277,15 +277,11 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
                 Solution solution = (Solution) taskMessage.getActualContent();
 
-                synchronized (workerChallengesManager) {
-                    score = workerChallengesManager.getCurrentScore(workerID);
-                }
+                score = workerChallengesManager.getCurrentScore(workerID);
 
                 try {
                     if(HashCash.validateSolution(solution, secretKey, myWorkerID, workerID, score)) {
-                        synchronized (workerChallengesManager) {
-                            workerChallengesManager.solvedChallenge(workerID,solution);
-                        }
+                        workerChallengesManager.solvedChallenge(workerID,solution);
 
                         if(solution.getPurpose() == HashCash.Purpose.REG) {
                             workerReputationManager.registerWorker(workerID);
