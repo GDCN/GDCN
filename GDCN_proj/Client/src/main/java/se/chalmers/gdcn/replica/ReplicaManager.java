@@ -344,40 +344,8 @@ public class ReplicaManager implements Serializable, Cloneable{
             validateResults(taskData, resultData);
         } else {
             //Has validated before: compare previous result
-            try {
-                WorkerID worker = replicaMap.get(replicaID).getWorker();
-                ByteArray byteArray = new ByteArray(resultData.returnedReplicas.get(replicaID));
-                boolean resultEqual = archivedResult.compareNewWorker(byteArray, worker);
-
-                if(resultEqual){
-                    workerReputationManager.promoteWorker(worker);
-
-                } else {
-                    //TODO use real quality!!!
-                    double lateQuality = 1;
-
-                    if(archivedResult.getQuality() > lateQuality){
-                        workerReputationManager.reportWorker(worker);
-
-                    } else if(archivedResult.getQuality() < lateQuality){
-                        workerReputationManager.promoteWorker(worker);
-
-                        Set<WorkerID> advocating = archivedResult.getAdvocatingWorkers();
-                        for(WorkerID w : advocating){
-                            workerReputationManager.reportWorker(w);
-                        }
-                        HashSet<WorkerID> workerIDs = new HashSet<>();
-                        workerIDs.add(worker);
-                        archive.archiveResult(taskData, byteArray, lateQuality, workerIDs);
-
-                    } else {
-                        //Equal quality but different result
-                        workerReputationManager.promoteWorker(worker);
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            ByteArray byteArray = new ByteArray(resultData.returnedReplicas.get(replicaID));
+            validateLatecomer(archivedResult, taskData, replicaID, byteArray);
         }
     }
 
@@ -512,8 +480,40 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
     }
 
-    private void validateLatecomer(){
+    private void validateLatecomer(CanonicalResult archivedResult, TaskData taskData, ReplicaID replicaID, ByteArray byteArray){
+        try {
+            WorkerID worker = replicaMap.get(replicaID).getWorker();
+            boolean resultEqual = archivedResult.compareNewWorker(byteArray, worker);
 
+            if(resultEqual){
+                workerReputationManager.promoteWorker(worker);
+
+            } else {
+                //TODO use real quality!!!
+                double lateQuality = 1;
+
+                if(archivedResult.getQuality() > lateQuality){
+                    workerReputationManager.reportWorker(worker);
+
+                } else if(archivedResult.getQuality() < lateQuality){
+                    workerReputationManager.promoteWorker(worker);
+
+                    Set<WorkerID> advocating = archivedResult.getAdvocatingWorkers();
+                    for(WorkerID w : advocating){
+                        workerReputationManager.reportWorker(w);
+                    }
+                    HashSet<WorkerID> workerIDs = new HashSet<>();
+                    workerIDs.add(worker);
+                    archive.archiveResult(taskData, byteArray, lateQuality, workerIDs);
+
+                } else {
+                    //Equal quality but different result
+                    workerReputationManager.promoteWorker(worker);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
