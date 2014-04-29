@@ -6,6 +6,7 @@ import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 import se.chalmers.gdcn.utils.ByteArray;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -15,7 +16,7 @@ import java.util.Set;
  *
  * Future unimplemented class that can store validated results
  */
-public class Archive {
+public class Archive implements Serializable {
 
     private final Map<TaskID, CanonicalResult> resultMap = new HashMap<>();
 
@@ -23,7 +24,7 @@ public class Archive {
 
     public void archiveResult(TaskData taskData, ByteArray data, double quality, Set<WorkerID> advocatingWorkers) {
         PathManager pathManager = PathManager.jobOwner(taskData.getJobName());
-        File location = new File(pathManager.getResultFilePath(taskData.getTaskMeta().getTaskName()));
+        File location = new File(pathManager.getCanonicalResultFilePath(taskData.getTaskMeta().getTaskName()));
         resultMap.put(taskData.taskID(), new CanonicalResult(data, quality, advocatingWorkers, location));
     }
 

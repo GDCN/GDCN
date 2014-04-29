@@ -1,7 +1,6 @@
 package se.chalmers.gdcn.replica;
 
 import edu.emory.mathcs.backport.java.util.Arrays;
-import org.apache.commons.io.IOUtils;
 import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.ByteArray;
@@ -29,12 +28,22 @@ public class CanonicalResult {
         FileManagementUtils.toFile(location, data.getData());
     }
 
-    public void addAdvocatingWorker(WorkerID worker) {
-        advocatingWorkers.add(worker);
+    public boolean compareNewWorker(ByteArray data, Set<WorkerID> newWorkers) throws IOException {
+        if (hash != data.hashCode()) return false;
+        if (Arrays.equals(FileManagementUtils.fromFile(location), data.getData())) {
+            advocatingWorkers.addAll(newWorkers);
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 
-    public boolean equalsByteArray(ByteArray data) throws IOException {
-        if (hash != data.hashCode()) return false;
-        return Arrays.equals(FileManagementUtils.fromFile(location), data.getData());
+    public double getQuality() {
+        return quality;
+    }
+
+    public Set<WorkerID> getAdvocatingWorkers() {
+        return advocatingWorkers;
     }
 }
