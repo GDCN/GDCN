@@ -32,4 +32,9 @@ public class WorkerID implements Serializable {
     public int hashCode() {
         return publicKey.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return publicKey.toString();
+    }
 }

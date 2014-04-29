@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.hashcash;
 
+import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.network.WorkerID;
 
 import javax.crypto.SecretKey;
@@ -16,9 +17,7 @@ public class HashCash {
     private final SecureRandom random;
     private final SecretKey key;
 
-    public static enum Purpose { REGISTER, AUTHENTICATE, NONE }
-
-    //TODO IMPORTANT: At the moment, solutions can be reused. This must be fixed. Jack knows the details. (Use private key instead of randomness?)
+    public static enum Purpose { REG, AUTH, NONE }
 
     /**
      * Creates a new HashCash-cookie instance with standard difficulties.
@@ -54,27 +53,33 @@ public class HashCash {
 
     public Challenge generateChallenge(Purpose purpose, String seed, int difficulty) {
         try {
-            return new Challenge(purpose, randomHash(seed), difficulty, key);
+            return new Challenge(purpose, hash(seed), difficulty, key);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             //TODO Tell the user that the key supplied to the HashCash is invalid.
             return null;
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-            //TODO Tell the user that UTF-8 is needed.
-            return null;
         }
     }
 
-    public Challenge generateRegistrationChallenge(WorkerID jobOwner, WorkerID worker) {
-        return generateChallenge(Purpose.REGISTER, jobOwner.toString() + worker.toString(), hardDifficulty);
+    public Challenge generateRegistrationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
+        String seed = jobOwner.toString() + worker + score;
+
+        return generateChallenge(Purpose.REG, seed, hardDifficulty);
     }
 
-    public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker) {
-        return generateChallenge(Purpose.AUTHENTICATE, jobOwner.toString() + worker.toString(), easyDifficulty);
+    public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
+        String seed = jobOwner.toString() + worker + score;
+
+        return generateChallenge(Purpose.AUTH, seed, easyDifficulty);
     }
 
-    private byte[] randomHash(String message) throws UnsupportedEncodingException {
+    public boolean validateSolution(Solution solution, SecretKey key, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
+        String seed = jobOwner.toString() + worker + score;
+
+        return solution.isValid(key,hash(seed));
+    }
+
+    private byte[] hash(String message) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance(HASH_ALGORITHM);
@@ -83,9 +88,11 @@ public class HashCash {
             //TODO Something went really wrong here, present it to the user in some way?
         }
 
-        byte[] randomBytes = new byte[random.nextInt(32)];
-        md.update(message.getBytes("UTF-8"));
-        md.update(randomBytes);
+        try {
+            md.update(message.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
+            System.out.println("HashCash: UTF-8 is required! Things will fail now.");
+        }
         return md.digest();
     }
 }

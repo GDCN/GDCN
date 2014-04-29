@@ -16,6 +16,10 @@ public class Solution implements Serializable {
         this.challenge = challenge;
     }
 
+    public int getDifficulty() {
+        return challenge.difficulty;
+    }
+
     /**
      * Gets the purpose of the challenge this solution claims to solve.
      * @return The identity of the challenge if it exists, null otherwise.
@@ -35,12 +39,12 @@ public class Solution implements Serializable {
      * @return True if the solution solves the challenge and is authentic.
      * @throws InvalidKeyException
      */
-    public boolean isValid(Key key) throws InvalidKeyException {
-        return isAuthentic(key) && isSolution();
+    public boolean isValid(Key key, byte[] seed) throws InvalidKeyException {
+        return isAuthentic(key,seed) && isSolution();
     }
 
-    private boolean isAuthentic(Key key) throws InvalidKeyException {
-        return challenge.isAuthentic(key);
+    private boolean isAuthentic(Key key, byte[] seed) throws InvalidKeyException {
+        return challenge.isAuthentic(key,seed);
     }
 
     private boolean isSolution() {
