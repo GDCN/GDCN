@@ -207,7 +207,7 @@ public class SelfWorkTest {
             }
 
             @Override
-            public void put(String key, Number160 domain, Data value) {
+            public void put(Number160 key, Number160 domain, Data value) {
 
             }
 

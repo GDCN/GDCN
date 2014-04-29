@@ -40,7 +40,7 @@ public interface NetworkInterface {
 
     void send(String msg);
 
-    void put(String key, Number160 domain, Data value);
+    void put(Number160 key, Number160 domain, Data value);
 
     void get(String key, Number160 domain);
 

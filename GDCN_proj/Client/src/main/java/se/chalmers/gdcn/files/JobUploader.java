@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
@@ -54,7 +55,7 @@ public class JobUploader extends AbstractFileMaster{
                 continue;
             }
             System.out.println("\t"+task);
-            FileDep fileDep = new FileDep(task, "tasks", task, true, 0);
+            FileDep fileDep = new FileDep(task, "tasks", Number160.createHash(task), true, 0);
             dependencyTasks.add(fileDep);
 //            allFileDependencies.add(fileDep); //Since taskMeta shall be sent using MPI instead...
         }

@@ -194,8 +194,8 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
-    public void put(final String key, final Number160 domain, final Data value){
-        FutureDHT futureDHT = peer.put(Number160.createHash(key)).setData(value).setDomainKey(domain).start();
+    public void put(final Number160 key, final Number160 domain, final Data value){
+        FutureDHT futureDHT = peer.put(key).setData(value).setDomainKey(domain).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
 
             @Override
