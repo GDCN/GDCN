@@ -135,11 +135,14 @@ public class TaskManager implements TaskRunner {
                     JobUploader jobUploader = JobUploader.create(jobName, client, taskListener, replicaManager);
                     boolean success = jobUploader.runAndAwait();
 
+                    System.out.println(success);
+
                     if(!success){
                         taskListener.taskFailed(jobName, "Unresolved dependencies");
                     } else {
                         taskListener.taskFinished(jobName);
                     }
+                    System.out.println("jobuploader created");
 
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();

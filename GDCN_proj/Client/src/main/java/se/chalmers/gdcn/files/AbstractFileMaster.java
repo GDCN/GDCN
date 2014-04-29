@@ -121,6 +121,7 @@ abstract class AbstractFileMaster{
      */
     public boolean runAndAwait() throws TaskMetaDataException {
         run();
+        System.out.println("await");
         return await();
     }
 
@@ -128,6 +129,7 @@ abstract class AbstractFileMaster{
      * Attempts to resolve the dependencies found in meta-file.
      */
     private void run() throws TaskMetaDataException {
+        System.out.println("taskMeta null " + taskMeta == null);
         if(taskMeta != null){
             resolveDependencies();
         } else {
@@ -150,10 +152,16 @@ abstract class AbstractFileMaster{
             return false;
         }
 
+        System.out.println(stillStartingUp);
+        System.out.println(unresolvedFiles.size()> 0);
+
+        System.out.println("unresolved Files: " + unresolvedFiles.size());
+
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
                 allDependenciesComplete.await();
+                System.out.println("allDependenciesComplete");
                 lock.unlock();
             } catch (InterruptedException e) {
                 System.out.println("Caught interruption: "+e.getMessage());
@@ -166,6 +174,7 @@ abstract class AbstractFileMaster{
             System.out.println("Test monitor condition before exit loop...");
         }
 
+        System.out.println("await complete");
         client.removeListener(operationListener);
         return true;
     }
@@ -192,9 +201,12 @@ abstract class AbstractFileMaster{
 
         lock.lock();
         stillStartingUp = false;
+        System.out.println("dependencies solved");
         allDependenciesComplete.signalAll();
         lock.unlock();
+
     }
+
 
     /**
      * This file dependency was found locally. What to do?

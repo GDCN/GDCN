@@ -234,6 +234,8 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void push(String jobName) {
         //TODO Move to other class?
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
+
+        System.out.println("push done");
     }
 
     @Override
@@ -304,10 +306,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
-    public void put2(final String key, final String domain, Object value){
-        PutBuilder builder = peer.put(Number160.createHash(key));
+    public void put(final String key, final Number160 domain, Object value){
+        PutBuilder builder = peer.put(Number160.createHash(key)).setDomainKey(domain);
         try {
-            builder.setData(Number160.createHash(domain), new Data(value));
+            builder.setData(new Data(value));
             FutureDHT futureDHT = builder.start();
             futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
                 @Override
@@ -323,9 +325,8 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
 
     @Override
-    public void get2(final String key, final String domain){
-        GetBuilder getBuilder = peer.get(Number160.createHash(key));
-        getBuilder.setContentKey(Number160.createHash(domain));
+    public void get(final String key, final Number160 domain){
+        GetBuilder getBuilder = peer.get(Number160.createHash(key)).setDomainKey(domain);
         FutureDHT futureDHT = getBuilder.start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
@@ -411,5 +412,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         notifier.fireOperationFinished(CommandWord.START,
                 new OperationBuilder<Integer>(peer != null).setResult(port).create());
 
+    }
+
+    @Override
+    public Number160 getID() {
+        return peer.getPeerID();
     }
 }

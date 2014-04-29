@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.ui;
 
+import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import net.tomp2p.peers.PeerAddress;
@@ -186,7 +187,7 @@ public class ConsoleFactory {
                 String key = args.get(0);
                 String domain = args.get(1);
                 String value = args.get(2);
-                client.put2(key, domain, value);
+                client.put(key, Number160.createHash(domain), value);
             }
         });
 
@@ -196,7 +197,7 @@ public class ConsoleFactory {
             public void execute(List<String> args) {
                 String key = args.get(0);
                 String domain = args.get(1);
-                client.get2(key, domain);
+                client.get(key, Number160.createHash(domain));
             }
         });
 
