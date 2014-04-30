@@ -9,6 +9,8 @@ import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.control.ThreadService;
+import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.files.FileManagementUtils;
@@ -39,6 +41,7 @@ import java.util.TimerTask;
 public class TaskPasser extends Passer {
 
     private final WorkerReputationManager workerReputationManager;
+    private final WorkerChallengesManager workerChallengesManager;
     private final ReplicaManager replicaManager;
     private final TaskManager taskManager;
     private final NetworkInterface client;
@@ -46,7 +49,6 @@ public class TaskPasser extends Passer {
     private DataFilesManager dataFilesManager;
     private Timer timer;
 
-    //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
     private SecretKey secretKey = null;
     private HashCash hashCash = null;
 
@@ -76,6 +78,10 @@ public class TaskPasser extends Passer {
                 e.printStackTrace();
             }
         }
+
+        WorkerChallengesManager wcm = dataFilesManager.getWorkerChallengesManager();
+        workerChallengesManager = wcm == null ? new WorkerChallengesManager() : wcm;
+
         try {
             hashCash = new HashCash(secretKey);
         } catch (InvalidKeyException e) {
@@ -100,6 +106,7 @@ public class TaskPasser extends Passer {
 //            workerReputationManager = workerReputationManager1;
 //        }
 
+
         timer = new Timer(true);
 
         timer.schedule(new TimerTask() {
@@ -117,6 +124,7 @@ public class TaskPasser extends Passer {
 
 //        dataFilesManager.saveWorkerNodeManager(workerNodeManager);
         dataFilesManager.saveReplicaManager(replicaManager);
+        dataFilesManager.saveWorkerChallengesManager(workerChallengesManager);
     }
 
 
@@ -155,7 +163,7 @@ public class TaskPasser extends Passer {
                 final Challenge challenge = (Challenge) taskMessage.getActualContent();
                 System.out.println("Challenge received: "+challenge.toString());
 
-                taskManager.submit(new Runnable() {
+                ThreadService.submit(new Runnable() {
                     @Override
                     public void run() {
                         Solution challengeSolution = challenge.solve();
@@ -254,9 +262,11 @@ public class TaskPasser extends Passer {
 
                 System.out.println("Received request for a Challenge");
 
+                int score = workerChallengesManager.getCurrentScore(workerID);
+
                 Challenge challenge = workerReputationManager.hasWorkerReputation(workerID)?
-                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID)
-                        : hashCash.generateRegistrationChallenge(myWorkerID, workerID);
+                        hashCash.generateAuthenticationChallenge(myWorkerID, workerID, score)
+                        : hashCash.generateRegistrationChallenge(myWorkerID, workerID, score);
                 return new TaskMessage(TaskMessageType.CHALLENGE, myWorkerID, challenge);
 
             case REQUEST_TASK:
@@ -264,9 +274,13 @@ public class TaskPasser extends Passer {
                 System.out.println("Received request for a Task");
                 Solution solution = (Solution) taskMessage.getActualContent();
 
+                score = workerChallengesManager.getCurrentScore(workerID);
+
                 try {
-                    if(solution.isValid(secretKey)) {
-                        if(solution.getPurpose() == HashCash.Purpose.REGISTER) {
+                    if(hashCash.validateSolution(solution, myWorkerID, workerID, score)) {
+                        workerChallengesManager.solvedChallenge(workerID,solution);
+
+                        if(solution.getPurpose() == HashCash.Purpose.REG) {
                             workerReputationManager.registerWorker(workerID);
                         }
                         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerID);

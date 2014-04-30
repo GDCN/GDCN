@@ -17,8 +17,11 @@ import utils.TaskHolder;
 import utils.TestUtils;
 import utils.WorkerHolder;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.Semaphore;
 
 /**
  * Created by Leif on 2014-04-01.
@@ -36,6 +39,7 @@ public class ReplicaManagerTest {
     private WorkerID workerA;
     private WorkerID workerB;
     private WorkerID workerC;
+    private WorkerID workerD;
 
     private WorkerID myWorkerID;
 
@@ -47,6 +51,7 @@ public class ReplicaManagerTest {
         workerA = WorkerHolder.getWorkerA();
         workerB = WorkerHolder.getWorkerB();
         workerC = WorkerHolder.getWorkerC();
+        workerD = WorkerHolder.generate();
         myWorkerID = WorkerHolder.getMyWorkerID();
     }
 
@@ -347,6 +352,132 @@ public class ReplicaManagerTest {
 
         //Since workerA has high reputation, should work on same task as B which has no reputation
         assert replicaBoxA.getTaskMeta().getTaskName().equals(replicaBoxB.getTaskMeta().getTaskName());
+    }
+
+    @Test
+    public void excessReplicaTest(){
+        builder.setExpectedReputation(0);
+        builder.setReplicas(1);
+        replicaManager = builder.create();
+
+        final Semaphore counter = new Semaphore(0);
+
+        replicaManager.setValidationListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                counter.release();
+            }
+        });
+
+        loadMeta(taskMetaA);
+        byte[] result = new byte[0];
+
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), result);
+        //Do not validate yet, wait for B
+        assert counter.availablePermits() == 0;
+
+        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), result);
+        //Validate here
+        assert counter.availablePermits() == 1;
+
+        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
+        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), result);
+        //excess replica -> late comer
+
+        assert counter.availablePermits() == 2;
+    }
+
+    @Test
+    public void latecomerTest(){
+        builder.setExpectedReputation(0);
+        builder.setReplicas(1);
+        replicaManager = builder.create();
+
+        final Semaphore validCounter = new Semaphore(0);
+        final Semaphore lateCounter = new Semaphore(0);
+
+        replicaManager.setValidationListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                System.out.println("Arrived "+evt.getPropertyName());
+                if("Validate".equals(evt.getPropertyName())){
+                    validCounter.release();
+                } else if("Late".equals(evt.getPropertyName())){
+                    lateCounter.release();
+                } else {
+                    throw new AssertionError("Unknown: "+evt.getPropertyName());
+                }
+            }
+        });
+
+        loadMeta(taskMetaA);
+        byte[] result = new byte[0];
+
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), result);
+        //Validate here
+
+        assert validCounter.availablePermits() == 1;
+
+        //Late comer
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), result);
+
+        assert lateCounter.availablePermits() == 1;
+    }
+
+    @Test
+    public void advancedLatecomerTest(){
+        builder.setExpectedReputation(0);
+        builder.setReplicas(1);
+        replicaManager = builder.create();
+
+        final Semaphore validCounter = new Semaphore(0);
+        final Semaphore lateCounter = new Semaphore(0);
+
+        replicaManager.setValidationListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                System.out.println("Arrived "+evt.getPropertyName());
+                if("Validate".equals(evt.getPropertyName())){
+                    validCounter.release();
+                } else if("Late".equals(evt.getPropertyName())){
+                    lateCounter.release();
+                } else {
+                    throw new AssertionError("Unknown: "+evt.getPropertyName());
+                }
+            }
+        });
+
+        loadMeta(taskMetaA);
+        byte[] result = new byte[0];
+
+        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
+
+        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), result);
+        //Can validate but chooses to wait for B
+        assert validCounter.availablePermits() == 0;
+
+        //Excess workers arrive
+        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
+        ReplicaBox replicaBoxD = replicaManager.giveReplicaToWorker(workerD);
+
+        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), result);
+        //Validate now, do not wait for excess workers!
+        assert validCounter.availablePermits() == 1;
+
+        //First late comer
+        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), result);
+        assert lateCounter.availablePermits() == 1;
+
+        //Second late comer
+        replicaManager.replicaFinished(replicaBoxD.getReplicaID(), result);
+        assert lateCounter.availablePermits() == 2;
     }
 
     private void promote(WorkerID workerID, int times){

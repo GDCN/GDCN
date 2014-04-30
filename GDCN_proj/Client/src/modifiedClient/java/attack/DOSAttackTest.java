@@ -22,7 +22,7 @@ import java.util.concurrent.Semaphore;
  * Conclusion: It seems to be more expensive to generate a new Sybil node than to create a new Challenge!
  *
  * This attack is ineffective but if it was to be continued:
- * TODO use FutureDiscover to get PeerAddress of jobOwner instead of PeerBean
+ * use FutureDiscover to get PeerAddress of jobOwner instead of PeerBean
  */
 public class DOSAttackTest {
 
@@ -55,7 +55,7 @@ public class DOSAttackTest {
         WorkerID workerIDb = new WorkerID(keyPairGenerator.generateKeyPair().getPublic());
 
         Date beforeChallenge = new Date();
-        hashCash.generateRegistrationChallenge(workerIDa, workerIDb);
+        hashCash.generateRegistrationChallenge(workerIDa, workerIDb, 5);
         Date afterChallenge = new Date();
 
         final long challengeDiff = afterChallenge.getTime()-beforeChallenge.getTime();

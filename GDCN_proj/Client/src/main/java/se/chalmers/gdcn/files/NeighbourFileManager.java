@@ -3,9 +3,11 @@ package se.chalmers.gdcn.files;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -17,6 +19,8 @@ public class NeighbourFileManager {
     //List containing the addresses which are in the neighbour file
     private Set<PeerAddress> fileNeighbours = new HashSet<>();
 
+    private ArrayList<String[]> bootstrapNodes = new ArrayList<>();
+
     //The name of the neighbour file
     private String fileName;
 
@@ -27,15 +31,31 @@ public class NeighbourFileManager {
     //The actual neighbour file
     private File neighbourFile;
 
+    private File bootstrapNodeFile = new File(PathManager.getSettingsPath() + Install.BOOTSTRAP_NODE_NAME);
+
     //Listener used by PeerOwner to know when the addressmap changes in the Peer
     private final PeerMapChangeListener peerMapChangeListener = new PeerMapChangeListener() {
         @Override
         public void peerInserted(PeerAddress peerAddress) {
 
+            Boolean bootstrap = false;
+
+            for(String [] s: bootstrapNodes) {
+                if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
+                        s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
+                    if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
+                        bootstrap = true;
+                    }
+                }
+            }
+
+            if(bootstrap) {
+                return;
+            }
+
             Boolean added = fileNeighbours.add(peerAddress);
 
             if(added) {
-                System.out.println("peer is added " + peerAddress.getID());
                 writeNeighbours(peerAddress);
             }
         }
@@ -47,6 +67,22 @@ public class NeighbourFileManager {
 
         @Override
         public void peerUpdated(PeerAddress peerAddress) {
+
+            Boolean bootstrap = false;
+
+            for(String [] s: bootstrapNodes) {
+                if(s[0].equals(peerAddress.getInetAddress().getHostAddress()) ||
+                        s[0].equals(peerAddress.getInetAddress().getCanonicalHostName())) {
+                    if(peerAddress.portTCP() == Integer.parseInt(s[1])) {
+                        bootstrap = true;
+                    }
+                }
+            }
+
+            if(bootstrap) {
+                return;
+            }
+
 
             fileNeighbours.remove(peerAddress);
             fileNeighbours.add(peerAddress);
@@ -80,6 +116,40 @@ public class NeighbourFileManager {
 
         fileNeighbours.addAll(readNeighbours());
 
+        bootstrapNodes = readBootstrapNodes();
+
+    }
+
+    private ArrayList<String[]> readBootstrapNodes() {
+
+        ArrayList<String[]> bootNodes = new ArrayList<>();
+
+        if(!bootstrapNodeFile.exists()) {
+            return bootNodes;
+        }
+
+        String line;
+        String[] address;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(bootstrapNodeFile));
+
+            try {
+                while((line = in.readLine()) != null) {
+
+                    address = line.split(" ");
+
+                    bootNodes.add(new String[]{address[0], address[1]});
+                }
+            } finally {
+                in.close();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return bootNodes;
     }
 
 
@@ -100,9 +170,13 @@ public class NeighbourFileManager {
 
             output = output + peerAddress.portTCP() + "\n";
 
-            out.write(output);
+            try {
+                out.write(output);
+            }
 
-            out.close();
+            finally {
+                out.close();
+            }
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -120,15 +194,20 @@ public class NeighbourFileManager {
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
-            while((line = in.readLine()) != null) {
 
-                address = line.split(" ");
+            try {
+                while((line = in.readLine()) != null) {
 
-                fileNeigh.add(new PeerAddress(new Number160(address[0]), address[1],
-                        Integer.parseInt(address[2]),Integer.parseInt(address[2])));
+                    address = line.split(" ");
+
+                    fileNeigh.add(new PeerAddress(new Number160(address[0]), address[1],
+                            Integer.parseInt(address[2]),Integer.parseInt(address[2])));
+                }
+            }
+            finally {
+                in.close();
             }
 
-            in.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,27 +227,29 @@ public class NeighbourFileManager {
 
         try {
             BufferedReader in = new BufferedReader(new FileReader(neighbourFile));
-            while((line = in.readLine()) != null) {
+            try {
+                while((line = in.readLine()) != null) {
 
-                address = line.split(" ");
+                    address = line.split(" ");
 
-                if(!found && new Number160(address[0]).equals(peerAddress.getID())) {
-                    output = output + (peerAddress.getID().toString() + " ");
+                    if(!found && new Number160(address[0]).equals(peerAddress.getID())) {
+                        output = output + (peerAddress.getID().toString() + " ");
 
-                    output = output + peerAddress.getInetAddress().getHostAddress() + " ";
+                        output = output + peerAddress.getInetAddress().getHostAddress() + " ";
 
-                    output = output + peerAddress.portTCP() + "\n";
+                        output = output + peerAddress.portTCP() + "\n";
 
-                    found = true;
+                        found = true;
 
-                } else {
-                    output = line + "\n";
+                    } else {
+                        output = line + "\n";
+                    }
                 }
-
-
             }
 
-            in.close();
+            finally {
+                in.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -176,9 +257,14 @@ public class NeighbourFileManager {
         try {
             BufferedWriter out = new BufferedWriter(new FileWriter(neighbourFile));
 
-            out.write(output);
+            try {
+                out.write(output);
+            }
 
-            out.close();
+            finally {
+                out.close();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -208,4 +294,7 @@ public class NeighbourFileManager {
 
     }
 
+    public ArrayList<String[]> getBootstrapNodes() {
+        return bootstrapNodes;
+    }
 }

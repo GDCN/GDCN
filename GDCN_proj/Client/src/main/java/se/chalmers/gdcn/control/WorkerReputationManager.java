@@ -138,5 +138,4 @@ public class WorkerReputationManager implements Serializable{
 
         return registeredWorkers.get(worker);
     }
-
 }

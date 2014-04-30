@@ -1,10 +1,10 @@
 package manualTests;
 
 import com.google.gson.Gson;
-import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.compare.QualityControl;
+import se.chalmers.gdcn.compare.TrustQuality;
+import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
-import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.utils.ByteArray;
 
@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Created by joakim on 4/16/14.
@@ -57,9 +58,9 @@ public class QualityControlManual {
 
         System.out.println("\t-------------------");
 
-        Map<ByteArray, Trust> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap);
+        Map<ByteArray,TrustQuality> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap);
 
-        for (Map.Entry<ByteArray, Trust> entry : qualityMap.entrySet()) {
+        for (Entry<ByteArray, TrustQuality> entry : qualityMap.entrySet()) {
             System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue());
         }
     }

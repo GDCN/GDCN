@@ -25,6 +25,7 @@ public class PathManager {
     private static String jobPath = null;
     private static String settingsPath = null;
 
+    //TODO use polymorphism instead?
     private final boolean isWorker;
 
     /**

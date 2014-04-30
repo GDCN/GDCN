@@ -28,7 +28,8 @@ public class WorkerTimeoutManager implements Serializable{
     }
 
     public void activate(WorkerID workerID){
-        if(passiveWorkers.remove(workerID)){
+        if(!activeWorkers.contains(workerID)){
+            passiveWorkers.remove(workerID);
             activeWorkers.add(workerID);
         }
         workTimer.reset(workerID, Time.futureDate(unit, timeValue));

@@ -162,6 +162,11 @@ public class SelfWorkTest {
             }
 
             @Override
+            public void bootstrap() {
+
+            }
+
+            @Override
             public void put(String name, Data value) {
 
             }

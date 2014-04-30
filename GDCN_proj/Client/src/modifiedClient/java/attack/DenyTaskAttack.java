@@ -159,6 +159,9 @@ public class DenyTaskAttack {
             public void bootstrap(String host, int port) {}
 
             @Override
+            public void bootstrap() {}
+
+            @Override
             public List<PeerAddress> getNeighbours() {return null;}
 
             @Override

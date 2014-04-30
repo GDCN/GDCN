@@ -4,6 +4,7 @@ import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.compare.EqualityControl;
 import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.compare.Trust;
+import se.chalmers.gdcn.compare.TrustQuality;
 import se.chalmers.gdcn.control.TaskRunner;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
@@ -19,6 +20,8 @@ import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
 import se.chalmers.gdcn.utils.Time;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -39,6 +42,7 @@ public class ReplicaManager implements Serializable, Cloneable{
 
     private transient TaskRunner runner;
 
+    private final Archive archive;
     private final WorkerReputationManager workerReputationManager;
     private final WorkerTimeoutManager workerTimeoutManager;
     private final SerializableReplicaTimer replicaTimer;
@@ -50,7 +54,9 @@ public class ReplicaManager implements Serializable, Cloneable{
     private final Map<WorkerID, Set<TaskData>> assignedTasks = new HashMap<>();
     private final TreeSet<TaskCompare> taskDatas = new TreeSet<>(new TaskComparator()); // Used for decision making based on reputation
 
+    //For testing:
     private boolean workSelfIfRequired = true;
+    private transient PropertyChangeListener validationListener = null;
 
     public static class ReplicaID extends Identifier{
         public ReplicaID(String id) {
@@ -71,6 +77,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         final Set<ReplicaID> failedReplicas = new HashSet<>();
         final Set<ReplicaID> outdatedReplicas = new HashSet<>();
         final Set<ReplicaID> pendingReplicas = new HashSet<>();
+        final Set<ReplicaID> excessPendingReplicas = new HashSet<>();
         final Map<ReplicaID, byte[]> returnedReplicas = new HashMap<>();
     }
 
@@ -88,6 +95,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         this.workerReputationManager = workerReputationManager;
         //TODO calibrate: are these acceptable values?
         workerTimeoutManager = new WorkerTimeoutManager(updateInterval*2, timeUnit, calendarValue*3);
+        archive = new Archive();
 
         this.runner = runner;
         resumeTimer();
@@ -95,6 +103,14 @@ public class ReplicaManager implements Serializable, Cloneable{
 
     public synchronized void setTaskManager(TaskRunner taskManager) {
         this.runner = taskManager;
+    }
+
+    /**
+     * Only for testing!!!
+     * @param validationListener validation listener
+     */
+    public void setValidationListener(PropertyChangeListener validationListener) {
+        this.validationListener = validationListener;
     }
 
     public TaskRunner getRunner() {
@@ -204,7 +220,12 @@ public class ReplicaManager implements Serializable, Cloneable{
             taskResultData = new TaskResultData();
             resultDataMap.put(taskData.taskID(), taskResultData);
         }
-        taskResultData.pendingReplicas.add(replicaID);
+
+        if(taskData.enoughReturned()){
+            taskResultData.excessPendingReplicas.add(replicaID);
+        } else {
+            taskResultData.pendingReplicas.add(replicaID);
+        }
 
         return replicaBox;
     }
@@ -222,23 +243,6 @@ public class ReplicaManager implements Serializable, Cloneable{
         return replica.getReplicaBox().getResultKey();
     }
 
-//    private TaskResultData returned(ReplicaID replicaID){
-//        //TODO handle latecomer
-//        TaskData taskData = taskDataMap.get(replicaID);
-//        if(taskData == null){
-//            throw new IllegalStateException("Couldn't find TaskData in taskDataMap!");
-//        }
-//
-//        TaskResultData resultData = resultDataMap.get(taskData.taskID());
-//
-//        if(! resultData.pendingReplicas.remove(replicaID)){
-//            if(! resultData.outdatedReplicas.remove(replicaID)){
-//                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-//            }
-//        }
-//        return resultData;
-//    }
-
     /**
      * This method should only be used externally for testing!
      * Is called internally.
@@ -254,12 +258,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
 
         taskDatas.remove(taskData);
         taskData.timedOut(replicaMap.get(replicaID).getWorker());
@@ -276,12 +275,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
 
         taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
@@ -302,17 +296,26 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
 
-        if(! resultData.pendingReplicas.remove(replicaID)){
-            if(! resultData.outdatedReplicas.remove(replicaID)){
-                throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
-            }
-        }
+        awaitingReplica(resultData, replicaID);
         taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
         taskDatas.add(taskData);
 
         resultData.returnedReplicas.put(replicaID, result);
         decideValidate(replicaID, taskData, resultData);
+    }
+
+    private void awaitingReplica(TaskResultData resultData, ReplicaID replicaID){
+        if(resultData.pendingReplicas.remove(replicaID)){
+           return;
+        }
+        if(resultData.outdatedReplicas.remove(replicaID)){
+            return;
+        }
+        if(resultData.excessPendingReplicas.remove(replicaID)){
+            return;
+        }
+        throw new IllegalStateException("Expected replicaID to be in pendingReplicas or outdatedReplicas!");
     }
 
     private void decideValidate(ReplicaID replicaID, TaskData taskData, TaskResultData resultData){
@@ -330,10 +333,20 @@ public class ReplicaManager implements Serializable, Cloneable{
         //Can validate
 
         if(resultData.pendingReplicas.size() > 0){
-            //TODO wait for them to return/timeout?
+            //Wait for some more replicas that was given previously
+            //However don't wait on "excess" replicas
+            return;
         }
 
-        validateResults(taskData, resultData);
+        CanonicalResult archivedResult = archive.getArchivedResult(taskData.taskID());
+        if(archivedResult == null){
+            //First validation
+            validateResults(taskData, resultData);
+        } else {
+            //Has validated before: compare previous result
+            ByteArray byteArray = new ByteArray(resultData.returnedReplicas.get(replicaID));
+            validateLatecomer(archivedResult, taskData, replicaID, byteArray);
+        }
     }
 
     private float sumActiveReputation(){
@@ -404,17 +417,125 @@ public class ReplicaManager implements Serializable, Cloneable{
     }
 
     private void validateResults(TaskData taskData, TaskResultData resultData){
-        String jobName = taskData.getJobName();
 
+        String jobName = taskData.getJobName();
         Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
+
+        if(validationListener != null){
+            //For testing:
+            validationListener.propertyChange(new PropertyChangeEvent(this, "Validate", taskData, resultMap));
+            byte[] bytes = resultData.returnedReplicas.values().iterator().next();
+            archive.archiveResult(taskData, new ByteArray(bytes), 1, new HashSet<WorkerID>());
+            return;
+        }
+        if(resultMap.size() == 0){
+            //Happens when all workers say a task failed
+            return;
+        }
+
+        Set<WorkerID> correctWorkers = new HashSet<>();
+        double bestQuality = 0;
+        ByteArray bestResult = null;
+
+        //TODO Implement choice of automatic or manual result validation
         try {
-            Map<ByteArray, Trust> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
-            //TODO Implement actual reward and punishment of peers
+            Map<ByteArray,TrustQuality> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
+
+            for(ByteArray byteArray : trustMap.keySet()){
+                TrustQuality trust = trustMap.get(byteArray);
+                Set<ReplicaID> replicaIDs = resultMap.get(byteArray);
+
+                if(trust.getTrust().equals(Trust.TRUSTWORTHY)){
+                    bestQuality = trust.getQuality();
+                    bestResult = byteArray;
+                }
+
+                for(ReplicaID replicaID:replicaIDs){
+                    WorkerID worker = replicaMap.get(replicaID).getWorker();
+                    switch (trust.getTrust()){
+                        case TRUSTWORTHY:
+                            workerReputationManager.promoteWorker(worker);
+                            correctWorkers.add(worker);
+                            break;
+                        case DECEITFUL:
+                            workerReputationManager.reportWorker(worker);
+                            break;
+                        case UNKNOWN:
+                            //ignore
+                            break;
+                    }
+                }
+            }
         }
         catch (IOException e) {
             e.printStackTrace();
         }
-        //TODO Implement choice of automatic or manual result validation
+
+        //Clean up and store data:
+        if(bestResult != null){
+            //OBS currently, this happens even when there are some workers who say a replica failed
+            archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);
+            resultData.returnedReplicas.clear();
+        } else {
+            //Notify
+            throw new IllegalStateException("No data was acceptable, probably an error in quality function");
+        }
+    }
+
+    private void validateLatecomer(CanonicalResult archivedResult, TaskData taskData, ReplicaID replicaID, ByteArray byteArray){
+        if(validationListener != null){
+            //For testing:
+            validationListener.propertyChange(new PropertyChangeEvent(this, "Late", taskData, replicaID));
+            return;
+        }
+
+        try {
+            WorkerID worker = replicaMap.get(replicaID).getWorker();
+            boolean resultEqual = archivedResult.compareNewWorker(byteArray, worker);
+
+            if(resultEqual){
+                workerReputationManager.promoteWorker(worker);
+                archivedResult.getAdvocatingWorkers().add(worker);
+            } else {
+                TrustQuality trustQuality = QualityControl.singleQualityTest(taskData.getJobName(), taskData.getTaskMeta(), byteArray);
+
+                switch (trustQuality.getTrust()){
+                    case TRUSTWORTHY:
+                        //continue down
+                        break;
+                    case DECEITFUL:
+                        workerReputationManager.reportWorker(worker);
+                        return;
+                    case UNKNOWN:
+                        //Might be some error with test code.
+                        //TODO report error
+                        return;
+                }
+
+                double lateQuality = trustQuality.getQuality();
+
+                if(archivedResult.getQuality() > lateQuality){
+                    workerReputationManager.reportWorker(worker);
+
+                } else if(archivedResult.getQuality() < lateQuality){
+                    workerReputationManager.promoteWorker(worker);
+
+                    Set<WorkerID> advocating = archivedResult.getAdvocatingWorkers();
+                    for(WorkerID w : advocating){
+                        workerReputationManager.reportWorker(w);
+                    }
+                    HashSet<WorkerID> workerIDs = new HashSet<>();
+                    workerIDs.add(worker);
+                    archive.archiveResult(taskData, byteArray, lateQuality, workerIDs);
+
+                } else {
+                    //Equal quality but different result
+                    workerReputationManager.promoteWorker(worker);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -440,6 +561,7 @@ public class ReplicaManager implements Serializable, Cloneable{
     }
 
     /**
+     * TODO use this method to check for uploaded results
      * @return Map with pending replicas and respective location key. Results may or not be uploaded in DHT
      */
     public synchronized Map<ReplicaID, Number160> pendingResults(){
