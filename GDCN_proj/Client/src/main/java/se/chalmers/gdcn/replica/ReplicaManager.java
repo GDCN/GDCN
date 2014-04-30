@@ -435,7 +435,7 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         //TODO Implement choice of automatic or manual result validation
         try {
-            Map<ByteArray,TrustQuality> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap);
+            Map<ByteArray,TrustQuality> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap.keySet());
 
             for(ByteArray byteArray : trustMap.keySet()){
                 TrustQuality trust = trustMap.get(byteArray);

@@ -58,10 +58,11 @@ public class QualityControlManual {
 
         System.out.println("\t-------------------");
 
-        Map<ByteArray,TrustQuality> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap);
+        Map<ByteArray,TrustQuality> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap.keySet());
 
         for (Entry<ByteArray, TrustQuality> entry : qualityMap.entrySet()) {
-            System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue());
+            System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue().getTrust()
+                    + " and quality " + entry.getValue().getQuality());
         }
     }
 }

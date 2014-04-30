@@ -3,7 +3,6 @@ package se.chalmers.gdcn.compare;
 import se.chalmers.gdcn.control.ThreadService;
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;
-import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.taskbuilder.Validifier;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.ValidityListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -20,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private Map<ByteArray, Set<ReplicaID>> resultMap;
+    private Set<ByteArray> resultSet;
     private Map<ByteArray, TrustQuality> trustMap;
     private ByteArray singleResult;
     private TrustQuality singleTrust;
@@ -37,12 +36,12 @@ public class QualityControl {
      * A method for testing the quality and validity of result data, using a job owner defined program
      * @param jobName the name of the job for the task
      * @param taskMeta the task metadata
-     * @param resultMap the map of results to test quality
+     * @param resultSet the set of results to test quality
      * @return a map of the result data with their trust level as values
      * @throws IOException
      */
-    public static Map<ByteArray, TrustQuality> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
-        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
+    public static Map<ByteArray, TrustQuality> compareQuality(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException{
+        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
         return qualityControl.compare();
     }
 
@@ -51,11 +50,11 @@ public class QualityControl {
         return qualityControl.quality();
     }
 
-    private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
+    private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
         this(jobName, taskMeta);
         trustMap = new HashMap<>();
-        this.resultMap = resultMap;
-        waitForAll = new CountDownLatch(resultMap.size());
+        this.resultSet = resultSet;
+        waitForAll = new CountDownLatch(resultSet.size());
     }
 
     private QualityControl(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException {
@@ -75,9 +74,9 @@ public class QualityControl {
 
     private Map<ByteArray, TrustQuality> compare() throws IOException {
         int resultID = 0;
-        for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
-            String resultFile = writeResultFile(entry.getKey().getData(), resultID++);
-            Listener listener = new Listener(entry.getKey());
+        for (ByteArray resultData : resultSet) {
+            String resultFile = writeResultFile(resultData.getData(), resultID++);
+            Listener listener = new Listener(resultData);
             Validifier validifier = new Validifier(listener);
             ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
 
@@ -148,9 +147,9 @@ public class QualityControl {
     }
 
     private synchronized void addRemaining(String reason) {
-        for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
-            if (!trustMap.containsKey(entry.getKey())) {
-                trustMap.put(entry.getKey(), TrustQuality.unknown(reason));
+        for (ByteArray resultData : resultSet) {
+            if (!trustMap.containsKey(resultData)) {
+                trustMap.put(resultData, TrustQuality.unknown(reason));
             }
         }
     }
