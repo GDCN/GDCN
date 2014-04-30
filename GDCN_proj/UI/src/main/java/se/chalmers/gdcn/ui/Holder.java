@@ -10,7 +10,7 @@ import java.util.Map;
  * Immutable class to hold commands for Console
 */
 public class Holder {
-    private final Map<String, UICommand> commandMap = new HashMap<String, UICommand>();
+    private final Map<String, UICommand> commandMap = new HashMap<>();
 
     public Holder(Map<String, UICommand> commandMap){
         this.commandMap.putAll(commandMap);

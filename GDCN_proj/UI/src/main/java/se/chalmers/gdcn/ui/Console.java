@@ -54,7 +54,7 @@ public class Console implements PropertyChangeListener{
             @Override
             public void execute(List<String> args) {
                 //TODO use TreeSet instead?
-                List<WordInterface> words = new ArrayList<WordInterface>();
+                List<WordInterface> words = new ArrayList<>();
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
 
@@ -130,7 +130,7 @@ public class Console implements PropertyChangeListener{
                 print(">> ");
                 String line = bufferedReader.readLine();
                 String[] words = line.split("\\s");
-                List<String> wordList = new ArrayList<String>(Arrays.asList(words));
+                List<String> wordList = new ArrayList<>(Arrays.asList(words));
                 String cmd = wordList.remove(0);
 
                 try{

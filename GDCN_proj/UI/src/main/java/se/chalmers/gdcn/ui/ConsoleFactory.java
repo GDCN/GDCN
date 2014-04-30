@@ -36,7 +36,7 @@ public class ConsoleFactory {
      * @return
      */
     private static Map<String, UICommand> createCommands(final ClientInterface client){
-        Map<String, UICommand> commandMap = new HashMap<String, UICommand>();
+        Map<String, UICommand> commandMap = new HashMap<>();
 
         commandMap.put(CommandWord.START.getName(), new UICommand() {
             @Override

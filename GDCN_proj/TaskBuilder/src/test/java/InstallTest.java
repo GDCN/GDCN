@@ -86,7 +86,7 @@ public class InstallTest {
             return false;
         }
 
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
 
         paths.add(properties.getProperty("data_path"));
         paths.add(properties.getProperty("bin_path"));

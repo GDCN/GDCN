@@ -63,9 +63,9 @@ public class Task implements Runnable{
         List<String> command = new ArrayList<>();
         command.addAll(Arrays.asList(commandInit));
 
-        for (int i = 0; i < trustedPackages.length; i++) {
+        for (String trustedPackage : trustedPackages) {
             command.add("-trust");
-            command.add(trustedPackages[i]);
+            command.add(trustedPackage);
         }
 
         System.out.println("\nCompile command:");
@@ -111,7 +111,7 @@ public class Task implements Runnable{
      * Executes a task
      */
     public void execute(){
-        List<String> command = new ArrayList<String>();
+        List<String> command = new ArrayList<>();
         command.add(compiledModule());
         final String resultFile = pathManager.getResultFilePath(taskName);
         command.add(resultFile);
