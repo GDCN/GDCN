@@ -34,6 +34,35 @@ public class BinaryTest {
     }
 
     @Test
+    public void testPrint(){
+
+        byte[] bytes = new byte[2];
+        System.out.println(ByteArray.print(bytes));
+        assert "0x0000".equals(ByteArray.print(bytes));
+
+        bytes[0] = 15;
+        System.out.println(ByteArray.print(bytes));
+        assert "0x0f00".equals(ByteArray.print(bytes));
+
+        bytes[1] = 10;
+        System.out.println(ByteArray.print(bytes));
+        assert "0x0f0a".equals(ByteArray.print(bytes));
+
+        bytes[0] = 127;
+        System.out.println(ByteArray.print(bytes));
+        assert "0x7f0a".equals(ByteArray.print(bytes));
+
+        bytes[0] = -1;
+        System.out.println(ByteArray.print(bytes));
+        assert "0xff0a".equals(ByteArray.print(bytes));
+
+        bytes[0] = -128;
+        System.out.println(ByteArray.print(bytes));
+        assert "0x800a".equals(ByteArray.print(bytes));
+    }
+
+
+    @Test
     public void testBytes(){
         final byte[] bytes = generate();
         final Number160 key = Number160.createHash("SomeReallyGoodKey");

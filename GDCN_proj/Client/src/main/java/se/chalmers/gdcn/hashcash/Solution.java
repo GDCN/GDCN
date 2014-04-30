@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.hashcash;
 
+import se.chalmers.gdcn.utils.ByteArray;
+
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -64,7 +66,7 @@ public class Solution implements Serializable {
     @Override
     public String toString() {
         return "Solution{\n" +
-                "\ttoken='" + token + "',\n" +
+                "\ttoken='" + ByteArray.print(token) + "',\n" +
                 "\tchallenge=" + challenge + '\n' +
                 '}';
     }

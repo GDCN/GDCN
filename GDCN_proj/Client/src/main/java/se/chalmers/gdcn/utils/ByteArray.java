@@ -19,14 +19,6 @@ public class ByteArray implements Serializable {
         computedHashCode = Arrays.hashCode(data);
     }
 
-    public static String print(byte[] bytes){
-        String nice = "0x";
-        for(byte b : bytes){
-            nice += Integer.toHexString(b);
-        }
-        return nice;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -47,7 +39,35 @@ public class ByteArray implements Serializable {
         return computedHashCode;
     }
 
+    @Override
+    public String toString() {
+        return print(data);
+    }
+
     public byte[] getData() {
         return data;
     }
+
+
+    public static String print(byte[] bytes){
+        String nice = "0x";
+        for(byte b : bytes){
+            int small = b & 0x0f;
+            int large = (b & 0xf0) >> 4;
+            nice += charOfByte(large) + charOfByte(small);
+        }
+        return nice;
+    }
+
+    private static String charOfByte(int b){
+        if(b < 0 || b > 15){
+            throw new IllegalArgumentException("Byte "+b);
+        }
+        if(b<10){
+            return ""+b;
+        } else {
+            return Integer.toHexString(b);
+        }
+    }
+
 }
