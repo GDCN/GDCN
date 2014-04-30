@@ -113,10 +113,6 @@ public class ReplicaManager implements Serializable, Cloneable{
         this.validationListener = validationListener;
     }
 
-    public TaskRunner getRunner() {
-        return runner;
-    }
-
     public WorkerReputationManager getWorkerReputationManager() {
         return workerReputationManager;
     }
@@ -191,7 +187,6 @@ public class ReplicaManager implements Serializable, Cloneable{
         TaskData taskData = (TaskData) notGiven.floor(reputationCompare);
         if(taskData == null){
             //Warning, might not fulfill reputation demand!
-            //TODO check condition!
             taskData = (TaskData) notGiven.ceiling(reputationCompare);
         }
 
@@ -201,6 +196,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         taskDatas.add(taskData);
 
         ReplicaBox replicaBox = new ReplicaBox(taskMeta);
+        //ReplicaBox constructor randomizes a new ID. Must check for no reuse.
         while (replicaMap.containsKey(replicaBox.getReplicaID())){
             replicaBox = new ReplicaBox(taskMeta);
         }
