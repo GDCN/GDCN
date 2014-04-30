@@ -13,7 +13,6 @@ public class HashCash {
     public final static String HASH_ALGORITHM = "SHA-1";
     
     public final int hardDifficulty, easyDifficulty;
-    private final SecureRandom random;
     private final SecretKey key;
 
     public static enum Purpose { REG, AUTH, NONE }
@@ -43,7 +42,6 @@ public class HashCash {
         this.key = key;
         hardDifficulty = hard;
         easyDifficulty = easy;
-        random = new SecureRandom();
     }
 
     public Challenge generateChallenge(String seed, int difficulty) {
@@ -72,7 +70,7 @@ public class HashCash {
         return generateChallenge(Purpose.AUTH, seed, easyDifficulty);
     }
 
-    public static boolean validateSolution(Solution solution, SecretKey key, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
+    public boolean validateSolution(Solution solution, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
         byte[] seed = hash(jobOwner.toString() + worker + score);
 
         return solution.isValid(key,seed);

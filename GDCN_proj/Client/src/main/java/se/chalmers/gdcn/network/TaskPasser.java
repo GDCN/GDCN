@@ -277,7 +277,7 @@ public class TaskPasser extends Passer {
                 score = workerChallengesManager.getCurrentScore(workerID);
 
                 try {
-                    if(HashCash.validateSolution(solution, secretKey, myWorkerID, workerID, score)) {
+                    if(hashCash.validateSolution(solution, myWorkerID, workerID, score)) {
                         workerChallengesManager.solvedChallenge(workerID,solution);
 
                         if(solution.getPurpose() == HashCash.Purpose.REG) {
