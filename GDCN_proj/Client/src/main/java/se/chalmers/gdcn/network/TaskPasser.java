@@ -49,7 +49,6 @@ public class TaskPasser extends Passer {
     private DataFilesManager dataFilesManager;
     private Timer timer;
 
-    //TODO secretKey should probably be stored in a better place (and be stored in a file between runs).
     private SecretKey secretKey = null;
     private HashCash hashCash = null;
 
