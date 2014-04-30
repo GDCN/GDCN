@@ -1,6 +1,7 @@
-import se.chalmers.gdcn.hashcash.*;
-import se.chalmers.gdcn.network.WorkerID;
+package se.chalmers.gdcn.hashcash;
+
 import org.testng.annotations.Test;
+import se.chalmers.gdcn.network.WorkerID;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;

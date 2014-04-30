@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.hashcash;
 
+import javax.crypto.Mac;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
@@ -7,7 +8,6 @@ import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.crypto.Mac;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Random;
@@ -21,16 +21,14 @@ public class Challenge implements Serializable {
     private final byte[] seed, mac;
     public final int difficulty;
 
-    //TODO Remove this, it is only used for testing purposes!
-    public Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
+    Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
         this.purpose = HashCash.Purpose.NONE;
         this.seed = seed.clone();
         this.difficulty = difficulty;
         this.mac = mac.clone();
     }
 
-    //TODO Remove this, it is only used for testing purposes!
-    public byte[] getMAC() {
+    byte[] getMAC() {
         return mac.clone();
     }
 

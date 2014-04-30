@@ -103,7 +103,10 @@ public class TaskManager implements TaskRunner {
                     ThreadService.submit(task);
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
-                    //TODO handle job owner error
+                    if(subjectListener != null) {
+                        subjectListener.taskFailed(taskMeta.getTaskName(), e.getMessage());
+                    }
+                    taskListener.taskFailed(taskMeta.getTaskName(), e.getMessage());
                 }
 
             }

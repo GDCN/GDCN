@@ -32,7 +32,6 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void ifFileDoNotExist(FileDep fileDep) {
-        //TODO better output?
         System.out.println("Didn't find file " + FileManagementUtils.pathTo(pathManager, fileDep));
         client.get(fileDep.getDhtKey());
         //Handling OperationFinished is done in AbstractFileMaster
@@ -47,61 +46,4 @@ public class Downloader extends AbstractFileMaster {
         Data data = (Data) result;
         FileManagementUtils.toFile(file, data.getData());
     }
-
-//    private static TaskMeta resolveMetaFile(String taskName, NetworkInterface client, final TaskListener taskListener, PathManager pathManager) throws TaskMetaDataException {
-//        final File file = new File(pathManager.taskMetaDir() + taskName + ".json");
-//        if(file.exists()){
-//            System.out.println("Downloader: YAY file exist!");
-//            try {
-//                return AbstractFileMaster.readMetaFile(file);
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//                throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
-//            }
-//        }
-//
-//        final String key = taskName+".json";
-//        final Semaphore operationFinished = new Semaphore(0);
-//
-//        PropertyChangeListener localListener = new PropertyChangeListener() {
-//            @Override
-//            public void propertyChange(PropertyChangeEvent evt) {
-//                if(! (evt instanceof OperationFinishedEvent)){
-//                    return;
-//                }
-//                OperationFinishedEvent event = (OperationFinishedEvent) evt;
-//                if(event.getCommandWord() != CommandWord.GET){
-//                    return;
-//                }
-//                if(! event.getOperation().getKey().equals(key) ){
-//                    return;
-//                }
-//                if(event.getOperation().isSuccess()){
-//                    Data data = (Data) event.getOperation().getResult();
-//                    toFile(file, data.getData());
-//                } else {
-//                    System.out.println("WARNING: "+key+" wasn't found. Fail");
-//                }
-//                operationFinished.release();
-//            }
-//        };
-//        client.addListener(localListener);
-//
-//        client.get(key);
-//        operationFinished.acquireUninterruptibly();
-//        client.removeListener(localListener);
-//
-//        if(file.exists()){
-//            System.out.println("Downloader: YAY file exist after download!");
-//            try {
-//                return AbstractFileMaster.readMetaFile(file);
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//                throw new TaskMetaDataException("Error reading file: "+file.getAbsolutePath());
-//            }
-//        } else {
-//            throw new TaskMetaDataException("Unable to resolve key: "+key);
-//        }
-//    }
-
 }

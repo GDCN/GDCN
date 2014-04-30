@@ -29,8 +29,7 @@ public class Solution implements Serializable {
         return challenge.purpose;
     }
 
-    //TODO Remove, this is only used for testing purposes...
-    public byte[] getToken() {
+    byte[] getToken() {
         return token.clone();
     }
 

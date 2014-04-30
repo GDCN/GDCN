@@ -73,11 +73,6 @@ abstract class AbstractFileMaster{
 
         client.addListener(operationListener);
 
-        //TODO do locally
-//            if(! taskName.equals(taskMeta.taskName)){
-//                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
-//            }
-
         for(FileDep fileDep : taskMeta.getDependencies()){
             unresolvedFiles.put(fileDep.getDhtKey(), fileDep);
         }
@@ -244,7 +239,6 @@ abstract class AbstractFileMaster{
         String key = event.getOperation().getKey().toString();
 
         if(!unresolvedFiles.containsKey(key)){
-            //TODO redirect output?
             System.out.println("FileDep with key ("+key+") wasn't found in Map for task");
             //Might be from other request unrelated with this FileMaster
             return;
