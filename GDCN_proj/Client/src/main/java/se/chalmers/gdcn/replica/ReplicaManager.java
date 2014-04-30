@@ -487,7 +487,7 @@ public class ReplicaManager implements Serializable, Cloneable{
 
             if(resultEqual){
                 workerReputationManager.promoteWorker(worker);
-
+                archivedResult.getAdvocatingWorkers().add(worker);
             } else {
                 TrustQuality trustQuality = QualityControl.singleQualityTest(taskData.getJobName(), taskData.getTaskMeta(), byteArray);
 
