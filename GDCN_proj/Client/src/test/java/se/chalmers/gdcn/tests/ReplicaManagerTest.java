@@ -270,23 +270,6 @@ public class ReplicaManagerTest {
         assert replicaManager.pendingReplicaIDs().size() == 0;
     }
 
-//    @Test
-//    public void latecomerTest(){
-//        loadMeta(taskMetaA);
-//        ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
-//        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
-//        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
-//
-//        replicaManager.replicaOutdated(replicaBoxA.getReplicaID());
-//
-//        replicaManager.replicaFinished(replicaBoxB.getReplicaID(), new byte[1]);
-//        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), new byte[1]);
-//        //TODO assert validation is called
-//
-//        replicaManager.replicaFinished(replicaBoxA.getReplicaID(), new byte[1]);
-//        //TODO assert replicaManager responds as wanted
-//    }
-
     @Test
     public void serializedTimerTestOnReplicaManager() throws IOException, ClassNotFoundException {
         builder.setTimeoutLength(150, Time.MILLISECOND);
