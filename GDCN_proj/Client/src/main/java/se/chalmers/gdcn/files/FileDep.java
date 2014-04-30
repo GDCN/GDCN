@@ -67,6 +67,9 @@ public class FileDep implements Serializable {
         return fileLocation;
     }
 
+    public void setDhtKey(Number160 dhtKey) {
+        this.dhtKey = dhtKey;
+    }
     public Number160 getDhtKey() {
         return dhtKey;
     }

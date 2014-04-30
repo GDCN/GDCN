@@ -103,13 +103,7 @@ abstract class AbstractFileMaster{
 
             Gson gson = new Gson();
 
-            System.out.println("preparing t");
-
-            TaskMeta t = gson.fromJson(reader, TaskMeta.class);
-
-            System.out.println("t ready");
-
-            return t;
+            return gson.fromJson(reader, TaskMeta.class);
 
         } finally {
             if (reader != null) {
@@ -159,6 +153,7 @@ abstract class AbstractFileMaster{
         }
 
 
+
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
@@ -198,6 +193,7 @@ abstract class AbstractFileMaster{
                 ifFileDoNotExist(fileDep);
             }
         }
+
 
         lock.lock();
         stillStartingUp = false;
@@ -252,7 +248,7 @@ abstract class AbstractFileMaster{
             return;
         }
 
-        String key = event.getOperation().getKey().toString();
+        Number160 key = new Number160(event.getOperation().getKey().toString());
 
         if(!unresolvedFiles.containsKey(key)){
             //TODO redirect output?
