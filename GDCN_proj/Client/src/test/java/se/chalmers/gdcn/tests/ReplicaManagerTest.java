@@ -206,6 +206,7 @@ public class ReplicaManagerTest {
         builder.setTimeoutLength(1, Time.MILLISECOND);
         builder.setTimerUpdateInterval(15, Time.MILLISECOND);
         replicaManager = builder.create();
+        replicaManager.setWorkSelfIfRequired(false);
 
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
@@ -281,6 +282,7 @@ public class ReplicaManagerTest {
         Data serialized = new Data(replicaManager);
 
         ReplicaManager deserialized = (ReplicaManager) serialized.getObject();
+        deserialized.setWorkSelfIfRequired(false);
 
         assert deserialized.isWorkerAssignedReplica(workerA, replicaBoxA.getReplicaID());
         assert deserialized.pendingReplicaIDs().contains(replicaBoxA.getReplicaID());
