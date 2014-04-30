@@ -45,7 +45,7 @@ public class WorkerHolder {
         return myWorkerID;
     }
 
-    private static WorkerID generate(){
+    public static WorkerID generate(){
         if(generator == null){
             try {
                 generator = KeyPairGenerator.getInstance("RSA");

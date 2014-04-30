@@ -2,6 +2,7 @@ package manualTests;
 
 import com.google.gson.Gson;
 import se.chalmers.gdcn.compare.QualityControl;
+import se.chalmers.gdcn.compare.Trust;
 import se.chalmers.gdcn.compare.TrustQuality;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -12,12 +13,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.Map.Entry;
 
 /**
  * Created by joakim on 4/16/14.
  */
-public class QualityControlManual {
+public class QualityControlSingleManual {
 
     private final static String TASK_META = "{\n" +
             "    \"taskName\":\"IncrementTask_01\",\n" +
@@ -33,7 +33,7 @@ public class QualityControlManual {
         Gson gson = new Gson();
         TaskMeta taskMeta = gson.fromJson(TASK_META, TaskMeta.class);
 
-        List<byte[]> results = new ArrayList<>();
+        byte[] result;
 
         // Path to the resource files
         String path = "/home/joakim/GDCN/GDCN_proj/dGDCN/jobs/TrivialJob/resources/";
@@ -43,25 +43,14 @@ public class QualityControlManual {
 
         Install.install();
 
-        results.add(Files.readAllBytes(Paths.get(path + "0.raw")));
-        results.add(Files.readAllBytes(Paths.get(path + "50.raw")));
-        results.add(Files.readAllBytes(Paths.get(path + "100.raw")));
-        results.add(Files.readAllBytes(Paths.get(path + "150.raw")));
-        results.add(Files.readAllBytes(Paths.get(path + "wrong_type.raw")));
+        result = Files.readAllBytes(Paths.get(path + "0.raw"));
+        //result = Files.readAllBytes(Paths.get(path + "50.raw"));
+        //result = Files.readAllBytes(Paths.get(path + "100.raw"));
+        //result = Files.readAllBytes(Paths.get(path + "150.raw"));
+        //result = Files.readAllBytes(Paths.get(path + "wrong_type.raw"));
 
-        Map<ByteArray, Set<ReplicaID>> resultMap = new HashMap<>();
-        int id = 0;
-        for (byte[] result : results) {
-            resultMap.put(new ByteArray(result), new HashSet<ReplicaID>());
-            System.out.println("Result " + id++ + " has id " + result.toString());
-        }
+        TrustQuality quality = QualityControl.singleQualityTest("TrivialJob", taskMeta, new ByteArray(result));
 
-        System.out.println("\t-------------------");
-
-        Map<ByteArray,TrustQuality> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap);
-
-        for (Entry<ByteArray, TrustQuality> entry : qualityMap.entrySet()) {
-            System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue());
-        }
+        System.out.println("Trust level is " + quality.getTrust() + " and quality is " + quality.getQuality());
     }
 }

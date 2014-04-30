@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.compare;
 
+import se.chalmers.gdcn.control.ThreadService;
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -19,8 +20,10 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private final Map<ByteArray, Set<ReplicaID>> resultMap;
-    private final Map<ByteArray, Trust> trustMap = new HashMap<>();
+    private Map<ByteArray, Set<ReplicaID>> resultMap;
+    private Map<ByteArray, TrustQuality> trustMap;
+    private ByteArray singleResult;
+    private TrustQuality singleTrust;
 
     private final PathManager pathMan;
     private final String program;
@@ -28,7 +31,7 @@ public class QualityControl {
     private final List<String> taskDeps;
 
     private double bestQuality = Double.MIN_VALUE;
-    private final CountDownLatch waitForAll;
+    private CountDownLatch waitForAll;
 
     /**
      * A method for testing the quality and validity of result data, using a job owner defined program
@@ -38,16 +41,31 @@ public class QualityControl {
      * @return a map of the result data with their trust level as values
      * @throws IOException
      */
-    public static Map<ByteArray, Trust> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
+    public static Map<ByteArray, TrustQuality> compareQuality(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultMap);
         return qualityControl.compare();
     }
 
+    public static TrustQuality singleQualityTest(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException{
+        QualityControl qualityControl = new QualityControl(jobName, taskMeta, data);
+        return qualityControl.quality();
+    }
+
     private QualityControl(String jobName, TaskMeta taskMeta, Map<ByteArray, Set<ReplicaID>> resultMap) throws IOException {
+        this(jobName, taskMeta);
+        trustMap = new HashMap<>();
         this.resultMap = resultMap;
+        waitForAll = new CountDownLatch(resultMap.size());
+    }
+
+    private QualityControl(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException {
+        this(jobName, taskMeta);
+        singleResult = data;
+    }
+
+    private QualityControl(String jobName, TaskMeta taskMeta) throws IOException {
         taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
-        waitForAll = new CountDownLatch(resultMap.size());
         program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
         taskDeps = new ArrayList<>();
         for (FileDep fileDep : taskMeta.getDependencies()) {
@@ -55,18 +73,16 @@ public class QualityControl {
         }
     }
 
-    private Map<ByteArray, Trust> compare() throws IOException {
+    private Map<ByteArray, TrustQuality> compare() throws IOException {
         int resultID = 0;
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
-            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID++;
-            FileOutputStream fos = new FileOutputStream(resultFile);
-            fos.write(entry.getKey().getData());
-            fos.close();
+            String resultFile = writeResultFile(entry.getKey().getData(), resultID++);
             Listener listener = new Listener(entry.getKey());
             Validifier validifier = new Validifier(listener);
             ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
-            // TODO Limit amount of threads?
-            new Thread(runner).start();
+
+            ThreadService.submit(runner);
+            //new Thread(runner).start();
         }
         try {
             waitForAll.await();
@@ -78,39 +94,63 @@ public class QualityControl {
         return trustMap;
     }
 
+    private TrustQuality quality() throws IOException {
+        String resultFile = writeResultFile(singleResult.getData(), Math.abs(singleResult.hashCode()));
+        ListenerSingle listener = new ListenerSingle();
+        Validifier validifier = new Validifier(listener);
+        validifier.testResult(program, resultFile, taskDeps);
+        return singleTrust;
+    }
+
+    private String writeResultFile(byte[] data, int resultID) throws IOException {
+        FileOutputStream output = null;
+        try {
+            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID;
+            File parent = new File(resultFile).getParentFile();
+            parent.mkdirs();
+            output = new FileOutputStream(resultFile);
+            output.write(data);
+            return resultFile;
+        }
+        finally {
+            if (output != null)
+                output.close();
+        }
+    }
+
     private synchronized void reward(ByteArray result, double quality) {
         if (quality == bestQuality) {
-            trustMap.put(result, Trust.TRUSTWORTHY);
+            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
         }
         else if (quality > bestQuality) {
-            for (Map.Entry<ByteArray, Trust> entry : trustMap.entrySet()) {
-                if (entry.getValue() == Trust.TRUSTWORTHY) {
-                    entry.setValue(Trust.DECEITFUL);
+            for (Map.Entry<ByteArray, TrustQuality> entry : trustMap.entrySet()) {
+                if (entry.getValue().getTrust() == Trust.TRUSTWORTHY) {
+                    entry.getValue().setTrust(Trust.DECEITFUL);
                 }
             }
-            trustMap.put(result, Trust.TRUSTWORTHY);
+            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
             bestQuality = quality;
         }
         else {
-            trustMap.put(result, Trust.DECEITFUL);
+            trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
         }
         waitForAll.countDown();
     }
 
     private synchronized void punish(ByteArray result) {
-        trustMap.put(result, Trust.DECEITFUL);
+        trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
         waitForAll.countDown();
     }
 
     private synchronized void unknown(ByteArray result) {
-        trustMap.put(result, Trust.UNKNOWN);
+        trustMap.put(result, new TrustQuality(Trust.UNKNOWN));
         waitForAll.countDown();
     }
 
     private synchronized void addRemaining() {
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
-                trustMap.put(entry.getKey(), Trust.UNKNOWN);
+                trustMap.put(entry.getKey(), new TrustQuality(Trust.UNKNOWN));
             }
         }
     }
@@ -152,6 +192,24 @@ public class QualityControl {
         @Override
         public void validityError(String reason) {
             unknown(myResult);
+        }
+    }
+
+    private class ListenerSingle implements ValidityListener {
+
+        @Override
+        public void validityOk(double quality) {
+            singleTrust = new TrustQuality(Trust.TRUSTWORTHY, quality);
+        }
+
+        @Override
+        public void validityCorrupt() {
+            singleTrust = new TrustQuality(Trust.DECEITFUL);
+        }
+
+        @Override
+        public void validityError(String reason) {
+            singleTrust = new TrustQuality(Trust.UNKNOWN);
         }
     }
 }

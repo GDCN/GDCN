@@ -18,12 +18,14 @@ public class PathManager {
     private final static String BIN_FOLDER_NAME = "bin" + File.separator;
     private final static String TEMP_FOLDER_NAME = "temp" + File.separator;
     private final static String VALID_FOLDER_NAME = "valid" + File.separator;
+    private final static String RESULT_FOLDER_NAME = "result" + File.separator;
 
     private static String headerLocation = null;
     private static String dataPath = null;
     private static String jobPath = null;
     private static String settingsPath = null;
 
+    //TODO use polymorphism instead?
     private final boolean isWorker;
 
     /**
@@ -87,6 +89,10 @@ public class PathManager {
 
     public String getResultFilePath(String taskName){
         return taskResourcesDir() + taskName + ".result";
+    }
+
+    public String getCanonicalResultFilePath(String taskName){
+        return canonicalResultsDir() + taskName + ".result";
     }
 
     /**
@@ -160,6 +166,15 @@ public class PathManager {
     public String projectValidDir(){
         check();
         return projectDir() + VALID_FOLDER_NAME;
+    }
+
+    /**
+     *
+     * @return Path to directory for canonical result files.
+     */
+    public String canonicalResultsDir(){
+        check();
+        return projectDir() + RESULT_FOLDER_NAME;
     }
 
     /**
