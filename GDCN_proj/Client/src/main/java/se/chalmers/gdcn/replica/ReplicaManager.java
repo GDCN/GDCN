@@ -557,7 +557,6 @@ public class ReplicaManager implements Serializable, Cloneable{
     }
 
     /**
-     * TODO use this method to check for uploaded results
      * @return Map with pending replicas and respective location key. Results may or not be uploaded in DHT
      */
     public synchronized Map<ReplicaID, Number160> pendingResults(){
