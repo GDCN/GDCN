@@ -205,7 +205,7 @@ public class TaskPasser extends Passer {
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         final StringHolder stringHolder = new StringHolder();
 
-        taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
+        taskManager.startTask(jobOwner.getID().toString(), replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
             @Override
             public void taskFinished(final String taskName) {
 
