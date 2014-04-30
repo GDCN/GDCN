@@ -124,8 +124,7 @@ public class Challenge implements Serializable {
                 '}';
     }
 
-    //TODO Should be made private after testing.
-    public static byte[] hash(byte[] seed, byte[] token) {
+    static byte[] hash(byte[] seed, byte[] token) {
         MessageDigest md = null;
         try {
             md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
@@ -148,8 +147,7 @@ public class Challenge implements Serializable {
         return checkZeros(hash(seed,token));
     }
 
-    //TODO Should be made private after testing
-    public boolean checkZeros(byte[] hash) {
+    boolean checkZeros(byte[] hash) {
         BitSet hashBits = BitSet.valueOf(hash);
         BitSet zeros = new BitSet(difficulty);
 
