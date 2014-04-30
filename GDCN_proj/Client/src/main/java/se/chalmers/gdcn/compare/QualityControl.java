@@ -19,18 +19,16 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
-    private Set<ByteArray> resultSet;
-    private Map<ByteArray, TrustQuality> trustMap;
-    private ByteArray singleResult;
-    private TrustQuality singleTrust;
+    private final Set<ByteArray> resultSet;
+    private final Map<ByteArray, TrustQuality> trustMap = new HashMap<>();
 
     private final PathManager pathMan;
     private final String program;
     private final String taskName;
     private final List<String> taskDeps;
 
-    private double bestQuality = Double.MIN_VALUE;
-    private CountDownLatch waitForAll;
+    private double bestQuality = -Double.MAX_VALUE;
+    private final CountDownLatch waitForAll;
 
     /**
      * A method for testing the quality and validity of result data, using a job owner defined program
@@ -46,25 +44,18 @@ public class QualityControl {
     }
 
     public static TrustQuality singleQualityTest(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException{
-        QualityControl qualityControl = new QualityControl(jobName, taskMeta, data);
-        return qualityControl.quality();
+        Set<ByteArray> resultSet = new HashSet<>();
+        resultSet.add(data);
+        QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
+        return qualityControl.compare().get(data);
     }
 
     private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
-        this(jobName, taskMeta);
-        trustMap = new HashMap<>();
+        taskName = taskMeta.getTaskName();
         this.resultSet = resultSet;
         waitForAll = new CountDownLatch(resultSet.size());
-    }
-
-    private QualityControl(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException {
-        this(jobName, taskMeta);
-        singleResult = data;
-    }
-
-    private QualityControl(String jobName, TaskMeta taskMeta) throws IOException {
-        taskName = taskMeta.getTaskName();
         pathMan = PathManager.jobOwner(jobName);
+        //TODO Follow convention of quality program or quality.hs source
         program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
         taskDeps = new ArrayList<>();
         for (FileDep fileDep : taskMeta.getDependencies()) {
@@ -93,17 +84,10 @@ public class QualityControl {
         return trustMap;
     }
 
-    private TrustQuality quality() throws IOException {
-        String resultFile = writeResultFile(singleResult.getData(), Math.abs(singleResult.hashCode()));
-        ListenerSingle listener = new ListenerSingle();
-        Validifier validifier = new Validifier(listener);
-        validifier.testResult(program, resultFile, taskDeps);
-        return singleTrust;
-    }
-
     private String writeResultFile(byte[] data, int resultID) throws IOException {
         FileOutputStream output = null;
         try {
+            //TODO check for existing files and don't overwrite
             String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID;
             File parent = new File(resultFile).getParentFile();
             parent.mkdirs();
@@ -191,24 +175,6 @@ public class QualityControl {
         @Override
         public void validityError(String reason) {
             unknown(myResult, reason);
-        }
-    }
-
-    private class ListenerSingle implements ValidityListener {
-
-        @Override
-        public void validityOk(double quality) {
-            singleTrust = TrustQuality.trustworthy(quality);
-        }
-
-        @Override
-        public void validityCorrupt() {
-            singleTrust = TrustQuality.deceitful();
-        }
-
-        @Override
-        public void validityError(String reason) {
-            singleTrust = TrustQuality.unknown(reason);
         }
     }
 }
