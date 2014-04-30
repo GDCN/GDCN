@@ -65,6 +65,7 @@ public class ArchiveTest {
             result = canonicalResult.compareNewWorker(byteArray, null);
         } catch (IOException e) {
             e.printStackTrace();
+            assert false;
         }
 
         assert result;
@@ -79,6 +80,7 @@ public class ArchiveTest {
         }
         catch (IOException e) {
             e.printStackTrace();
+            assert false;
         }
 
         assert !result;

@@ -276,6 +276,7 @@ public class ReplicaManagerTest {
         builder.setTimeoutLength(150, Time.MILLISECOND);
         builder.setTimerUpdateInterval(30, Time.MILLISECOND);
         replicaManager = builder.create();
+        replicaManager.setWorkSelfIfRequired(false);
 
         loadMeta(taskMetaA);
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);

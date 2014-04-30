@@ -21,7 +21,7 @@ abstract class Passer {
 
     private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
 
-    public Passer(final Peer peer) {
+    protected Passer(final Peer peer) {
         this.peer = peer;
         peer.setObjectDataReply(new ObjectDataReply() {
             @Override
