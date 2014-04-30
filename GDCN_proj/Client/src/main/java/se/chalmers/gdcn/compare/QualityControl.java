@@ -88,7 +88,7 @@ public class QualityControl {
             waitForAll.await();
         }
         catch (InterruptedException e) {
-            addRemaining();
+            addRemaining(e.getMessage());
         }
 
         return trustMap;
@@ -147,12 +147,10 @@ public class QualityControl {
         waitForAll.countDown();
     }
 
-    private synchronized void addRemaining() {
+    private synchronized void addRemaining(String reason) {
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
-//                trustMap.put(entry.getKey(), new TrustQuality(Trust.UNKNOWN));
-                //TODO give reason
-                trustMap.put(entry.getKey(), TrustQuality.unknown(null));
+                trustMap.put(entry.getKey(), TrustQuality.unknown(reason));
             }
         }
     }

@@ -504,7 +504,7 @@ public class ReplicaManager implements Serializable, Cloneable{
                         return;
                     case UNKNOWN:
                         //Might be some error with test code.
-                        //TODO report error
+                        System.out.println("Error when validating: "+trustQuality.getReason());
                         return;
                 }
 
