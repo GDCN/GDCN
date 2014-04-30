@@ -199,7 +199,7 @@ public class ConsoleFactory {
         commandMap.put("get2", new UICommand() {
             @Override
             public void execute(List<String> args) {
-                String key = args.get(0);
+                Number160 key = new Number160(args.get(0));
                 String domain = args.get(1);
                 client.get(key, Number160.createHash(domain));
             }

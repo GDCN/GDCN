@@ -1,10 +1,12 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+import sun.tools.jar.resources.jar;
 
 import java.io.File;
 
@@ -13,8 +15,12 @@ import java.io.File;
  */
 public class Downloader extends AbstractFileMaster {
 
-    public Downloader(TaskMeta taskMeta, String projectName, NetworkInterface client, TaskFailureListener taskFailureListener) throws TaskMetaDataException {
+    private final PeerAddress jobOwner;
+
+    public Downloader(TaskMeta taskMeta, String projectName, NetworkInterface client, PeerAddress jobOwner,TaskFailureListener taskFailureListener) throws TaskMetaDataException {
         super(taskMeta, client, taskFailureListener, CommandWord.GET, PathManager.worker(projectName));
+
+        this.jobOwner = jobOwner;
     }
 
 
@@ -34,7 +40,7 @@ public class Downloader extends AbstractFileMaster {
     protected void ifFileDoNotExist(FileDep fileDep) {
         //TODO better output?
         System.out.println("Didn't find file " + FileManagementUtils.pathTo(pathManager, fileDep));
-        client.get(fileDep.getDhtKey());
+        client.get(fileDep.getDhtKey(), jobOwner.getID());
         //Handling OperationFinished is done in AbstractFileMaster
     }
 

@@ -42,7 +42,7 @@ public interface NetworkInterface {
 
     void put(Number160 key, Number160 domain, Data value);
 
-    void get(String key, Number160 domain);
+    void get(Number160 key, Number160 domain);
 
     void setNeighbourFile(String file);
 

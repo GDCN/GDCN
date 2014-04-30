@@ -212,7 +212,7 @@ public class SelfWorkTest {
             }
 
             @Override
-            public void get(String key, Number160 domain) {
+            public void get(Number160 key, Number160 domain) {
 
             }
 

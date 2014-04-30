@@ -320,17 +320,14 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
-    public void get(final String key, final Number160 domain){
-        GetBuilder getBuilder = peer.get(Number160.createHash(key)).setDomainKey(domain);
-        FutureDHT futureDHT = getBuilder.start();
+    public void get(final Number160 key, final Number160 domain){
+        FutureDHT futureDHT = peer.get(key).setDomainKey(domain).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
-                String s = future.isSuccess() ? "succeeded" : "failed";
-                System.out.println("Get2 under " + key + "/" + domain + s);
-                if (future.isSuccess()) {
-                    System.out.println(future.getData().getObject().toString());
-                }
+                boolean success = future.isSuccess();
+                notifier.fireOperationFinished(CommandWord.GET,
+                        new OperationBuilder<Data>(success).setKey(key).setResult(future.getData()).create());
             }
         });
     }

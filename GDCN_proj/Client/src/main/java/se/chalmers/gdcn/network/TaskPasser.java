@@ -197,7 +197,7 @@ public class TaskPasser extends Passer {
     private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
         final StringHolder stringHolder = new StringHolder();
 
-        taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
+        taskManager.startTask("Primes", replicaBox.getTaskMeta(), stringHolder, jobOwner, new TaskListener() {
             @Override
             public void taskFinished(final String taskName) {
 
@@ -226,7 +226,7 @@ public class TaskPasser extends Passer {
                 }
                 if(result != null){
                     System.out.println("\nResult holds "+result.length+" bytes.");
-                    client.put(resultKey, new Data(result));
+                    client.put(resultKey, jobOwner.getID(), new Data(result));
                 }
             }
 
@@ -349,7 +349,7 @@ public class TaskPasser extends Passer {
                 }
             }
         });
-        client.get(resultKey);
+        client.get(resultKey, client.getID());
 
     }
 
