@@ -71,7 +71,7 @@ public class DataFilesManager {
         replicaManagerLocation = new File(filePath + replicaManagerFileName);
         secretKeyLocation = new File(filePath + seretKeyFileName);
         workerNodeManagerLocation = new File(filePath + workerNodeManagerFileName);
-
+        workerChallengesManagerLocation = new File(filePath + workerChallengesManagerFileName);
 
     }
 
