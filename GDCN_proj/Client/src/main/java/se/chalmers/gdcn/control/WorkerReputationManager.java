@@ -127,11 +127,10 @@ public class WorkerReputationManager implements Serializable{
     /**
      *
      * @param worker Worker node
-     * @return Current reputation
+     * @return Current reputation or zero if not registered
      */
     public int getReputation(WorkerID worker){
         if(!registeredWorkers.containsKey(worker)){
-            //TODO update tests
             return 0;
 //            throw new IllegalArgumentException("Worker doesn't exist");
         }
