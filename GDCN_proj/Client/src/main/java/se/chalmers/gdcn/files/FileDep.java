@@ -29,6 +29,7 @@ public class FileDep implements Serializable {
         this.checkSum = checkSum;
     }
 
+    //TODO Not used, remove?
     FileDep(String fileName, String fileLocation, String dhtKey, boolean sticky, int checkSum) {
         this.fileName = fileName;
         this.fileLocation = fileLocation;

@@ -66,13 +66,16 @@ public class JobUploader extends AbstractFileMaster{
         for(FileDep fileDep : dependencyTasks){
             TaskMeta taskMeta = AbstractFileMaster.readMetaFile( FileManagementUtils.pathTo(manager, fileDep));
             taskMetas.add(taskMeta);
-            taskMeta.getModule().setDhtKey(Number160.createHash(taskMeta.getTaskName()));
-            allFileDependencies.add(taskMeta.getModule());
+
+            taskMeta.getModule().setDhtKey(Number160.createHash(taskMeta.getModule().getFileName()));
+
+            setFileDepDHTKey(taskMeta.getModule());
 
             for(FileDep f : taskMeta.getDependencies()) {
-                f.setDhtKey(Number160.createHash(f.getFileName()));
+                setFileDepDHTKey(f);
             }
 
+            allFileDependencies.add(taskMeta.getModule());
             allFileDependencies.addAll(taskMeta.getDependencies());
         }
 
@@ -122,6 +125,10 @@ public class JobUploader extends AbstractFileMaster{
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
         System.out.println("Successfully put " + fileDep.getFileName());
         super.fileDependencyResolved(fileDep);
+    }
+
+    private static void setFileDepDHTKey(FileDep f) {
+        f.setDhtKey(Number160.createHash(f.getFileName()));
     }
 
 
