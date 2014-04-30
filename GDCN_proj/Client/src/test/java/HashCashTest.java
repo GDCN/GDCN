@@ -109,8 +109,8 @@ public class HashCashTest {
         Challenge challenge = hc.generateAuthenticationChallenge(jobOwner, worker, score);
         Solution solution = challenge.solve();
 
-        assert HashCash.validateSolution(solution, key1, jobOwner, worker, score);
-        assert !HashCash.validateSolution(solution, key1, jobOwner, worker, score+1);
+        assert hc.validateSolution(solution, jobOwner, worker, score);
+        assert !hc.validateSolution(solution, jobOwner, worker, score+1);
     }
 
     @Test
@@ -122,8 +122,8 @@ public class HashCashTest {
         Challenge challenge = hc.generateRegistrationChallenge(jobOwner, worker, score);
         Solution solution = challenge.solve();
 
-        assert HashCash.validateSolution(solution, key1, jobOwner, worker, score);
-        assert !HashCash.validateSolution(solution, key1, jobOwner, worker, score+1);
+        assert hc.validateSolution(solution, jobOwner, worker, score);
+        assert !hc.validateSolution(solution, jobOwner, worker, score+1);
     }
 
     @Test

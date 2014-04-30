@@ -13,7 +13,6 @@ public class HashCash {
     public final static String HASH_ALGORITHM = "SHA-1";
     
     public final int hardDifficulty, easyDifficulty;
-    private final SecureRandom random;
     private final SecretKey key;
 
     public static enum Purpose { REG, AUTH, NONE }
@@ -43,13 +42,25 @@ public class HashCash {
         this.key = key;
         hardDifficulty = hard;
         easyDifficulty = easy;
-        random = new SecureRandom();
     }
 
+    /**
+     * Generates a new Challenge without a purpose.
+     * @param seed The seed of the challenge.
+     * @param difficulty The difficulty of the challenge.
+     * @return The challenge.
+     */
     public Challenge generateChallenge(String seed, int difficulty) {
         return generateChallenge(Purpose.NONE, seed, difficulty);
     }
 
+    /**
+     * Generates a new Challenge with a purpose.
+     * @param purpose The purpose of the challenge.
+     * @param seed The seed of the challenge.
+     * @param difficulty The difficulty of the challenge.
+     * @return The challenge.
+     */
     public Challenge generateChallenge(Purpose purpose, String seed, int difficulty) {
         try {
             return new Challenge(purpose, hash(seed), difficulty, key);
@@ -60,19 +71,41 @@ public class HashCash {
         }
     }
 
+    /**
+     * Generates a hard challenge for registration purposes.
+     * @param jobOwner The issuer of the challenge.
+     * @param worker The worker that wants to register.
+     * @param score The worker's current score.
+     * @return The challenge.
+     */
     public Challenge generateRegistrationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
         String seed = jobOwner.toString() + worker + score;
 
         return generateChallenge(Purpose.REG, seed, hardDifficulty);
     }
 
+    /**
+     * Generates an easy challenge for authentication purposes.
+     * @param jobOwner The issuer of the challenge.
+     * @param worker The worker that wants to register.
+     * @param score The worker's current score.
+     * @return
+     */
     public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
         String seed = jobOwner.toString() + worker + score;
 
         return generateChallenge(Purpose.AUTH, seed, easyDifficulty);
     }
 
-    public static boolean validateSolution(Solution solution, SecretKey key, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
+    /**
+     * Checks the validity and authenticity of a solution.
+     * @param solution The solution to check.
+     * @param jobOwner
+     * @param worker
+     * @param score
+     * @return
+     */
+    public boolean validateSolution(Solution solution, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
         byte[] seed = hash(jobOwner.toString() + worker + score);
 
         return solution.isValid(key,seed);
