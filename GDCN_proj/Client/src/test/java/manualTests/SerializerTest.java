@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Random;
 import java.util.TreeSet;
 
 /**
@@ -87,5 +88,24 @@ public class SerializerTest {
 
         private TreeSet<String> set;
         private String string = "1";
+    }
+
+    @Test
+    public void transientTest() throws IOException, ClassNotFoundException {
+        TransientTester transientTester = new TransientTester("Hello");
+        Object obj = new Data(transientTester).getObject();
+        TransientTester deserialized = (TransientTester) obj;
+
+        assert deserialized.random == null;
+    }
+
+    private static class TransientTester implements Serializable{
+        private final String string;
+        private transient Random random = new Random();
+
+        private TransientTester(String string) {
+            this.string = string;
+            random = new Random();
+        }
     }
 }

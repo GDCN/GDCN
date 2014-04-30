@@ -3,6 +3,7 @@ package se.chalmers.gdcn.control;
 import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.network.WorkerID;
 
+import java.io.Serializable;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Random;
@@ -11,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Created by weeeeeew on 2014-04-29.
  */
-public class WorkerChallengesManager {
+public class WorkerChallengesManager implements Serializable{
     private final Map<WorkerID, Integer> registeredWorkers = new ConcurrentHashMap<>();
     private final Random random = new SecureRandom();
 
