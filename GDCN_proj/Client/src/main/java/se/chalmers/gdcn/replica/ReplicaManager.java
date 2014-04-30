@@ -423,7 +423,9 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         if(validationListener != null){
             //For testing:
-            validationListener.propertyChange(new PropertyChangeEvent(this, jobName, taskData, resultMap));
+            validationListener.propertyChange(new PropertyChangeEvent(this, "Validate", taskData, resultMap));
+            byte[] bytes = resultData.returnedReplicas.values().iterator().next();
+            archive.archiveResult(taskData, new ByteArray(bytes), 1, new HashSet<WorkerID>());
             return;
         }
         if(resultMap.size() == 0){
@@ -481,6 +483,12 @@ public class ReplicaManager implements Serializable, Cloneable{
     }
 
     private void validateLatecomer(CanonicalResult archivedResult, TaskData taskData, ReplicaID replicaID, ByteArray byteArray){
+        if(validationListener != null){
+            //For testing:
+            validationListener.propertyChange(new PropertyChangeEvent(this, "Late", taskData, replicaID));
+            return;
+        }
+
         try {
             WorkerID worker = replicaMap.get(replicaID).getWorker();
             boolean resultEqual = archivedResult.compareNewWorker(byteArray, worker);
