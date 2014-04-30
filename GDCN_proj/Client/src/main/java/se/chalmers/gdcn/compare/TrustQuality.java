@@ -7,27 +7,37 @@ package se.chalmers.gdcn.compare;
  */
 public class TrustQuality {
 
-    private Trust trust;
+    private final Trust trust;
     private final double quality;
+    private final String reason;
 
-    public TrustQuality(Trust trust, double quality) {
+    private TrustQuality(Trust trust, double quality, String reason) {
         this.trust = trust;
         this.quality = quality;
+        this.reason = reason;
     }
 
-    public TrustQuality(Trust trust) {
-        this(trust, Double.MIN_VALUE);
+    public static TrustQuality unknown(String reason){
+        return new TrustQuality(Trust.UNKNOWN, Double.MIN_VALUE, reason);
+    }
+
+    public static TrustQuality deceitful(){
+        return new TrustQuality(Trust.DECEITFUL, Double.MIN_VALUE, null);
+    }
+
+    public static TrustQuality trustworthy(double quality){
+        return new TrustQuality(Trust.TRUSTWORTHY, quality, null);
     }
 
     public Trust getTrust() {
         return trust;
     }
 
-    public void setTrust(Trust trust) {
-        this.trust = trust;
-    }
-
     public double getQuality() {
         return quality;
+    }
+
+    public String getReason() {
+        return reason;
     }
 }

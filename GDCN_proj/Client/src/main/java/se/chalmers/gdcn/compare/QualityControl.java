@@ -120,37 +120,39 @@ public class QualityControl {
 
     private synchronized void reward(ByteArray result, double quality) {
         if (quality == bestQuality) {
-            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
+            trustMap.put(result, TrustQuality.trustworthy(quality));
         }
         else if (quality > bestQuality) {
             for (Map.Entry<ByteArray, TrustQuality> entry : trustMap.entrySet()) {
                 if (entry.getValue().getTrust() == Trust.TRUSTWORTHY) {
-                    entry.getValue().setTrust(Trust.DECEITFUL);
+                    entry.setValue(TrustQuality.deceitful());
                 }
             }
-            trustMap.put(result, new TrustQuality(Trust.TRUSTWORTHY, quality));
+            trustMap.put(result, TrustQuality.trustworthy(quality));
             bestQuality = quality;
         }
         else {
-            trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
+            trustMap.put(result, TrustQuality.deceitful());
         }
         waitForAll.countDown();
     }
 
     private synchronized void punish(ByteArray result) {
-        trustMap.put(result, new TrustQuality(Trust.DECEITFUL));
+        trustMap.put(result, TrustQuality.deceitful());
         waitForAll.countDown();
     }
 
-    private synchronized void unknown(ByteArray result) {
-        trustMap.put(result, new TrustQuality(Trust.UNKNOWN));
+    private synchronized void unknown(ByteArray result, String reason) {
+        trustMap.put(result, TrustQuality.unknown(reason));
         waitForAll.countDown();
     }
 
     private synchronized void addRemaining() {
         for (Map.Entry<ByteArray, Set<ReplicaID>> entry : resultMap.entrySet()) {
             if (!trustMap.containsKey(entry.getKey())) {
-                trustMap.put(entry.getKey(), new TrustQuality(Trust.UNKNOWN));
+//                trustMap.put(entry.getKey(), new TrustQuality(Trust.UNKNOWN));
+                //TODO give reason
+                trustMap.put(entry.getKey(), TrustQuality.unknown(null));
             }
         }
     }
@@ -191,7 +193,7 @@ public class QualityControl {
 
         @Override
         public void validityError(String reason) {
-            unknown(myResult);
+            unknown(myResult, reason);
         }
     }
 
@@ -199,17 +201,17 @@ public class QualityControl {
 
         @Override
         public void validityOk(double quality) {
-            singleTrust = new TrustQuality(Trust.TRUSTWORTHY, quality);
+            singleTrust = TrustQuality.trustworthy(quality);
         }
 
         @Override
         public void validityCorrupt() {
-            singleTrust = new TrustQuality(Trust.DECEITFUL);
+            singleTrust = TrustQuality.deceitful();
         }
 
         @Override
         public void validityError(String reason) {
-            singleTrust = new TrustQuality(Trust.UNKNOWN);
+            singleTrust = TrustQuality.unknown(reason);
         }
     }
 }
