@@ -9,15 +9,15 @@ import java.io.Serializable;
  */
 //TODO Visibility changed for convenience for QualityControl, may exist better solution
 public class FileDep implements Serializable {
-    private String fileName;
-    private String fileLocation;
-    private String dhtKey;
+    final private String fileName;
+    final private String fileLocation;
+    final private String dhtKey;
 
     //TODO generate dhtKey from projectName + fileName? will be hashed later on to a Number160
 
     private boolean sticky = false;
     //TODO put checksum elsewhere
-    private int checkSum;
+    final private int checkSum;
 
     FileDep(String fileName, String fileLocation, String dhtKey, boolean sticky, int checkSum) {
         this.fileName = fileName;

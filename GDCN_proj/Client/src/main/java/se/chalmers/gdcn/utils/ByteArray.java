@@ -12,7 +12,7 @@ import java.util.Arrays;
 public class ByteArray implements Serializable {
 
     private final byte[] data;
-    private int computedHashCode;
+    private final int computedHashCode;
 
     public ByteArray(byte[] data) {
         this.data = data;

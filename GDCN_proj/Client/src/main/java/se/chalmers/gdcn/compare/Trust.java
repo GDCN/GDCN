@@ -7,5 +7,5 @@ public enum Trust {
 
     TRUSTWORTHY,
     DECEITFUL,
-    UNKNOWN;
+    UNKNOWN
 }

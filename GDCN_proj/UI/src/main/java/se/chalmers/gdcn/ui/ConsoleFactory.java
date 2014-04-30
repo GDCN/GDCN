@@ -123,8 +123,7 @@ public class ConsoleFactory {
                     System.out.println("connecting to other node");
                     client.bootstrap(host, port);
                 } else {
-                    System.out.println("Must take two arguments! Host and Port");
-                    return;
+                    System.out.println("Normally two arguments: Host and Port. Zero arguments for default bootstrap.");
                 }
             }
         });

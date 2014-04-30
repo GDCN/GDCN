@@ -59,7 +59,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     };
 
     private final TaskManager taskManager = new TaskManager(taskListener, this);
-    private OperationFinishedSupport notifier = new OperationFinishedSupport(this);
+    private final OperationFinishedSupport notifier = new OperationFinishedSupport(this);
 
 
     @Override
