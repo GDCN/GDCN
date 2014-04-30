@@ -1,38 +1,42 @@
 package network;
 
-import java.io.IOException;
+import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
-import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 
 /**
  * Created by weeeeeew on 2014-04-10.
  */
 public class Handshake implements Serializable {
-    public final PublicKey publicKey;
-    private final Stage stage;
+    public final DHPublicKey dhKey;
+    public final RSAPublicKey rsaKey;
+    public final Stage stage;
 
-    public Handshake(PublicKey publicKey) {
-        this(publicKey,Stage.INIT);
+    public Handshake(DHPublicKey dhKey, RSAPublicKey rsaKey) {
+        this(dhKey,rsaKey,Stage.INIT);
     }
 
-    private Handshake(PublicKey publicKey, Stage stage) {
-        this.publicKey = publicKey;
+    private Handshake(DHPublicKey dhKey, RSAPublicKey rsaKey, Stage stage) {
+        this.dhKey = dhKey;
+        this.rsaKey = rsaKey;
         this.stage = stage;
     }
 
-    public SignedObject sign(PrivateKey key) throws InvalidKeyException, IOException, SignatureException {
-        return Crypto.sign(this,key);
+    public Handshake reply(DHPublicKey dhKey, RSAPublicKey rsaKey) {
+        return stage == Stage.INIT ? new Handshake(dhKey,rsaKey,Stage.REPLY) : null;
     }
 
-    public Handshake reply(PublicKey key) {
-        return stage == Stage.INIT ? new Handshake(key,Stage.REPLY) : null;
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Handshake) {
+            Handshake hs = (Handshake) o;
+            return this.dhKey.equals(hs.dhKey) && this.rsaKey.equals(hs.rsaKey) && this.stage == hs.stage;
+        }
+
+        return false;
     }
 
-    public boolean equals(Handshake other) {
-        return this.publicKey.equals(other.publicKey) && this.stage == other.stage;
-    }
-
-    private enum Stage {
+    public enum Stage {
         INIT,
         REPLY
     }

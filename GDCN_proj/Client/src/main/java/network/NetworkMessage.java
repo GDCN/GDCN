@@ -1,7 +1,6 @@
 package network;
 
 import javax.crypto.*;
-import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
 
@@ -29,12 +28,12 @@ public class NetworkMessage implements Serializable {
     }
 
     public SealedObject encrypt(SecretKey key) throws Exception {
-        return Crypto2.encrypt(this,key);
+        return Crypto.encrypt(this, key);
     }
 
     public static NetworkMessage decrypt(SealedObject sealedData, SecretKey key) throws Exception {
         Serializable data = null;
-        data = Crypto2.decrypt(sealedData, key);
+        data = Crypto.decrypt(sealedData, key);
 
 
         if (data instanceof NetworkMessage) {

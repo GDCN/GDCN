@@ -39,7 +39,7 @@ public class HandshakeTest {
         PublicKey key = keygen.generateKeyPair().getPublic();
         Handshake hs = new Handshake(key);
 
-        assert hs.publicKey.equals(key);
+        assert hs.dhKey.equals(key);
     }
 
     @Test
@@ -49,7 +49,7 @@ public class HandshakeTest {
         Handshake hs1 = new Handshake(key1);
         Handshake hs2 = hs1.reply(key2);
 
-        assert hs2.publicKey.equals(key2);
+        assert hs2.dhKey.equals(key2);
     }
 
     @Test

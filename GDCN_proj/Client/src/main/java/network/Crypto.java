@@ -1,60 +1,40 @@
 package network;
 
 import javax.crypto.*;
+import javax.crypto.Cipher;
 import javax.crypto.interfaces.DHPrivateKey;
 import javax.crypto.interfaces.DHPublicKey;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
+import java.security.KeyPair;
 
 /**
- * Created by weeeeeew on 2014-04-07.
+ * Created by weeeeeew on 2014-04-29.
  */
 public class Crypto {
-    public final static String ASYMMETRIC_ALGORITHM = "RSA/ECB/PKCS1Padding";
-    public final static String SYMMETRIC_ALGORITHM = "AES/ECB/PKCS5Padding";
-    public final static String SIGN_ALGORITHM = "SHA256withRSA";
     public final static String EXCHANGE_ALGORITHM = "DiffieHellman";
+    public final static String ENCRYPTION_ALGORITHM = "AES/ECB/PKCS5Padding";
+    public final static String SIGN_ALGORITHM = "SHA256withRSA";
 
-    private final Cipher asymmetric;
-    private final Cipher symmetric;
-    private final Signature signer;
-    private final KeyAgreement agreement;
+    private final static Cipher cipher;
+    private final static KeyAgreement agreement;
+    private final static Signature signer;
 
-    public Crypto(DHPrivateKey myKey) {
-        asymmetric = initAsymmetric();
-        symmetric = initSymmetric();
+    static {
+        cipher = initCipher();
+        agreement = initAgreement();
         signer = initSigner();
-        agreement = initAgreement(myKey);
     }
 
-    /**
-     * Encrypts a Serializable object.
-     * @param data The object to be encrypted.
-     * @param key The PublicKey it should be encrypted with.
-     * @return A SealedObject.
-     * @throws InvalidKeyException
-     * @throws IOException
-     */
-    public SealedObject encrypt(Serializable data, PublicKey key) throws Exception {
-        if (ASYMMETRIC_ALGORITHM.startsWith(key.getAlgorithm())) {
-            synchronized (asymmetric) {
-                asymmetric.init(Cipher.ENCRYPT_MODE, key);
-                return new SealedObject(data, asymmetric);
+    public static SealedObject encrypt(Serializable data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
+        if (ENCRYPTION_ALGORITHM.startsWith(key.getAlgorithm())) {
+            synchronized (cipher) {
+                cipher.init(Cipher.ENCRYPT_MODE, key);
+                return new SealedObject(data, cipher);
             }
         } else {
-            throw new InvalidKeyException("Key algorithm must be compatible with "+ASYMMETRIC_ALGORITHM);
-        }
-    }
-
-    public SealedObject encrypt(Serializable data, SecretKey key) throws Exception {
-        if (SYMMETRIC_ALGORITHM.startsWith(key.getAlgorithm())) {
-            synchronized (symmetric) {
-                symmetric.init(Cipher.ENCRYPT_MODE, key);
-                return new SealedObject(data, symmetric);
-            }
-        } else {
-            throw new InvalidKeyException("Key algorithm must be compatible with "+SYMMETRIC_ALGORITHM);
+            throw new InvalidKeyException("Key algorithm must be compatible with "+ENCRYPTION_ALGORITHM);
         }
     }
 
@@ -67,46 +47,45 @@ public class Crypto {
      * @throws ClassNotFoundException
      * @throws BadPaddingException
      * @throws IllegalBlockSizeException
-     * @throws IOException
+     * @throws java.io.IOException
      */
-    public Serializable decrypt(SealedObject data, PrivateKey key) throws InvalidKeyException, IllegalBlockSizeException, IOException, ClassNotFoundException, BadPaddingException {
+    public static Serializable decrypt(SealedObject data, SecretKey key) throws InvalidKeyException, BadPaddingException, IOException, IllegalBlockSizeException {
         if (data.getAlgorithm().startsWith(key.getAlgorithm())) {
-            if (ASYMMETRIC_ALGORITHM.startsWith(key.getAlgorithm())) {
-                synchronized (asymmetric) {
-                    asymmetric.init(Cipher.DECRYPT_MODE, key);
-                    return (Serializable) data.getObject(asymmetric);
+            if (ENCRYPTION_ALGORITHM.startsWith(key.getAlgorithm())) {
+                synchronized (cipher) {
+                    cipher.init(Cipher.DECRYPT_MODE, key);
+                    try {
+                        return (Serializable) data.getObject(cipher);
+                    } catch (ClassNotFoundException e) {
+                        e.printStackTrace();
+                        return null;
+                        //This should never happen, as it is impossible to encrypt a non-serializable object
+                    }
                 }
             } else {
-                throw new InvalidKeyException("Key algorithm must be compatible with "+ASYMMETRIC_ALGORITHM);
-            }
-        } else {
-            throw new InvalidParameterException("Algorithms in SealedObject and PrivateKey must match.");
-        }
-    }
-
-    /**
-     * Decrypts a SealedObject.
-     * @param data The SealedObject to be decrypted.
-     * @param key The PrivateKey with which the object should be decrypted.
-     * @return The decrypted object.
-     * @throws InvalidKeyException
-     * @throws ClassNotFoundException
-     * @throws BadPaddingException
-     * @throws IllegalBlockSizeException
-     * @throws IOException
-     */
-    public Serializable decrypt(SealedObject data, SecretKey key) throws InvalidKeyException, IllegalBlockSizeException, IOException, ClassNotFoundException, BadPaddingException {
-        if (data.getAlgorithm().startsWith(key.getAlgorithm())) {
-            if (SYMMETRIC_ALGORITHM.startsWith(key.getAlgorithm())) {
-                synchronized (symmetric) {
-                    symmetric.init(Cipher.DECRYPT_MODE, key);
-                    return (Serializable) data.getObject(symmetric);
-                }
-            } else {
-                throw new InvalidKeyException("Key algorithm must be compatible with "+SYMMETRIC_ALGORITHM);
+                throw new InvalidKeyException("Key algorithm must be compatible with "+ENCRYPTION_ALGORITHM);
             }
         } else {
             throw new InvalidParameterException("Algorithms in SealedObject and SecretKey must match.");
+        }
+    }
+
+    public static SecretKey generateSecretKey(PrivateKey myKey, PublicKey otherKey) throws InvalidKeyException {
+        if (myKey instanceof DHPrivateKey && otherKey instanceof DHPublicKey) {
+            synchronized (agreement) {
+                agreement.init(myKey);
+                agreement.doPhase(otherKey, true);
+
+                try {
+                    return agreement.generateSecret("AES/ECB/PKCS5Padding");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    //The Java platform is defective.
+                    return null;
+                }
+            }
+        } else {
+            throw new InvalidKeyException("Key algorithms must be compatible with "+EXCHANGE_ALGORITHM);
         }
     }
 
@@ -119,75 +98,32 @@ public class Crypto {
      * @throws IOException
      * @throws SignatureException
      */
-    public SignedObject sign(Serializable data, PrivateKey key) throws InvalidKeyException, IOException, SignatureException {
+    public static SignedObject sign(Serializable data, PrivateKey key) throws InvalidKeyException, IOException, SignatureException {
         synchronized (signer) {
             return new SignedObject(data,key,signer);
         }
     }
 
-    /**
-     * Verifies the authenticity of a SignedObject.
-     * @param data The SignedObject to be verified.
-     * @param key The PublicKey it should be checked against.
-     * @return Boolean of the result.
-     * @throws SignatureException
-     * @throws InvalidKeyException
-     */
-    public boolean verify(SignedObject data, PublicKey key) throws SignatureException, InvalidKeyException {
+    public static boolean verify(SignedObject data, PublicKey key) {
         synchronized (signer) {
             return data.verify(key,signer);
         }
     }
 
-    /**
-     * Signs and encrypts a Serializable object.
-     * @param data The object to be signed and encrypted.
-     * @param signKey The PrivateKey with which to sign the object.
-     * @param encryptionKey The PublicKey with which to encrypt the object.
-     * @return encrypted message
-     */
-    public SealedObject signAndEncrypt(Serializable data, PrivateKey signKey, PublicKey encryptionKey) throws Exception {
-        SignedObject signedObject = sign(data, signKey);
-        return encrypt(signedObject, encryptionKey);
-    }
-
-    /**
-     * Decrypts and verifies SealedObject which must contain a SignedObject.
-     * @param data The SealedObject to be decrypted and verified (must contain a SignedObject).
-     * @param decryptKey The PrivateKey with which to decrypt the object.
-     * @param verifyKey The PublicKey with which to verify the object.
-     * @return The decrypted object.
-     * @throws Exception
-     */
-    public Serializable decryptAndVerify(SealedObject data, PrivateKey decryptKey, PublicKey verifyKey) throws Exception {
-        Object decrypted = decrypt(data,decryptKey);
-        SignedObject signedData;
-
-        if (decrypted instanceof SignedObject) {
-            signedData = (SignedObject) decrypted;
-        } else {
-            throw new InvalidParameterException("The encrypted object was not signed");
-        }
-
-        if (verify(signedData,verifyKey)) {
-            return (Serializable) signedData.getObject();
-        } else {
-            System.out.println("in Crypto.decryptAndVerify: ERROR! Signature did not match! Object: "+signedData.getObject());
+    public static KeyPair generateDHKeyPair() {
+        try {
+            return KeyPairGenerator.getInstance(Crypto.EXCHANGE_ALGORITHM).generateKeyPair();
+        } catch (NoSuchAlgorithmException e) {
+            //The Java platform is defective, it does not support all required KeyAgreement algorithms.
+            //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/KeyAgreement.html
+            e.printStackTrace();
             return null;
         }
     }
 
-    public SecretKey generateSecretKey(DHPublicKey otherKey) throws Exception {
-        synchronized (agreement) {
-            agreement.doPhase(otherKey, true);
-
-            return agreement.generateSecret("AES");
-        }
-    }
-
-    private static Cipher initAsymmetric() {
+    private static Cipher initCipher() {
         try {
-            return Cipher.getInstance(ASYMMETRIC_ALGORITHM);
+            return Cipher.getInstance(ENCRYPTION_ALGORITHM);
         } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
             //The Java platform is defective, it does not support all required Cipher transformations.
             //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
@@ -196,12 +132,12 @@ public class Crypto {
         }
     }
 
-    private static Cipher initSymmetric() {
+    private static KeyAgreement initAgreement() {
         try {
-            return Cipher.getInstance(SYMMETRIC_ALGORITHM);
-        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
-            //The Java platform is defective, it does not support all required Cipher transformations.
-            //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
+            return KeyAgreement.getInstance(EXCHANGE_ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            //The Java platform is defective, it does not support all required KeyAgreement algorithms.
+            //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/KeyAgreement.html
             e.printStackTrace();
             throw new ExceptionInInitializerError(e);
         }
@@ -213,20 +149,6 @@ public class Crypto {
         } catch (NoSuchAlgorithmException e) {
             //The Java platform is defective, it does not support all required Signature algorithms.
             //See http://docs.oracle.com/javase/7/docs/api/java/security/Signature.html
-            e.printStackTrace();
-            throw new ExceptionInInitializerError(e);
-        }
-    }
-
-    private static KeyAgreement initAgreement(DHPrivateKey myKey) {
-        try {
-            KeyAgreement ka = KeyAgreement.getInstance(EXCHANGE_ALGORITHM);
-            ka.init(myKey);
-
-            return ka;
-        } catch (NoSuchAlgorithmException|InvalidKeyException e) {
-            //The Java platform is defective, it does not support all required KeyAgreement algorithms.
-            //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/KeyAgreement.html
             e.printStackTrace();
             throw new ExceptionInInitializerError(e);
         }
