@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.hashcash;
 
+import se.chalmers.gdcn.utils.ByteArray;
+
 import javax.crypto.Mac;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -21,7 +23,7 @@ public class Challenge implements Serializable {
     private final byte[] seed, mac;
     public final int difficulty;
 
-    Challenge(byte[] seed, int difficulty, Key key, byte[] mac) throws InvalidKeyException {
+    Challenge(byte[] seed, int difficulty, byte[] mac) throws InvalidKeyException {
         this.purpose = HashCash.Purpose.NONE;
         this.seed = seed.clone();
         this.difficulty = difficulty;
@@ -97,13 +99,6 @@ public class Challenge implements Serializable {
      * @return A solution such that this.solved(solution) == true
      */
     public Solution solve() {
-        MessageDigest md = null;
-        try {
-            md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            //TODO Something went really wrong here, present it to the user in some way?
-        }
         Random random = new Random();
         byte[] testToken;
 
@@ -118,24 +113,26 @@ public class Challenge implements Serializable {
     @Override
     public String toString() {
         return "Challenge{\n" +
-                "\tseed='" + seed + "',\n" +
+                "\tseed='" + ByteArray.print(seed) + "',\n" +
                 "\tdifficulty='" + difficulty + "',\n" +
-                "\tmac='" + mac + '\n' +
+                "\tmac='" + ByteArray.print(mac) + '\n' +
                 '}';
     }
 
     static byte[] hash(byte[] seed, byte[] token) {
-        MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
+            MessageDigest md = MessageDigest.getInstance(HashCash.HASH_ALGORITHM);
+
+            md.update(seed);
+            md.update(token);
+
+            return md.digest();
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             //TODO Something went really wrong here, present it to the user in some way?
         }
-
-        md.update(seed);
-        md.update(token);
-        return md.digest();
+        return null;
     }
 
     /**

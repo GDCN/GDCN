@@ -19,6 +19,14 @@ public class ByteArray implements Serializable {
         computedHashCode = Arrays.hashCode(data);
     }
 
+    public static String print(byte[] bytes){
+        String nice = "0x";
+        for(byte b : bytes){
+            nice += Integer.toHexString(b);
+        }
+        return nice;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

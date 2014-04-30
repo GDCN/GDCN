@@ -8,6 +8,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import se.chalmers.gdcn.utils.ByteArray;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -36,7 +37,7 @@ public class BinaryTest {
     public void testBytes(){
         final byte[] bytes = generate();
         final Number160 key = Number160.createHash("SomeReallyGoodKey");
-        System.out.println("Original: "+print(bytes));
+        System.out.println("Original: "+ ByteArray.print(bytes));
 
         assert identical(bytes, bytes);
         assert ! identical(bytes, generate());
@@ -61,7 +62,7 @@ public class BinaryTest {
                         System.out.println("Raw object got: "+result.toString());
                         Data resultData = (Data) result;
                         byte[] raw = resultData.getData();
-                        System.out.println("Raw getData: "+print(raw));
+                        System.out.println("Raw getData: "+ ByteArray.print(raw));
 
                         success &=  identical(bytes, raw);
                         success &=  Arrays.equals(bytes, raw);
@@ -112,11 +113,4 @@ public class BinaryTest {
         return bytes;
     }
 
-    private String print(byte[] bytes){
-        String nice = "0x";
-        for(byte b : bytes){
-            nice += Integer.toHexString(b);
-        }
-        return nice;
-    }
 }

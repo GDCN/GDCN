@@ -66,7 +66,7 @@ public class HashCashTest {
         byte[] seed = randomString().getBytes("UTF-8");
         Challenge authenticChallenge = new Challenge(seed,1,key1);
         byte[] mac = authenticChallenge.getMAC();
-        Challenge nonAuthenticChallenge = new Challenge(seed,2,key1,mac);
+        Challenge nonAuthenticChallenge = new Challenge(seed,2, mac);
 
         assert !nonAuthenticChallenge.isAuthentic(key1);
     }
