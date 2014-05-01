@@ -48,7 +48,7 @@ abstract class Passer {
                     DHPublicKey exchangeKey = handshake.dhKey;
 
                     SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), exchangeKey);
-                    PeerKeys peerKeys = new PeerKeys<RSAPublicKey>(handshake.rsaKey, secretKey);
+                    PeerKeys peerKeys = new PeerKeys<>(handshake.rsaKey, secretKey);
 
                     knownKeys.put(sender, peerKeys);
 
@@ -72,8 +72,7 @@ abstract class Passer {
 
                     switch (message.getType()){
                         case REQUEST:
-                            Serializable reply = handleRequest(sender, message.getObject());
-                            return reply;
+                            return handleRequest(sender, message.getObject());
                         case NO_REPLY:
                             handleNoReply(sender, message.getObject());
                             return "Message was Handled in some way...";
@@ -125,7 +124,7 @@ abstract class Passer {
                                     return;
                                 }
 
-                                PeerKeys peerKeys = new PeerKeys<RSAPublicKey>(handshake.rsaKey,secretKey);
+                                PeerKeys peerKeys = new PeerKeys<>(handshake.rsaKey,secretKey);
 
                                 knownKeys.put(receiver, peerKeys);
                                 onCompletion.execute(null); //There is no reply value, and it should never be used in execute()
@@ -238,14 +237,17 @@ abstract class Passer {
 
         SecretKey sharedKey = peerKeys.secretKey;
 
-        FutureDHT futureDHT = null;
+        SealedObject encryptedMessage;
+
         try {
-            //TODO Get PublicKey from receiver...
-            futureDHT = sendBuilder.setObject( networkMessage.encrypt(sharedKey) ).setRequestP2PConfiguration(requestConfiguration).start();
+            encryptedMessage = networkMessage.encrypt(sharedKey);
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             System.out.println("in Passer: Failure during encryption, invalid key! Message: "+networkMessage);
+            return;
         }
+
+        FutureDHT futureDHT = sendBuilder.setObject(encryptedMessage).setRequestP2PConfiguration(requestConfiguration).start();
 
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
