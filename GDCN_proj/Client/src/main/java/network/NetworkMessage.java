@@ -1,6 +1,7 @@
 package network;
 
 import javax.crypto.*;
+import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
 
@@ -27,14 +28,26 @@ public class NetworkMessage implements Serializable {
         return type;
     }
 
-    public SealedObject encrypt(SecretKey key) throws Exception {
-        return Crypto.encrypt(this, key);
+    public SealedObject encrypt(SecretKey key) throws InvalidKeyException {
+        try {
+            return Crypto.encrypt(this, key);
+        } catch (IOException|IllegalBlockSizeException e) {
+            e.printStackTrace();
+            System.out.println("Encryption failed! Message: "+this);
+            return null;
+        }
     }
 
-    public static NetworkMessage decrypt(SealedObject sealedData, SecretKey key) throws Exception {
-        Serializable data = null;
-        data = Crypto.decrypt(sealedData, key);
+    public static NetworkMessage decrypt(SealedObject sealedData, SecretKey key) throws InvalidKeyException {
+        Serializable data;
 
+        try {
+            data = Crypto.decrypt(sealedData, key);
+        } catch (BadPaddingException|IOException|IllegalBlockSizeException e) {
+            e.printStackTrace();
+            System.out.println("Decryption failed!");
+            return null;
+        }
 
         if (data instanceof NetworkMessage) {
             return (NetworkMessage) data;

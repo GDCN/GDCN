@@ -104,7 +104,7 @@ public class Crypto {
         }
     }
 
-    public static boolean verify(SignedObject data, PublicKey key) {
+    public static boolean verify(SignedObject data, PublicKey key) throws SignatureException, InvalidKeyException {
         synchronized (signer) {
             return data.verify(key,signer);
         }
