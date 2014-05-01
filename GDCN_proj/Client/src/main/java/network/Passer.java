@@ -80,7 +80,7 @@ abstract class Passer {
                     }
                     return "Message was read but not Handled! Type: "+message.getType().name();
                 }
-                return "The request was neither a Handshake nor encrypted. Nothing to be done.";
+                return "The request was neither a Handshake nor encrypted. Nothing to be done. Request: "+request;
             }
         });
     }
@@ -184,10 +184,10 @@ abstract class Passer {
 
 
         try {
-            readyMessage = networkMessage.encrypt(receiverKey);
-        } catch (InvalidKeyException|IOException|SignatureException e) {
+            readyMessage = networkMessage.encrypt(sharedKey);
+        } catch (InvalidKeyException e) {
             e.printStackTrace();
-            System.out.println("in Passer: Error when encrypting and signing message. Message: "+networkMessage);
+            System.out.println("in Passer: Invalid key when encrypting message. Message: "+networkMessage);
             return;
         }
 
