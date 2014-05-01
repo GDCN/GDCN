@@ -3,8 +3,10 @@ package unitTests;
 import network.Crypto;
 import org.testng.annotations.Test;
 
-import javax.crypto.BadPaddingException;
+import javax.crypto.KeyAgreement;
+import javax.crypto.KeyGenerator;
 import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.*;
@@ -14,60 +16,69 @@ import java.util.Random;
  * Created by weeeeeew on 2014-04-10.
  */
 public class CryptoTest {
-    private KeyPairGenerator keygen;
+    private KeyGenerator secretKeygen;
+    private KeyPairGenerator publicKeygen;
     private Random random;
 
     public CryptoTest() throws Exception {
-        keygen = KeyPairGenerator.getInstance("RSA");
+        secretKeygen = KeyGenerator.getInstance(Crypto.ENCRYPTION_ALGORITHM);
+        publicKeygen = KeyPairGenerator.getInstance(Crypto.SIGN_ALGORITHM);
         random = new Random();
     }
 
     @Test
      public void testEncryptDecrypt() throws Exception {
-        KeyPair keypair = keygen.generateKeyPair();
+        SecretKey key = secretKeygen.generateKey();
         String message = randomString();
-        SealedObject encMsg = Crypto.encrypt(message,keypair.getPublic());
+        SealedObject encMsg = Crypto.encrypt(message, key);
 
-        assert message.equals((String) Crypto.decrypt(encMsg,keypair.getPrivate()));
+        assert message.equals(Crypto.decrypt(encMsg,key));
 
-        PrivateKey wrongKey = keygen.generateKeyPair().getPrivate();
+        SecretKey wrongKey = secretKeygen.generateKey();
 
         assert Crypto.decrypt(encMsg,wrongKey) == null;
     }
 
     @Test
     public void testSignVerify() throws Exception {
-        KeyPair keypair = keygen.generateKeyPair();
+        KeyPair keypair = publicKeygen.generateKeyPair();
         SignedObject signedObject = Crypto.sign(randomString(), keypair.getPrivate());
 
         assert Crypto.verify(signedObject, keypair.getPublic());
 
-        PublicKey wrongKey = keygen.generateKeyPair().getPublic();
+        PublicKey wrongKey = publicKeygen.generateKeyPair().getPublic();
 
         assert !Crypto.verify(signedObject, wrongKey);
     }
 
     @Test
     public void testSignedCorrectObject() throws Exception {
-        PrivateKey privateKey = keygen.generateKeyPair().getPrivate();
+        PrivateKey privateKey = publicKeygen.generateKeyPair().getPrivate();
         String message = randomString();
         SignedObject signedObject = Crypto.sign(message, privateKey);
 
-        assert message.equals((String) signedObject.getObject());
+        assert message.equals(signedObject.getObject());
     }
+
 
     @Test
-    public void testSignEncrypt() throws Exception {
-        KeyPair signKeys = keygen.generateKeyPair();
-        KeyPair encryptKeys = keygen.generateKeyPair();
-        String msg = randomString();
+    public void testAgreement() throws Exception {
+        KeyAgreement backupAgreement = KeyAgreement.getInstance(Crypto.AGREEMENT_ALGORITHM);
+        KeyPairGenerator backupKeygen = KeyPairGenerator.getInstance(Crypto.AGREEMENT_ALGORITHM);
+        KeyPair keyPair1 = Crypto.generateDHKeyPair();
+        KeyPair keyPair2 = backupKeygen.generateKeyPair();
 
-        SealedObject sealedObject = Crypto.signAndEncrypt(msg, signKeys.getPrivate(), encryptKeys.getPublic());
-        Serializable decrypted = Crypto.decryptAndVerify(sealedObject, encryptKeys.getPrivate(), signKeys.getPublic());
+        assert !keyPair1.equals(keyPair2);
 
-        assert msg.equals(decrypted);
+        SecretKey secretKey1 = Crypto.generateSecretKey(keyPair1.getPrivate(),keyPair2.getPublic());
+
+        backupAgreement.init(keyPair2.getPrivate());
+        backupAgreement.doPhase(keyPair1.getPublic(),true);
+
+        SecretKey secretKey2 = backupAgreement.generateSecret(Crypto.ENCRYPTION_ALGORITHM);
+
+        assert secretKey1.equals(secretKey2);
     }
-
 
     private String randomString() {
         return new BigInteger(130, random).toString(32);
