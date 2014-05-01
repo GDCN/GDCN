@@ -219,6 +219,8 @@ public class TaskPasser extends Passer {
                             System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                             sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
                                     replicaBox.getReplicaID()));
+                            //TODO make option for continue working or stop method:
+                            requestWork(jobOwner);
                         } else {
                             taskFailed(taskName, "Couldn't upload result to DHT :P");
                         }
