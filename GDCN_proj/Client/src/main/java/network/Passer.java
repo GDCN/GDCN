@@ -13,6 +13,8 @@ import javax.crypto.interfaces.DHPublicKey;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,7 @@ abstract class Passer {
 
     private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
 
-    private final Map<PeerAddress,SecretKey> peerKeys = new HashMap<>();
+    private final Map<PeerAddress,PeerKeys> knownKeys = new HashMap<>();
 
     private final KeyPair dhKeys = Crypto.generateDHKeyPair();
 
@@ -43,14 +45,16 @@ abstract class Passer {
 
                 if (request instanceof Handshake) {
                     Handshake handshake = (Handshake) request;
-                    DHPublicKey senderKey = handshake.dhKey;
+                    DHPublicKey exchangeKey = handshake.dhKey;
 
-                    SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), senderKey);
-                    peerKeys.put(sender,secretKey);
+                    SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), exchangeKey);
+                    PeerKeys peerKeys = new PeerKeys<RSAPublicKey>(handshake.rsaKey, secretKey);
 
-                    return handshake.reply((DHPublicKey) dhKeys.getPublic());
+                    knownKeys.put(sender, peerKeys);
+
+                    return handshake.reply((DHPublicKey) dhKeys.getPublic(), getPublicKey());
                 } else if (request instanceof SealedObject) {
-                    SecretKey secretKey = peerKeys.get(sender);
+                    SecretKey secretKey = knownKeys.get(sender).secretKey;
 
                     if(secretKey == null) {
                         System.out.println("Sender has not shaken hands, cannot decrypt! "+sender);
@@ -97,7 +101,7 @@ abstract class Passer {
     protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
 
     protected void sendHandshake(final PeerAddress receiver, final OnReplyCommand onCompletion) {
-        final Handshake handshake = new Handshake((DHPublicKey) dhKeys.getPublic());
+        final Handshake handshake = new Handshake((DHPublicKey) dhKeys.getPublic(), getPublicKey());
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
         FutureDHT futureDHT = sendBuilder.setObject(handshake).setRequestP2PConfiguration(requestConfiguration).start();
@@ -112,9 +116,18 @@ abstract class Passer {
 
                             if (handshakeReply.stage == Handshake.Stage.REPLY) {
                                 DHPublicKey receiverKey = handshakeReply.dhKey;
-                                SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), receiverKey);
+                                SecretKey secretKey;
+                                try {
+                                    secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), receiverKey);
+                                } catch (InvalidKeyException e) {
+                                    e.printStackTrace();
+                                    System.out.println("Could not create secret key for node "+receiver+" The exchange keys was invalid.");
+                                    return;
+                                }
 
-                                peerKeys.put(receiver,secretKey);
+                                PeerKeys peerKeys = new PeerKeys<RSAPublicKey>(handshake.rsaKey,secretKey);
+
+                                knownKeys.put(receiver, peerKeys);
                                 onCompletion.execute(null); //There is no reply value, and it should never be used in execute()
                             } else {
                                 throw new IllegalStateException("Expected a Handshake reply, but got initial Handshake");
@@ -148,9 +161,9 @@ abstract class Passer {
      * @param onReturn what you will do when it answers
      */
     protected void sendRequest(final PeerAddress receiver, final Serializable message, final OnReplyCommand onReturn) {
-        SecretKey receiverKey = peerKeys.get(receiver);
+        PeerKeys peerKeys = knownKeys.get(receiver);
 
-        if (receiverKey == null) {
+        if (peerKeys == null) {
             System.out.println("receiver has not shaken hands, cannot encrypt.\nInitiating handshake...");
 
             sendHandshake(receiver, new OnReplyCommand() {
@@ -159,7 +172,10 @@ abstract class Passer {
                     sendRequest(receiver,message,onReturn);
                 }
             });
+            return;
         }
+
+        SecretKey sharedKey = peerKeys.secretKey;
 
         Serializable readyMessage;
         SendBuilder sendBuilder = peer.send(receiver.getID());
@@ -206,9 +222,9 @@ abstract class Passer {
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.NO_REPLY);
 
-        SecretKey receiverKey = peerKeys.get(receiver);
+        PeerKeys peerKeys = knownKeys.get(receiver);
 
-        if(receiverKey == null) {
+        if(peerKeys == null) {
             System.out.println("receiver has not shaken hands, cannot encrypt.\nInitiating handshake...");
 
             sendHandshake(receiver, new OnReplyCommand() {
@@ -217,15 +233,18 @@ abstract class Passer {
                     sendNoReplyMessage(receiver, message);
                 }
             });
+            return;
         }
+
+        SecretKey sharedKey = peerKeys.secretKey;
 
         FutureDHT futureDHT = null;
         try {
             //TODO Get PublicKey from receiver...
-            futureDHT = sendBuilder.setObject( networkMessage.encrypt(receiverKey) ).setRequestP2PConfiguration(requestConfiguration).start();
-        } catch (InvalidKeyException|SignatureException|IOException e) {
+            futureDHT = sendBuilder.setObject( networkMessage.encrypt(sharedKey) ).setRequestP2PConfiguration(requestConfiguration).start();
+        } catch (InvalidKeyException e) {
             e.printStackTrace();
-            System.out.println("in Passer: Failure during encryption!");
+            System.out.println("in Passer: Failure during encryption, invalid key! Message: "+networkMessage);
         }
 
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
@@ -251,11 +270,21 @@ abstract class Passer {
     }
 
 
-    protected PrivateKey getPrivateKey() {
-        return peer.getPeerBean().getKeyPair().getPrivate();
+    protected RSAPrivateKey getPrivateKey() {
+        return (RSAPrivateKey) peer.getPeerBean().getKeyPair().getPrivate();
     }
 
-    protected PublicKey getPublicKey() {
-        return peer.getPeerBean().getKeyPair().getPublic();
+    protected RSAPublicKey getPublicKey() {
+        return (RSAPublicKey) peer.getPeerBean().getKeyPair().getPublic();
+    }
+
+    private class PeerKeys<P extends PublicKey> {
+        public final P publicKey;
+        public final SecretKey secretKey;
+
+        public PeerKeys(P publicKey, SecretKey secretKey) {
+            this.publicKey = publicKey;
+            this.secretKey = secretKey;
+        }
     }
 }
