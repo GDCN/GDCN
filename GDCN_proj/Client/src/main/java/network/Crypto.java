@@ -13,7 +13,7 @@ import java.security.KeyPair;
  * Created by weeeeeew on 2014-04-29.
  */
 public class Crypto {
-    public final static String EXCHANGE_ALGORITHM = "DiffieHellman";
+    public final static String AGREEMENT_ALGORITHM = "DiffieHellman";
     public final static String ENCRYPTION_ALGORITHM = "AES/ECB/PKCS5Padding";
     public final static String SIGN_ALGORITHM = "SHA256withRSA";
 
@@ -77,7 +77,7 @@ public class Crypto {
                 agreement.doPhase(otherKey, true);
 
                 try {
-                    return agreement.generateSecret("AES/ECB/PKCS5Padding");
+                    return agreement.generateSecret(ENCRYPTION_ALGORITHM);
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                     //The Java platform is defective.
@@ -85,7 +85,7 @@ public class Crypto {
                 }
             }
         } else {
-            throw new InvalidKeyException("Key algorithms must be compatible with "+EXCHANGE_ALGORITHM);
+            throw new InvalidKeyException("Key algorithms must be compatible with "+ AGREEMENT_ALGORITHM);
         }
     }
 
@@ -112,7 +112,7 @@ public class Crypto {
 
     public static KeyPair generateDHKeyPair() {
         try {
-            return KeyPairGenerator.getInstance(Crypto.EXCHANGE_ALGORITHM).generateKeyPair();
+            return KeyPairGenerator.getInstance(Crypto.AGREEMENT_ALGORITHM).generateKeyPair();
         } catch (NoSuchAlgorithmException e) {
             //The Java platform is defective, it does not support all required KeyAgreement algorithms.
             //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/KeyAgreement.html
@@ -134,7 +134,7 @@ public class Crypto {
 
     private static KeyAgreement initAgreement() {
         try {
-            return KeyAgreement.getInstance(EXCHANGE_ALGORITHM);
+            return KeyAgreement.getInstance(AGREEMENT_ALGORITHM);
         } catch (NoSuchAlgorithmException e) {
             //The Java platform is defective, it does not support all required KeyAgreement algorithms.
             //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/KeyAgreement.html
