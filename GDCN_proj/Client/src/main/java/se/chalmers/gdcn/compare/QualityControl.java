@@ -70,21 +70,44 @@ public class QualityControl {
         String qualityProgramPath = pathMan.taskBinaryDir() + File.separator + QUALITY_PROGRAM_NAME;
         File qualityProgram = new File(qualityProgramPath);
         if (!qualityProgram.canExecute()) {
-            compileQualityProgram();
-            if (!qualityProgram.canExecute()) {
-                // TODO Give up with quality check and do fast check
+            boolean status = compileQualityProgram(qualityProgramPath);
+            if (!(status && qualityProgram.canExecute())) {
+                return null;
             }
         }
         return qualityProgramPath;
     }
 
-    private void compileQualityProgram() {
-        File qualitySource = new File(pathMan.taskCodeDir() + File.separator + QUALITY_PROGRAM_SOURCE);
+    private boolean compileQualityProgram(String qualityProgramPath) {
+        String qualitySourcePath = pathMan.taskCodeDir() + File.separator + QUALITY_PROGRAM_SOURCE;
+        File qualitySource = new File(qualitySourcePath);
         if (qualitySource.isFile()) {
-            // TODO Compile quality
+            // Compiling quality
+            String[] command = {"ghc", qualitySourcePath, "-o", qualityProgramPath};
+            ProcessBuilder processBuilder = new ProcessBuilder(command).inheritIO();
+
+            Process proc = null;
+            try {
+                proc = processBuilder.start();
+                if (proc.waitFor() == 0) {
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            catch (IOException | InterruptedException e) {
+                e.printStackTrace();
+                return false;
+            }
+            finally {
+                if (proc != null)
+                    proc.destroy();
+            }
         }
         else {
-            // TODO Give up with quality check and do fast check
+            System.out.println("Quality source file " + qualitySourcePath + "does not exist");
+            return false;
         }
     }
 
