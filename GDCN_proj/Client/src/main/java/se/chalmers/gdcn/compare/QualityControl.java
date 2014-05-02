@@ -19,6 +19,9 @@ import java.util.concurrent.CountDownLatch;
  */
 public class QualityControl {
 
+    private static final String QUALITY_PROGRAM_NAME = "quality";
+    private static final String QUALITY_PROGRAM_SOURCE = "quality.hs";
+
     private final Set<ByteArray> resultSet;
     private final Map<ByteArray, TrustQuality> trustMap = new HashMap<>();
 
@@ -56,10 +59,32 @@ public class QualityControl {
         waitForAll = new CountDownLatch(resultSet.size());
         pathMan = PathManager.jobOwner(jobName);
         //TODO Follow convention of quality program or quality.hs source
-        program = new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
+        program = locateQualityProgram(); //new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
         taskDeps = new ArrayList<>();
         for (FileDep fileDep : taskMeta.getDependencies()) {
             taskDeps.add(pathMan.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
+        }
+    }
+
+    private String locateQualityProgram() {
+        String qualityProgramPath = pathMan.taskBinaryDir() + File.separator + QUALITY_PROGRAM_NAME;
+        File qualityProgram = new File(qualityProgramPath);
+        if (!qualityProgram.canExecute()) {
+            compileQualityProgram();
+            if (!qualityProgram.canExecute()) {
+                // TODO Give up with quality check and do fast check
+            }
+        }
+        return qualityProgramPath;
+    }
+
+    private void compileQualityProgram() {
+        File qualitySource = new File(pathMan.taskCodeDir() + File.separator + QUALITY_PROGRAM_SOURCE);
+        if (qualitySource.isFile()) {
+            // TODO Compile quality
+        }
+        else {
+            // TODO Give up with quality check and do fast check
         }
     }
 
