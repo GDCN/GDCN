@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.peers.Number160;
+
 import java.io.Serializable;
 
 /**
@@ -9,9 +11,10 @@ import java.io.Serializable;
  */
 //TODO Visibility changed for convenience for QualityControl, may exist better solution
 public class FileDep implements Serializable {
+
     final private String fileName;
     final private String fileLocation;
-    final private String dhtKey;
+    private Number160 dhtKey;
 
     //TODO generate dhtKey from projectName + fileName? will be hashed later on to a Number160
 
@@ -19,10 +22,19 @@ public class FileDep implements Serializable {
     //TODO put checksum elsewhere
     final private int checkSum;
 
-    FileDep(String fileName, String fileLocation, String dhtKey, boolean sticky, int checkSum) {
+    FileDep(String fileName, String fileLocation, Number160 dhtKey, boolean sticky, int checkSum) {
         this.fileName = fileName;
         this.fileLocation = fileLocation;
         this.dhtKey = dhtKey;
+        this.sticky = sticky;
+        this.checkSum = checkSum;
+    }
+
+    //TODO Not used, remove?
+    FileDep(String fileName, String fileLocation, String dhtKey, boolean sticky, int checkSum) {
+        this.fileName = fileName;
+        this.fileLocation = fileLocation;
+        this.dhtKey = Number160.createHash(dhtKey);
         this.sticky = sticky;
         this.checkSum = checkSum;
     }
@@ -57,7 +69,11 @@ public class FileDep implements Serializable {
         return fileLocation;
     }
 
-    public String getDhtKey() {
+    public void setDhtKey(Number160 dhtKey) {
+        this.dhtKey = dhtKey;
+    }
+
+    public Number160 getDhtKey() {
         return dhtKey;
     }
 

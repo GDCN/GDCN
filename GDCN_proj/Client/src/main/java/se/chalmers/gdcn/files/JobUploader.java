@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
@@ -54,18 +55,30 @@ public class JobUploader extends AbstractFileMaster{
                 continue;
             }
             System.out.println("\t"+task);
-            FileDep fileDep = new FileDep(task, "tasks", task, true, 0);
+            FileDep fileDep = new FileDep(task, "tasks", Number160.createHash(task), true, 0);
             dependencyTasks.add(fileDep);
 //            allFileDependencies.add(fileDep); //Since taskMeta shall be sent using MPI instead...
         }
 
         List<TaskMeta> taskMetas = new ArrayList<>();
+
+
         for(FileDep fileDep : dependencyTasks){
             TaskMeta taskMeta = AbstractFileMaster.readMetaFile( FileManagementUtils.pathTo(manager, fileDep));
             taskMetas.add(taskMeta);
+
+            taskMeta.getModule().setDhtKey(Number160.createHash(taskMeta.getModule().getFileName()));
+
+            setFileDepDHTKey(taskMeta.getModule());
+
+            for(FileDep f : taskMeta.getDependencies()) {
+                setFileDepDHTKey(f);
+            }
+
             allFileDependencies.add(taskMeta.getModule());
             allFileDependencies.addAll(taskMeta.getDependencies());
         }
+
         replicaManager.loadTasksAndReplicate(jobName, taskMetas);
 
         for(FileDep fileDep : allFileDependencies){
@@ -87,7 +100,7 @@ public class JobUploader extends AbstractFileMaster{
         try {
             System.out.println("Put " + FileManagementUtils.pathTo(pathManager, fileDep));
             Data data = new Data(FileManagementUtils.fromFile(file));
-            client.put(fileDep.getDhtKey(), data);
+            client.put(fileDep.getDhtKey(), client.getID(), data);
             //Handling OperationFinished is done in AbstractFileMaster
 
         } catch (IOException e) {
@@ -112,6 +125,10 @@ public class JobUploader extends AbstractFileMaster{
     protected void operationForDependentFileSuccess(FileDep fileDep, Object result) {
         System.out.println("Successfully put " + fileDep.getFileName());
         super.fileDependencyResolved(fileDep);
+    }
+
+    private static void setFileDepDHTKey(FileDep f) {
+        f.setDhtKey(Number160.createHash(f.getFileName()));
     }
 
 

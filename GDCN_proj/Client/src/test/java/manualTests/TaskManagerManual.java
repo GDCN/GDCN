@@ -1,6 +1,7 @@
 package manualTests;
 
 import com.google.gson.Gson;
+import net.tomp2p.peers.PeerAddress;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.control.PeerOwner;
 import se.chalmers.gdcn.control.TaskManager;
@@ -109,7 +110,7 @@ public class TaskManagerManual {
 
         TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-        manager.startTask("Primes", taskMeta, new StringHolder(), null);
+        manager.startTask("Primes", taskMeta, new StringHolder(), new PeerAddress(client.getID()), null);
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

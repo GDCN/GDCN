@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.control;
 
+import net.tomp2p.peers.PeerAddress;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.files.Downloader;
 import se.chalmers.gdcn.files.JobUploader;
@@ -59,14 +60,14 @@ public class TaskManager implements TaskRunner {
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
     public void startTask(final String projectName, final TaskMeta taskMeta, final StringHolder resultFileNameHolder,
-                          final TaskListener subjectListener){
+                          final PeerAddress jobOwner, final TaskListener subjectListener){
 
         ThreadService.submit(new Runnable() {
             @Override
             public void run() {
                 //Delegates error passing to client (ie PeerOwner). Makes call to his listeners
                 try {
-                    Downloader downloader = new Downloader(taskMeta, projectName, client, new TaskFailureListener() {
+                    Downloader downloader = new Downloader(taskMeta, projectName, client, jobOwner,new TaskFailureListener() {
                         @Override
                         public void taskFailed(String taskName, String reason) {
                             if(subjectListener != null){
@@ -131,7 +132,6 @@ public class TaskManager implements TaskRunner {
                     } else {
                         taskListener.taskFinished(jobName);
                     }
-
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (TaskMetaDataException e) {

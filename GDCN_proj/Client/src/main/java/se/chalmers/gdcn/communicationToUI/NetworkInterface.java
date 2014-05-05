@@ -40,9 +40,9 @@ public interface NetworkInterface {
 
     void send(String msg);
 
-    void put2(String key, String domain, Object value);
+    void put(Number160 key, Number160 domain, Data value);
 
-    void get2(String key, String domain);
+    void get(Number160 key, Number160 domain);
 
     void setNeighbourFile(String file);
 
@@ -51,5 +51,7 @@ public interface NetworkInterface {
     void deleteNeighbourFile();
 
     void requestWork(int index);
+
+    Number160 getID();
 
 }
