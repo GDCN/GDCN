@@ -207,12 +207,12 @@ public class SelfWorkTest {
             }
 
             @Override
-            public void put2(String key, String domain, Object value) {
+            public void put(Number160 key, Number160 domain, Data value) {
 
             }
 
             @Override
-            public void get2(String key, String domain) {
+            public void get(Number160 key, Number160 domain) {
 
             }
 
@@ -234,6 +234,11 @@ public class SelfWorkTest {
             @Override
             public void requestWork(int index) {
 
+            }
+
+            @Override
+            public Number160 getID() {
+                return null;
             }
         });
     }

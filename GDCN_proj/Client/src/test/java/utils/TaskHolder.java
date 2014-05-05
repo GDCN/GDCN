@@ -1,6 +1,7 @@
 package utils;
 
 import com.google.gson.Gson;
+import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.files.TaskMeta;
 
 /**
@@ -12,19 +13,19 @@ public class TaskHolder {
 
     private final static String TASK_META_A = "{\n" +
             "    \"taskName\":\"PrimeTask_01\",\n" +
-            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
+            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"sticky\":true,\"checkSum\":500},\n" +
             "    \"dependencies\":\n" +
             "    [\n" +
-            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Primes_2_2000\",\"sticky\":false,\"checkSum\":25}\n" +
+            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"sticky\":false,\"checkSum\":25}\n" +
             "    ]\n" +
             "}";
 
     private final static String TASK_META_B = "{\n" +
             "    \"taskName\":\"PrimeTask_02\",\n" +
-            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Primes_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
+            "    \"module\":{\"fileName\":\"Prime.hs\",\"fileLocation\":\"code\",\"sticky\":true,\"checkSum\":500},\n" +
             "    \"dependencies\":\n" +
             "    [\n" +
-            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Primes_2_2000\",\"sticky\":false,\"checkSum\":25}\n" +
+            "        {\"fileName\":\"2_10000.raw\",\"fileLocation\":\"resources\",\"sticky\":false,\"checkSum\":25}\n" +
             "    ]\n" +
             "}";
 
@@ -38,6 +39,7 @@ public class TaskHolder {
     public static TaskMeta getTaskA() {
         if(taskA == null){
             taskA = parse(TASK_META_A);
+            taskA.getModule().setDhtKey(Number160.createHash(taskA.getModule().getFileName()));
         }
         return taskA;
     }
@@ -45,6 +47,7 @@ public class TaskHolder {
     public static TaskMeta getTaskB() {
         if(taskB == null){
             taskB = parse(TASK_META_B);
+            taskB.getModule().setDhtKey(Number160.createHash(taskB.getModule().getFileName()));
         }
         return taskB;
     }
