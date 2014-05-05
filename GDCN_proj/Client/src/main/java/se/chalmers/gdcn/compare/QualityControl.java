@@ -28,7 +28,7 @@ public class QualityControl {
     private final PathManager pathMan;
     private final String program;
     private final String taskName;
-    private final List<String> taskDeps;
+    private final List<String> taskDeps = new ArrayList<>();
 
     private double bestQuality = -Double.MAX_VALUE;
     private final CountDownLatch waitForAll;
@@ -43,14 +43,24 @@ public class QualityControl {
      */
     public static Map<ByteArray, TrustQuality> compareQuality(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException{
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
-        return qualityControl.compare();
+        if (qualityControl.program != null) {
+            return qualityControl.compare();
+        }
+        else {
+            return qualityControl.fastCompare();
+        }
     }
 
     public static TrustQuality singleQualityTest(String jobName, TaskMeta taskMeta, ByteArray data) throws IOException{
         Set<ByteArray> resultSet = new HashSet<>();
         resultSet.add(data);
         QualityControl qualityControl = new QualityControl(jobName, taskMeta, resultSet);
-        return qualityControl.compare().get(data);
+        if (qualityControl.program != null) {
+            return qualityControl.compare().get(data);
+        }
+        else {
+            return qualityControl.fastCompare().get(data);
+        }
     }
 
     private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
@@ -60,14 +70,13 @@ public class QualityControl {
         pathMan = PathManager.jobOwner(jobName);
         //TODO Follow convention of quality program or quality.hs source
         program = locateQualityProgram(); //new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
-        taskDeps = new ArrayList<>();
         for (FileDep fileDep : taskMeta.getDependencies()) {
             taskDeps.add(pathMan.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
         }
     }
 
     private String locateQualityProgram() {
-        String qualityProgramPath = pathMan.taskBinaryDir() + File.separator + QUALITY_PROGRAM_NAME;
+        String qualityProgramPath = pathMan.taskBinaryDir() + QUALITY_PROGRAM_NAME;
         File qualityProgram = new File(qualityProgramPath);
         if (!qualityProgram.canExecute()) {
             boolean status = compileQualityProgram(qualityProgramPath);
@@ -79,11 +88,13 @@ public class QualityControl {
     }
 
     private boolean compileQualityProgram(String qualityProgramPath) {
-        String qualitySourcePath = pathMan.taskCodeDir() + File.separator + QUALITY_PROGRAM_SOURCE;
+        String qualitySourcePath = pathMan.taskCodeDir() + QUALITY_PROGRAM_SOURCE;
         File qualitySource = new File(qualitySourcePath);
         if (qualitySource.isFile()) {
             // Compiling quality
-            String[] command = {"ghc", qualitySourcePath, "-o", qualityProgramPath};
+            new File(qualityProgramPath).getParentFile().mkdirs();
+            String[] command = {"ghc", qualitySourcePath, "-o", qualityProgramPath,
+                    "-outputdir", pathMan.projectTempDir()};
             ProcessBuilder processBuilder = new ProcessBuilder(command).inheritIO();
 
             Process proc = null;
@@ -132,6 +143,19 @@ public class QualityControl {
         return trustMap;
     }
 
+    private Map<ByteArray, TrustQuality> fastCompare() {
+        for (ByteArray result : resultSet) {
+            if (resultSet.size() == 1) {
+                // Possible danger if quality program is defined afterward and a new result has quality
+                reward(result, -Double.MAX_VALUE);
+            }
+            else {
+                unknown(result, "Undefined quality program");
+            }
+        }
+        return trustMap;
+    }
+
     private String writeResultFile(byte[] data, int resultID) throws IOException {
         FileOutputStream output = null;
         try {
@@ -166,11 +190,13 @@ public class QualityControl {
             trustMap.put(result, TrustQuality.deceitful());
         }
         waitForAll.countDown();
+        //TODO Remove my file
     }
 
     private synchronized void punish(ByteArray result) {
         trustMap.put(result, TrustQuality.deceitful());
         waitForAll.countDown();
+        // TODO Remove my file
     }
 
     private synchronized void unknown(ByteArray result, String reason) {
