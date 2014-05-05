@@ -29,7 +29,7 @@ public class QualityControl {
 
     private final PathManager pathMan;
     private final String program;
-    private final String taskName;
+    private final String resultFileInit;
     private final List<String> taskDeps = new ArrayList<>();
 
     private double bestQuality = -Double.MAX_VALUE;
@@ -66,15 +66,14 @@ public class QualityControl {
     }
 
     private QualityControl(String jobName, TaskMeta taskMeta, Set<ByteArray> resultSet) throws IOException {
-        taskName = taskMeta.getTaskName();
         this.resultSet = resultSet;
         waitForAll = new CountDownLatch(resultSet.size());
         pathMan = PathManager.jobOwner(jobName);
-        //TODO Follow convention of quality program or quality.hs source
-        program = locateQualityProgram(); //new File(pathMan.projectValidDir()).listFiles()[0].getCanonicalPath();
+        program = locateQualityProgram();
         for (FileDep fileDep : taskMeta.getDependencies()) {
             taskDeps.add(pathMan.projectDir() + fileDep.getFileLocation() + File.separator + fileDep.getFileName());
         }
+        resultFileInit = pathMan.projectTempDir() + taskMeta.getTaskName() + "_";
     }
 
     private String locateQualityProgram() {
@@ -120,10 +119,9 @@ public class QualityControl {
     }
 
     private Map<ByteArray, TrustQuality> compare() throws IOException {
-        int resultID = 0;
         for (ByteArray resultData : resultSet) {
-            String resultFile = writeResultFile(resultData.getData(), resultID++);
-            Listener listener = new Listener(resultData);
+            String resultFile = writeResultFile(resultData);
+            Listener listener = new Listener(resultData, new File(resultFile));
             Validifier validifier = new Validifier(listener);
             ValidifierRunner runner = new ValidifierRunner(validifier, resultFile);
 
@@ -140,28 +138,33 @@ public class QualityControl {
         return trustMap;
     }
 
-    private Map<ByteArray, TrustQuality> fastCompare() {
+    private Map<ByteArray, TrustQuality> fastCompare() throws IOException {
         for (ByteArray result : resultSet) {
             if (resultSet.size() == 1) {
                 // Possible danger if quality program is defined afterward and a new result has quality
                 reward(result, -Double.MAX_VALUE);
             }
             else {
+                writeResultFile(result);
                 unknown(result, "Undefined quality program");
             }
         }
         return trustMap;
     }
 
-    private String writeResultFile(byte[] data, int resultID) throws IOException {
+    private String writeResultFile(ByteArray data) throws IOException {
         FileOutputStream output = null;
         try {
-            //TODO check for existing files and don't overwrite
-            String resultFile = pathMan.projectTempDir() + taskName + "_" + resultID;
+            int hash = data.hashCode();
+            while (new File(resultFileInit + hash).exists()) {
+                // Find unused filename
+                hash++;
+            }
+            String resultFile = resultFileInit + hash;
             File parent = new File(resultFile).getParentFile();
             parent.mkdirs();
             output = new FileOutputStream(resultFile);
-            output.write(data);
+            output.write(data.getData());
             return resultFile;
         }
         finally {
@@ -187,13 +190,11 @@ public class QualityControl {
             trustMap.put(result, TrustQuality.deceitful());
         }
         waitForAll.countDown();
-        //TODO Remove my file
     }
 
     private synchronized void punish(ByteArray result) {
         trustMap.put(result, TrustQuality.deceitful());
         waitForAll.countDown();
-        // TODO Remove my file
     }
 
     private synchronized void unknown(ByteArray result, String reason) {
@@ -228,19 +229,23 @@ public class QualityControl {
     private class Listener implements ValidityListener {
 
         private final ByteArray myResult;
+        private final File myFile;
 
-        private Listener(ByteArray myResult) {
+        private Listener(ByteArray myResult, File myFile) {
             this.myResult = myResult;
+            this.myFile = myFile;
         }
 
         @Override
         public void validityOk(double quality) {
             reward(myResult, quality);
+            myFile.delete();
         }
 
         @Override
         public void validityCorrupt() {
             punish(myResult);
+            myFile.delete();
         }
 
         @Override
