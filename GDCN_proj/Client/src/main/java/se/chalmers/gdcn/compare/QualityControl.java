@@ -3,6 +3,8 @@ package se.chalmers.gdcn.compare;
 import se.chalmers.gdcn.control.ThreadService;
 import se.chalmers.gdcn.files.FileDep;
 import se.chalmers.gdcn.files.TaskMeta;
+import se.chalmers.gdcn.taskbuilder.ExitFailureException;
+import se.chalmers.gdcn.taskbuilder.HaskellCompiler;
 import se.chalmers.gdcn.taskbuilder.Validifier;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.ValidityListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
@@ -95,29 +97,24 @@ public class QualityControl {
             new File(qualityProgramPath).getParentFile().mkdirs();
             String[] command = {"ghc", qualitySourcePath, "-o", qualityProgramPath,
                     "-outputdir", pathMan.projectTempDir()};
-            ProcessBuilder processBuilder = new ProcessBuilder(command).inheritIO();
 
-            Process proc = null;
+            HaskellCompiler haskellCompiler = new HaskellCompiler();
+
             try {
-                proc = processBuilder.start();
-                if (proc.waitFor() == 0) {
-                    return true;
-                }
-                else {
-                    return false;
-                }
-            }
-            catch (IOException | InterruptedException e) {
+                haskellCompiler.compile(command);
+            } catch (ExitFailureException e) {
+                return false;
+            } catch (InterruptedException | IOException e) {
                 e.printStackTrace();
                 return false;
             }
             finally {
-                if (proc != null)
-                    proc.destroy();
+                pathMan.deleteTemps();
             }
+            return true;
         }
         else {
-            System.out.println("Quality source file " + qualitySourcePath + "does not exist");
+            System.out.println("Quality source file " + qualitySourcePath + " does not exist");
             return false;
         }
     }
