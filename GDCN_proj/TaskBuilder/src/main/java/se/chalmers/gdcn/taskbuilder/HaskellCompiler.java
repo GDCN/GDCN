@@ -51,6 +51,7 @@ public class HaskellCompiler {
     }
 
     public void compile(List<String> command) throws IOException, InterruptedException, ExitFailureException{
-        compile((String[]) command.toArray());
+        String[] array = new String[command.size()];
+        compile(command.toArray(array));
     }
 }
