@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.hashcash;
 
 import org.testng.annotations.Test;
+import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.network.WorkerID;
 
 import javax.crypto.KeyGenerator;
@@ -144,6 +145,21 @@ public class HashCashTest {
         Solution solution = challenge.solve();
 
         assert !solution.isValid(key2);
+    }
+
+    @Test
+    public void testReusedSolution() throws Exception {
+        WorkerChallengesManager wcm = new WorkerChallengesManager();
+        WorkerID jo = randomWorkerID(), w = randomWorkerID();
+
+        Challenge c1 = hc.generateAuthenticationChallenge(jo,w,wcm.getCurrentScore(w));
+        Solution s1 = c1.solve();
+
+        assert hc.validateSolution(s1,jo,w,wcm.getCurrentScore(w));
+
+        wcm.solvedChallenge(w,s1);
+
+        assert !hc.validateSolution(s1,jo,w,wcm.getCurrentScore(w));
     }
 
     private String randomString() {
