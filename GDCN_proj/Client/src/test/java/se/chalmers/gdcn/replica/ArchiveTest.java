@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.replica;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.WorkerID;
@@ -32,7 +33,6 @@ public class ArchiveTest {
         Install.install();
         taskMeta = TaskHolder.getTaskA();
 
-        archive = new Archive();
         taskData = new TaskData(taskMeta, "dummyJob", 1, 10);
 
         byte[] data = {0, 0, 0, 1};
@@ -40,10 +40,14 @@ public class ArchiveTest {
 
         byte[] badData = {0, 0, 0};
         badByteArray = new ByteArray(badData);
+    }
 
+    @BeforeMethod
+    public void setupArchive() {
+        archive = new Archive();
         archive.archiveResult(taskData, byteArray, 10, new HashSet<WorkerID>());
-
         canonicalResult = archive.getArchivedResult(taskData.taskID());
+
     }
 
     @Test
