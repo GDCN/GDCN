@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.files;
 
+import net.tomp2p.peers.Number160;
+
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -9,7 +11,7 @@ import java.util.TreeSet;
 public class DeceitfulFileUtils {
 
     public static String deduceTask(TaskMeta meta){
-        final Set<String> files = new TreeSet<>();
+        final Set<Number160> files = new TreeSet<>();
         files.add(meta.getModule().getDhtKey());
 
         for(FileDep file:meta.getDependencies()){
@@ -17,8 +19,8 @@ public class DeceitfulFileUtils {
         }
 
         String answer = "";
-        for(String s:files){
-            answer += s;
+        for(Number160 s:files){
+            answer += s.toString();
         }
 
         return answer;
