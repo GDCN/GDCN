@@ -15,7 +15,9 @@ import java.security.KeyPair;
 public class Crypto {
     public final static String AGREEMENT_ALGORITHM = "DiffieHellman";
     public final static String ENCRYPTION_ALGORITHM = "AES/ECB/PKCS5Padding";
+    public final static String SECRET_KEY_ALGORITHM = "AES";
     public final static String SIGN_ALGORITHM = "SHA256withRSA";
+    public final static String PUBLIC_KEY_ALGORITHM = "RSA";
 
     private final static Cipher cipher;
     private final static KeyAgreement agreement;
@@ -49,7 +51,7 @@ public class Crypto {
      * @throws IllegalBlockSizeException
      * @throws java.io.IOException
      */
-    public static Serializable decrypt(SealedObject data, SecretKey key) throws InvalidKeyException, BadPaddingException, IOException, IllegalBlockSizeException {
+    public static Serializable decrypt(SealedObject data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
         if (data.getAlgorithm().startsWith(key.getAlgorithm())) {
             if (ENCRYPTION_ALGORITHM.startsWith(key.getAlgorithm())) {
                 synchronized (cipher) {
@@ -59,7 +61,9 @@ public class Crypto {
                     } catch (ClassNotFoundException e) {
                         e.printStackTrace();
                         return null;
-                        //This should never happen, as it is impossible to encrypt a non-serializable object
+                    } catch (BadPaddingException e) {
+                        return null;
+                        //Decryption failed
                     }
                 }
             } else {
@@ -77,7 +81,7 @@ public class Crypto {
                 agreement.doPhase(otherKey, true);
 
                 try {
-                    return agreement.generateSecret(ENCRYPTION_ALGORITHM);
+                    return agreement.generateSecret(SECRET_KEY_ALGORITHM);
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                     //The Java platform is defective.

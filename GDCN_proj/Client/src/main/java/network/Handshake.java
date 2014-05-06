@@ -2,6 +2,8 @@ package network;
 
 import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
+import java.security.InvalidKeyException;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 
 /**
@@ -16,6 +18,10 @@ public class Handshake implements Serializable {
         this(dhKey,rsaKey,Stage.INIT);
     }
 
+    public Handshake(PublicKey dhKey, PublicKey rsaKey) {
+        this((DHPublicKey) dhKey, (RSAPublicKey) rsaKey);
+    }
+
     private Handshake(DHPublicKey dhKey, RSAPublicKey rsaKey, Stage stage) {
         this.dhKey = dhKey;
         this.rsaKey = rsaKey;
@@ -24,6 +30,10 @@ public class Handshake implements Serializable {
 
     public Handshake reply(DHPublicKey dhKey, RSAPublicKey rsaKey) {
         return stage == Stage.INIT ? new Handshake(dhKey,rsaKey,Stage.REPLY) : null;
+    }
+
+    public Handshake reply(PublicKey dhKey, PublicKey rsaKey) {
+        return reply((DHPublicKey) dhKey, (RSAPublicKey) rsaKey);
     }
 
     @Override

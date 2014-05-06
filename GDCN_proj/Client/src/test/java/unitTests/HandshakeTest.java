@@ -24,54 +24,52 @@ public class HandshakeTest {
 
     @Test
     public void testReply() {
-        Handshake hs1 = new Handshake((DHPublicKey) dhKeygen.generateKeyPair().getPublic(), (RSAPublicKey) rsaKeygen.generateKeyPair().getPublic());
-        Handshake hs2 = hs1.reply((DHPublicKey) dhKeygen.generateKeyPair().getPublic(), (RSAPublicKey) rsaKeygen.generateKeyPair().getPublic());
+        Handshake hs1 = new Handshake(dhKeygen.generateKeyPair().getPublic(), rsaKeygen.generateKeyPair().getPublic());
+        Handshake hs2 = hs1.reply(dhKeygen.generateKeyPair().getPublic(), rsaKeygen.generateKeyPair().getPublic());
 
         assert hs2 != null;
-    }
-
-    @Test
-    public void testDoubleReply() {
-        Handshake hs1 = new Handshake(rsaKeygen.generateKeyPair().getPublic());
-        Handshake hs2 = hs1.reply(rsaKeygen.generateKeyPair().getPublic());
-
-        assert hs2.reply(rsaKeygen.generateKeyPair().getPublic()) == null;
+        assert !hs1.equals(hs2);
+        assert hs2.reply(dhKeygen.generateKeyPair().getPublic(), rsaKeygen.generateKeyPair().getPublic()) == null;
     }
 
     @Test
     public void testPublicKey() {
-        PublicKey key = rsaKeygen.generateKeyPair().getPublic();
-        Handshake hs = new Handshake(key);
+        PublicKey rsaKey1 = rsaKeygen.generateKeyPair().getPublic();
+        PublicKey dhKey1 = dhKeygen.generateKeyPair().getPublic();
 
-        assert hs.dhKey.equals(key);
+        Handshake hs = new Handshake(dhKey1,rsaKey1);
+
+        assert hs.dhKey.equals(dhKey1) && hs.rsaKey.equals(rsaKey1);
+
+        PublicKey rsaKey2 = rsaKeygen.generateKeyPair().getPublic();
+        PublicKey dhKey2 = dhKeygen.generateKeyPair().getPublic();
+
+        Handshake hs2 = hs.reply(dhKey2,rsaKey2);
+
+        assert hs2.rsaKey.equals(rsaKey2) && hs2.dhKey.equals(dhKey2);
+        assert !hs2.rsaKey.equals(rsaKey1) && !hs2.dhKey.equals(dhKey1);
     }
 
     @Test
-    public void testReplyPublicKey() {
-        PublicKey key1 = rsaKeygen.generateKeyPair().getPublic();
-        PublicKey key2 = rsaKeygen.generateKeyPair().getPublic();
-        Handshake hs1 = new Handshake(key1);
-        Handshake hs2 = hs1.reply(key2);
+    public void testEquality() {
+        PublicKey dhKey1 = dhKeygen.generateKeyPair().getPublic();
+        PublicKey rsaKey1 = rsaKeygen.generateKeyPair().getPublic();
 
-        assert hs2.dhKey.equals(key2);
-    }
+        Handshake hs1 = new Handshake(dhKey1,rsaKey1);
+        Handshake hs2 = new Handshake(dhKey1,rsaKey1);
 
-    @Test
-    public void testSignatureValid() throws Exception {
-        PublicKey key = rsaKeygen.generateKeyPair().getPublic();
-        KeyPair keypair = rsaKeygen.generateKeyPair();
-        Handshake hs = new Handshake(key);
-        SignedObject signedHS = hs.sign(keypair.getPrivate());
+        assert hs1.equals(hs2) && hs2.equals(hs1);
+        assert !hs1.equals(hs1.reply(dhKey1,rsaKey1)) && !hs1.reply(dhKey1,rsaKey1).equals(hs1);
 
-        assert Crypto.verify(signedHS,keypair.getPublic());
-    }
+        PublicKey dhKey2 = dhKeygen.generateKeyPair().getPublic();
+        PublicKey rsaKey2 = rsaKeygen.generateKeyPair().getPublic();
 
-    @Test
-    public void testSignedObject() throws Exception {
-        KeyPair keypair = rsaKeygen.generateKeyPair();
-        Handshake hs = new Handshake(keypair.getPublic());
-        SignedObject signedHS = hs.sign(keypair.getPrivate());
+        Handshake hs3 = new Handshake(dhKey1,rsaKey2);
+        Handshake hs4 = new Handshake(dhKey2,rsaKey1);
+        Handshake hs5 = new Handshake(dhKey2,rsaKey2);
 
-        assert hs.equals((Handshake) signedHS.getObject());
+        assert !hs1.equals(hs3) && !hs3.equals(hs1);
+        assert !hs1.equals(hs4) && !hs4.equals(hs1);
+        assert !hs1.equals(hs5) && !hs5.equals(hs1);
     }
 }

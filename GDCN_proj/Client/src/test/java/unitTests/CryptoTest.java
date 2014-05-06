@@ -21,8 +21,8 @@ public class CryptoTest {
     private Random random;
 
     public CryptoTest() throws Exception {
-        secretKeygen = KeyGenerator.getInstance(Crypto.ENCRYPTION_ALGORITHM);
-        publicKeygen = KeyPairGenerator.getInstance(Crypto.SIGN_ALGORITHM);
+        secretKeygen = KeyGenerator.getInstance(Crypto.SECRET_KEY_ALGORITHM);
+        publicKeygen = KeyPairGenerator.getInstance(Crypto.PUBLIC_KEY_ALGORITHM);
         random = new Random();
     }
 
@@ -75,7 +75,7 @@ public class CryptoTest {
         backupAgreement.init(keyPair2.getPrivate());
         backupAgreement.doPhase(keyPair1.getPublic(),true);
 
-        SecretKey secretKey2 = backupAgreement.generateSecret(Crypto.ENCRYPTION_ALGORITHM);
+        SecretKey secretKey2 = backupAgreement.generateSecret(Crypto.SECRET_KEY_ALGORITHM);
 
         assert secretKey1.equals(secretKey2);
     }

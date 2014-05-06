@@ -43,7 +43,7 @@ public class NetworkMessage implements Serializable {
 
         try {
             data = Crypto.decrypt(sealedData, key);
-        } catch (BadPaddingException|IOException|IllegalBlockSizeException e) {
+        } catch (IOException|IllegalBlockSizeException e) {
             e.printStackTrace();
             System.out.println("Decryption failed!");
             return null;
@@ -51,6 +51,8 @@ public class NetworkMessage implements Serializable {
 
         if (data instanceof NetworkMessage) {
             return (NetworkMessage) data;
+        } else if (data == null) {
+            return null;
         } else {
             throw new InvalidParameterException("The encrypted object was not a NetworkMessage");
         }
@@ -69,8 +71,10 @@ public class NetworkMessage implements Serializable {
     }
 
     @Override
-    public boolean equals(Object other) {
-        return other instanceof NetworkMessage ? this.object.equals( ((NetworkMessage) other).object ) && this.type == ((NetworkMessage) other).type : false;
+    public boolean equals(Object o) {
+        return o instanceof NetworkMessage
+                ? this.object.equals( ((NetworkMessage) o).object ) && this.type == ((NetworkMessage) o).type
+                : false;
     }
 
 }
