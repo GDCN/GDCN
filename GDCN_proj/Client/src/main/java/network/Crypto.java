@@ -24,11 +24,13 @@ public class Crypto {
     private final static Signature signer;
 
     static {
+        //TODO why static block and not direct initialization? Is the order really significant?
         cipher = initCipher();
         agreement = initAgreement();
         signer = initSigner();
     }
 
+    //TODO javadoc
     public static SealedObject encrypt(Serializable data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
         if (ENCRYPTION_ALGORITHM.startsWith(key.getAlgorithm())) {
             synchronized (cipher) {
@@ -46,7 +48,7 @@ public class Crypto {
      * @param key The PrivateKey with which the object should be decrypted.
      * @return The decrypted object.
      * @throws InvalidKeyException
-     * @throws ClassNotFoundException
+     * @throws ClassNotFoundException todo remove
      * @throws BadPaddingException
      * @throws IllegalBlockSizeException
      * @throws java.io.IOException
@@ -74,6 +76,7 @@ public class Crypto {
         }
     }
 
+    //TODO javadoc
     public static SecretKey generateSecretKey(PrivateKey myKey, PublicKey otherKey) throws InvalidKeyException {
         if (myKey instanceof DHPrivateKey && otherKey instanceof DHPublicKey) {
             synchronized (agreement) {
@@ -108,12 +111,14 @@ public class Crypto {
         }
     }
 
+    //TODO javadoc
     public static boolean verify(SignedObject data, PublicKey key) throws SignatureException, InvalidKeyException {
         synchronized (signer) {
             return data.verify(key,signer);
         }
     }
 
+    //TODO javadoc
     public static KeyPair generateDHKeyPair() {
         try {
             return KeyPairGenerator.getInstance(Crypto.AGREEMENT_ALGORITHM).generateKeyPair();

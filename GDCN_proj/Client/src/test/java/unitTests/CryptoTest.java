@@ -7,7 +7,6 @@ import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
-import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.*;
 import java.util.Random;
@@ -20,10 +19,12 @@ public class CryptoTest {
     private KeyPairGenerator publicKeygen;
     private Random random;
 
+    //TODO why use constructor? Standard is to use @BeforeClass and/or @BeforeMethod setup method.
     public CryptoTest() throws Exception {
         secretKeygen = KeyGenerator.getInstance(Crypto.SECRET_KEY_ALGORITHM);
         publicKeygen = KeyPairGenerator.getInstance(Crypto.PUBLIC_KEY_ALGORITHM);
         random = new Random();
+        //TODO give seed. Tests should be fully deterministic even when using Random. can run same test multiple times instead.
     }
 
     @Test

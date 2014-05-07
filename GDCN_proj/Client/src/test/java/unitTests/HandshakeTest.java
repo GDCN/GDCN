@@ -4,12 +4,8 @@ import network.Crypto;
 import network.Handshake;
 import org.testng.annotations.Test;
 
-import javax.crypto.interfaces.DHPublicKey;
-import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PublicKey;
-import java.security.SignedObject;
-import java.security.interfaces.RSAPublicKey;
 
 /**
  * Created by weeeeeew on 2014-04-10.
@@ -17,6 +13,7 @@ import java.security.interfaces.RSAPublicKey;
 public class HandshakeTest {
     private final KeyPairGenerator rsaKeygen,dhKeygen;
 
+    //TODO why use constructor? Standard is to use @BeforeClass and/or @BeforeMethod setup method.
     public HandshakeTest() throws Exception {
         rsaKeygen = KeyPairGenerator.getInstance("RSA");
         dhKeygen = KeyPairGenerator.getInstance(Crypto.AGREEMENT_ALGORITHM);

@@ -7,12 +7,14 @@ import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
+
 import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
-import java.io.IOException;
 import java.io.Serializable;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
@@ -99,6 +101,7 @@ abstract class Passer {
      */
     protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
 
+    //TODO make either private or protected final. If chose protected -> add javadoc
     protected void sendHandshake(final PeerAddress receiver, final OnReplyCommand onCompletion) {
         final Handshake handshake = new Handshake((DHPublicKey) dhKeys.getPublic(), getPublicKey());
         SendBuilder sendBuilder = peer.send(receiver.getID());
@@ -158,6 +161,8 @@ abstract class Passer {
      * @param receiver peer
      * @param message message
      * @param onReturn what you will do when it answers
+     *
+     * todo make final?
      */
     protected void sendRequest(final PeerAddress receiver, final Serializable message, final OnReplyCommand onReturn) {
         PeerKeys peerKeys = knownKeys.get(receiver);
@@ -215,6 +220,7 @@ abstract class Passer {
      * Send messaage to a peer without expecting something in reply
      * @param receiver peer
      * @param message message
+     * todo make final?
      */
     protected void sendNoReplyMessage(final PeerAddress receiver, final Serializable message) {
         SendBuilder sendBuilder = peer.send(receiver.getID());
@@ -271,12 +277,14 @@ abstract class Passer {
         return peerAddress.getInetAddress().toString();
     }
 
-
+    //TODO add javadoc. Consider make final
     protected RSAPrivateKey getPrivateKey() {
         return (RSAPrivateKey) peer.getPeerBean().getKeyPair().getPrivate();
     }
 
+    //TODO add javadoc. Consider make final
     protected RSAPublicKey getPublicKey() {
+        //TODO get exception here: is actually DSAPublicKeyImpl which doesn't implement RSAPublicKey
         return (RSAPublicKey) peer.getPeerBean().getKeyPair().getPublic();
     }
 
