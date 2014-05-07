@@ -14,10 +14,10 @@ import java.security.KeyPair;
  */
 public class Crypto {
     public final static String AGREEMENT_ALGORITHM = "DiffieHellman";
-    public final static String ENCRYPTION_ALGORITHM = "AES/ECB/PKCS5Padding";
+    public final static String ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding";
     public final static String SECRET_KEY_ALGORITHM = "AES";
-    public final static String SIGN_ALGORITHM = "SHA256withRSA";
-    public final static String PUBLIC_KEY_ALGORITHM = "RSA";
+    public final static String SIGN_ALGORITHM = "SHA1withDSA";
+    public final static String PUBLIC_KEY_ALGORITHM = "DSA";
 
     private final static Cipher cipher;
     private final static KeyAgreement agreement;

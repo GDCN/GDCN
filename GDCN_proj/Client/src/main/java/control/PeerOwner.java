@@ -15,6 +15,7 @@ import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import network.Crypto;
 import network.TaskPasser;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;
@@ -399,7 +400,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             KeyPair keyPair = dataFilesManager.getKeypair();
 
             if(keyPair == null) {
-                KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+                KeyPairGenerator generator = KeyPairGenerator.getInstance(Crypto.PUBLIC_KEY_ALGORITHM);
                 keyPair = generator.generateKeyPair();
                 dataFilesManager.saveKeyPair(keyPair);
             }
