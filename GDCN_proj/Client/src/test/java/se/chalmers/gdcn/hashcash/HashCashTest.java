@@ -1,7 +1,6 @@
 package se.chalmers.gdcn.hashcash;
 
 import org.testng.annotations.Test;
-import se.chalmers.gdcn.control.WorkerChallengesManager;
 import se.chalmers.gdcn.network.WorkerID;
 
 import javax.crypto.KeyGenerator;

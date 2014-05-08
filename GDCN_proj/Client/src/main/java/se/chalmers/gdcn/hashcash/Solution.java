@@ -37,7 +37,9 @@ public class Solution implements Serializable {
 
     /**
      * Checks whether the solution is a valid solution to the challenge it claims to solve.
+     * It's recommended to use HashCash.validateSolution() instead!
      * @param key The key used when creating the challenge.
+     * @param seed The seed used when creating the challenge.
      * @return True if the solution solves the challenge and is authentic.
      * @throws InvalidKeyException
      */

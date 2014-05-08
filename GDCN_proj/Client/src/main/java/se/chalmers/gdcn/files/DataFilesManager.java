@@ -2,7 +2,7 @@ package se.chalmers.gdcn.files;
 
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
-import se.chalmers.gdcn.control.WorkerChallengesManager;
+import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;

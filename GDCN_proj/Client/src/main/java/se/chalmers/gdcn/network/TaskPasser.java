@@ -10,7 +10,7 @@ import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.ThreadService;
-import se.chalmers.gdcn.control.WorkerChallengesManager;
+import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.files.FileManagementUtils;
