@@ -1,6 +1,7 @@
 package unitTests;
 
 import network.Crypto;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.crypto.KeyAgreement;
@@ -19,10 +20,10 @@ public class CryptoTest {
     private KeyPairGenerator publicKeygen;
     private Random random;
 
-    //TODO why use constructor? Standard is to use @BeforeClass and/or @BeforeMethod setup method.
-    public CryptoTest() throws Exception {
+    @BeforeClass
+    public void initialize() throws Exception {
         secretKeygen = KeyGenerator.getInstance(Crypto.SECRET_KEY_ALGORITHM);
-        publicKeygen = KeyPairGenerator.getInstance(Crypto.PUBLIC_KEY_ALGORITHM);
+        publicKeygen = KeyPairGenerator.getInstance(Crypto.SIGNATURE_KEY_ALGORITHM);
         random = new Random();
         //TODO give seed. Tests should be fully deterministic even when using Random. can run same test multiple times instead.
     }
@@ -66,7 +67,7 @@ public class CryptoTest {
     public void testAgreement() throws Exception {
         KeyAgreement backupAgreement = KeyAgreement.getInstance(Crypto.AGREEMENT_ALGORITHM);
         KeyPairGenerator backupKeygen = KeyPairGenerator.getInstance(Crypto.AGREEMENT_ALGORITHM);
-        KeyPair keyPair1 = Crypto.generateDHKeyPair();
+        KeyPair keyPair1 = Crypto.generateAgreementKeyPair();
         KeyPair keyPair2 = backupKeygen.generateKeyPair();
 
         assert !keyPair1.equals(keyPair2);

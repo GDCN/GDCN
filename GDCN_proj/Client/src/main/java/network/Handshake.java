@@ -3,53 +3,51 @@ package network;
 import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPublicKey;
+import java.security.interfaces.DSAPublicKey;
 
 /**
  * Created by weeeeeew on 2014-04-10.
  */
 public class Handshake implements Serializable {
-    public final DHPublicKey dhKey;
-    public final RSAPublicKey rsaKey;
-    public final Stage stage;
+    public final PublicKey agreementKey, signKey;
+    public final Phase phase;
 
-    //TODO javadoc
-    public Handshake(DHPublicKey dhKey, RSAPublicKey rsaKey) {
-        this(dhKey,rsaKey,Stage.INIT);
+    /**
+     * Creates a new Handshake in the initial phase, containing the specified keys.
+     * @param agreementKey The public key of the key agreement algorithm.
+     * @param signKey The public key of the digital signature algorithm.
+     */
+    public Handshake(PublicKey agreementKey, PublicKey signKey) {
+        this(agreementKey, signKey, Phase.INIT);
     }
 
-    //TODO javadoc
-    public Handshake(PublicKey dhKey, PublicKey rsaKey) {
-        this((DHPublicKey) dhKey, (RSAPublicKey) rsaKey);
+    private Handshake(PublicKey agreementKey, PublicKey signKey, Phase phase) {
+        this.agreementKey = agreementKey;
+        this.signKey = signKey;
+        this.phase = phase;
     }
 
-    private Handshake(DHPublicKey dhKey, RSAPublicKey rsaKey, Stage stage) {
-        this.dhKey = dhKey;
-        this.rsaKey = rsaKey;
-        this.stage = stage;
-    }
-
-    //TODO javadoc
-    public Handshake reply(DHPublicKey dhKey, RSAPublicKey rsaKey) {
-        return stage == Stage.INIT ? new Handshake(dhKey,rsaKey,Stage.REPLY) : null;
-    }
-
-    //TODO javadoc
-    public Handshake reply(PublicKey dhKey, PublicKey rsaKey) {
-        return reply((DHPublicKey) dhKey, (RSAPublicKey) rsaKey);
+    /**
+     * Creates a replying handshake, using the specified keys.
+     * @param agreementKey The public key of the key agreement algorithm.
+     * @param signKey The public key of the digital signature algorithm.
+     * @return A new handshake in the next phase.
+     */
+    public Handshake reply(PublicKey agreementKey, PublicKey signKey) {
+        return phase == Phase.INIT ? new Handshake(agreementKey,signKey, Phase.REPLY) : null;
     }
 
     @Override
     public boolean equals(Object o) {
         if (o instanceof Handshake) {
             Handshake hs = (Handshake) o;
-            return this.dhKey.equals(hs.dhKey) && this.rsaKey.equals(hs.rsaKey) && this.stage == hs.stage;
+            return this.agreementKey.equals(hs.agreementKey) && this.signKey.equals(hs.signKey) && this.phase == hs.phase;
         }
 
         return false;
     }
 
-    public enum Stage {
+    public enum Phase {
         INIT,
         REPLY
     }

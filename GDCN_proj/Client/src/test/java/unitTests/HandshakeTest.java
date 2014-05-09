@@ -36,15 +36,15 @@ public class HandshakeTest {
 
         Handshake hs = new Handshake(dhKey1,rsaKey1);
 
-        assert hs.dhKey.equals(dhKey1) && hs.rsaKey.equals(rsaKey1);
+        assert hs.agreementKey.equals(dhKey1) && hs.signKey.equals(rsaKey1);
 
         PublicKey rsaKey2 = rsaKeygen.generateKeyPair().getPublic();
         PublicKey dhKey2 = dhKeygen.generateKeyPair().getPublic();
 
         Handshake hs2 = hs.reply(dhKey2,rsaKey2);
 
-        assert hs2.rsaKey.equals(rsaKey2) && hs2.dhKey.equals(dhKey2);
-        assert !hs2.rsaKey.equals(rsaKey1) && !hs2.dhKey.equals(dhKey1);
+        assert hs2.signKey.equals(rsaKey2) && hs2.agreementKey.equals(dhKey2);
+        assert !hs2.signKey.equals(rsaKey1) && !hs2.agreementKey.equals(dhKey1);
     }
 
     @Test

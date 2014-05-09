@@ -14,9 +14,8 @@ import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -33,7 +32,8 @@ abstract class Passer {
 
     private final Map<PeerAddress,PeerKeys> knownKeys = new HashMap<>();
 
-    private final KeyPair dhKeys = Crypto.generateDHKeyPair();
+    //TODO save dhKeys.
+    private final KeyPair dhKeys = Crypto.generateAgreementKeyPair();
 
     public Passer(final Peer peer) {
         this.peer = peer;
@@ -47,14 +47,14 @@ abstract class Passer {
 
                 if (request instanceof Handshake) {
                     Handshake handshake = (Handshake) request;
-                    DHPublicKey exchangeKey = handshake.dhKey;
+                    PublicKey exchangeKey = handshake.agreementKey;
 
                     SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), exchangeKey);
-                    PeerKeys peerKeys = new PeerKeys<>(handshake.rsaKey, secretKey);
+                    PeerKeys peerKeys = new PeerKeys<>(handshake.signKey, secretKey);
 
                     knownKeys.put(sender, peerKeys);
 
-                    return handshake.reply((DHPublicKey) dhKeys.getPublic(), getPublicKey());
+                    return handshake.reply(dhKeys.getPublic(), getPublicKey());
                 } else if (request instanceof SealedObject) {
                     SecretKey secretKey = knownKeys.get(sender).secretKey;
 
@@ -116,18 +116,18 @@ abstract class Passer {
                         if (replyMessageContent instanceof Handshake) {
                             Handshake handshakeReply = (Handshake) replyMessageContent;
 
-                            if (handshakeReply.stage == Handshake.Stage.REPLY) {
-                                DHPublicKey receiverKey = handshakeReply.dhKey;
+                            if (handshakeReply.phase == Handshake.Phase.REPLY) {
+                                PublicKey receiverKey = handshakeReply.agreementKey;
                                 SecretKey secretKey;
                                 try {
                                     secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), receiverKey);
                                 } catch (InvalidKeyException e) {
                                     e.printStackTrace();
-                                    System.out.println("Could not create secret key for node "+receiver+" The exchange keys was invalid.");
+                                    System.out.println("Could not create secret key for node "+receiver+" The agreement keys was invalid.");
                                     return;
                                 }
 
-                                PeerKeys peerKeys = new PeerKeys<>(handshake.rsaKey,secretKey);
+                                PeerKeys peerKeys = new PeerKeys<>(handshake.signKey,secretKey);
 
                                 knownKeys.put(receiver, peerKeys);
                                 onCompletion.execute(null); //There is no reply value, and it should never be used in execute()
@@ -277,15 +277,20 @@ abstract class Passer {
         return peerAddress.getInetAddress().toString();
     }
 
-    //TODO add javadoc. Consider make final
-    protected RSAPrivateKey getPrivateKey() {
-        return (RSAPrivateKey) peer.getPeerBean().getKeyPair().getPrivate();
+    /**
+     * Gets this peer's private key.
+     * @return The private key.
+     */
+    final protected PrivateKey getPrivateKey() {
+        return peer.getPeerBean().getKeyPair().getPrivate();
     }
 
-    //TODO add javadoc. Consider make final
-    protected RSAPublicKey getPublicKey() {
-        //TODO get exception here: is actually DSAPublicKeyImpl which doesn't implement RSAPublicKey
-        return (RSAPublicKey) peer.getPeerBean().getKeyPair().getPublic();
+    /**
+     * Gets this peer's public key.
+     * @return The public key.
+     */
+    final protected PublicKey getPublicKey() {
+        return peer.getPeerBean().getKeyPair().getPublic();
     }
 
     private class PeerKeys<P extends PublicKey> {

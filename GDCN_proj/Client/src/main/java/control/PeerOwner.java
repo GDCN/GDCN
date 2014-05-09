@@ -400,7 +400,7 @@ public class PeerOwner implements command.communicationToUI.ClientInterface {
             KeyPair keyPair = dataFilesManager.getKeypair();
 
             if(keyPair == null) {
-                KeyPairGenerator generator = KeyPairGenerator.getInstance(Crypto.PUBLIC_KEY_ALGORITHM);
+                KeyPairGenerator generator = KeyPairGenerator.getInstance(Crypto.SIGNATURE_KEY_ALGORITHM);
                 keyPair = generator.generateKeyPair();
                 dataFilesManager.saveKeyPair(keyPair);
             }
