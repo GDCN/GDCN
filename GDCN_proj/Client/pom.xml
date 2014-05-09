@@ -31,6 +31,12 @@
             <artifactId>TomP2P</artifactId>
             <version>4.4</version>
         </dependency>
+        
+        <dependency>
+        	<groupId>org.bouncycastle</groupId>
+        	<artifactId>bcprov-jdk15on</artifactId>
+        	<version>1.50</version>
+        </dependency>
 
         <dependency>
             <groupId>GDCN</groupId>

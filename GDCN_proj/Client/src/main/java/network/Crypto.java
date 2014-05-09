@@ -2,6 +2,8 @@ package network;
 
 import javax.crypto.*;
 import javax.crypto.Cipher;
+import java.security.Security;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
@@ -27,6 +29,10 @@ public class Crypto {
     private final static Signature signer = initSigner();
     private final static KeyPairGenerator agreementKeygen = initKeygen(AGREEMENT_ALGORITHM,AGREEMENT_KEY_SIZE);
     private final static KeyPairGenerator signatureKeygen = initKeygen(SIGNATURE_KEY_ALGORITHM,SIGNATURE_KEY_SIZE);
+
+    static {
+        Security.addProvider(new BouncyCastleProvider());
+    }
 
     //TODO javadoc
     public static SealedObject encrypt(Serializable data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
