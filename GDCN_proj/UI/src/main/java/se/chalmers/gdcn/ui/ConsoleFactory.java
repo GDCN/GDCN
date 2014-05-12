@@ -144,6 +144,21 @@ public class ConsoleFactory {
             }
         });
 
+        commandMap.put(CommandWord.AUTO_WORK.getName(), new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()>1){
+                    address = args.get(0);
+                    port = Integer.parseInt(args.get(1));
+                }
+
+                client.work(address, port, true);
+            }
+        });
+
         commandMap.put(CommandWord.INSTALL.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {

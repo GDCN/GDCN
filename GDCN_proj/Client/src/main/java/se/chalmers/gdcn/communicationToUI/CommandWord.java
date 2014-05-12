@@ -4,6 +4,8 @@ package se.chalmers.gdcn.communicationToUI;
  * Created by HalfLeif on 2014-02-26.
  *
  * All supported commands by Client
+ *
+ * //TODO write help text
  */
 public enum CommandWord implements WordInterface {
     START(1, "start", "//help"),
@@ -15,6 +17,7 @@ public enum CommandWord implements WordInterface {
     BOOTSTRAP(2, "bootstrap", ""),
 
     WORK(2, "work", "//help"),
+    AUTO_WORK(2, "autowork", "Works continually for the same job owner."),
     PUSH(1, "push", "Put job files to DHT"),
 
     INSTALL(0, "install", ""),
