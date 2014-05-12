@@ -35,7 +35,6 @@ public class WorkerChallengesManagerTest {
             WorkerID w2 = randomWorkerID();
 
             assert wcm.newWorker(w1);
-            assert !wcm.newWorker(w1);
 
             int s1 = wcm.getCurrentScore(w1);
 
