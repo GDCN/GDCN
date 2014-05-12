@@ -6,15 +6,12 @@ import org.testng.annotations.Test;
 
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
-import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.InvalidParameterException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.util.Random;
 
 /**
@@ -25,7 +22,7 @@ public class MessageTest {
     private Random random;
 
     public MessageTest() throws Exception {
-        keygen = KeyGenerator.getInstance(Crypto.SECRET_KEY_ALGORITHM);
+        keygen = KeyGenerator.getInstance(Crypto.ENCRYPTION_ALGORITHM);
         random = new Random();
     }
 
@@ -35,7 +32,7 @@ public class MessageTest {
         SecretKey wrongKey = keygen.generateKey();
         NetworkMessage message = new NetworkMessage(randomString(), NetworkMessage.Type.REQUEST);
 
-        SealedObject encrypted = message.encrypt(myKey);
+        byte[] encrypted = message.encrypt(myKey);
         NetworkMessage decrypted = NetworkMessage.decrypt(encrypted, myKey);
 
         assert decrypted.equals(message);
@@ -48,7 +45,7 @@ public class MessageTest {
         Serializable s = new Integer(1);
         SecretKey key = keygen.generateKey();
 
-        SealedObject encrypted = Crypto.encrypt(s,key);
+        byte[] encrypted = Crypto.encrypt(s,key);
 
         NetworkMessage.decrypt(encrypted,key);
     }

@@ -1,8 +1,14 @@
 package network;
 
 import javax.crypto.*;
-import javax.crypto.Cipher;
 import java.security.Security;
+
+import org.apache.commons.lang.SerializationUtils;
+import org.apache.shiro.crypto.CryptoException;
+import org.apache.shiro.crypto.DefaultBlockCipherService;
+import org.apache.shiro.crypto.OperationMode;
+import org.apache.shiro.crypto.PaddingScheme;
+import org.apache.shiro.util.ByteSource;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import java.io.IOException;
 import java.io.Serializable;
@@ -14,19 +20,19 @@ import java.security.KeyPair;
  */
 public class Crypto {
     public final static String AGREEMENT_ALGORITHM = "DiffieHellman";
+    public final static String AGREEMENT_KEY_ALGORITHM = "DH";
     public final static int AGREEMENT_KEY_SIZE = 1024;
 
-    public final static String ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding";
-    public final static String SECRET_KEY_ALGORITHM = "AES";
-    public final static int SECRET_KEY_SIZE = 128;
+    public final static String ENCRYPTION_ALGORITHM = "AES";
 
     public final static String SIGNATURE_ALGORITHM = "SHA1withDSA";
     public final static String SIGNATURE_KEY_ALGORITHM = "DSA";
     public final static int SIGNATURE_KEY_SIZE = 1024;
 
-    private final static Cipher cipher = initCipher();
+    private final static GCMCipherService cipher = new GCMCipherService();
     private final static KeyAgreement agreement = initAgreement();
     private final static Signature signer = initSigner();
+
     private final static KeyPairGenerator agreementKeygen = initKeygen(AGREEMENT_ALGORITHM,AGREEMENT_KEY_SIZE);
     private final static KeyPairGenerator signatureKeygen = initKeygen(SIGNATURE_KEY_ALGORITHM,SIGNATURE_KEY_SIZE);
 
@@ -34,47 +40,43 @@ public class Crypto {
         Security.addProvider(new BouncyCastleProvider());
     }
 
-    //TODO javadoc
-    public static SealedObject encrypt(Serializable data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
-        if (SECRET_KEY_ALGORITHM.equals(key.getAlgorithm())) {
-            synchronized (cipher) {
-                cipher.init(Cipher.ENCRYPT_MODE, key);
-                return new SealedObject(data, cipher);
-            }
+    /**
+     * Encrypts a serializable object with AES-GCM.
+     * @param plaintext The object to be encrypted.
+     * @param key The key with which the object should be encrypted.
+     * @return The ciphertext
+     * @throws InvalidKeyException If the supplied key was incompatible with the encryption algorithm.
+     */
+    public static byte[] encrypt(Serializable plaintext, SecretKey key) throws InvalidKeyException {
+        if (ENCRYPTION_ALGORITHM.equals(key.getAlgorithm())) {
+            byte[] plainBytes = SerializationUtils.serialize(plaintext);
+
+            return cipher.encrypt(plainBytes, key.getEncoded()).getBytes();
         } else {
-            throw new InvalidKeyException("Key algorithm must be compatible with "+ENCRYPTION_ALGORITHM);
+            throw new InvalidKeyException("Key algorithm must be compatible with "+ ENCRYPTION_ALGORITHM);
         }
     }
 
     /**
-     * Decrypts a SealedObject.
-     * @param data The SealedObject to be decrypted.
-     * @param key The PrivateKey with which the object should be decrypted.
-     * @return The decrypted object.
-     * @throws InvalidKeyException
-     * @throws IllegalBlockSizeException
-     * @throws java.io.IOException
+     * Decrypts and authenticates a ciphertext with AES-GCM.
+     * @param ciphertext The data to be decrypted.
+     * @param key The key with which the object should be decrypted and authenticated.
+     * @return The decrypted object on successful decryption and authentication, null otherwise.
+     * @throws InvalidKeyException If the supplied key was incompatible with the encryption algorithm.
      */
-    public static Serializable decrypt(SealedObject data, SecretKey key) throws InvalidKeyException, IOException, IllegalBlockSizeException {
-        if (data.getAlgorithm().startsWith(key.getAlgorithm())) {
-            if (SECRET_KEY_ALGORITHM.equals(key.getAlgorithm())) {
-                synchronized (cipher) {
-                    cipher.init(Cipher.DECRYPT_MODE, key);
-                    try {
-                        return (Serializable) data.getObject(cipher);
-                    } catch (ClassNotFoundException e) {
-                        e.printStackTrace();
-                        return null;
-                    } catch (BadPaddingException e) {
-                        return null;
-                        //Decryption failed
-                    }
-                }
-            } else {
-                throw new InvalidKeyException("Key algorithm must be compatible with "+ENCRYPTION_ALGORITHM);
+    public static Serializable decrypt(byte[] ciphertext, SecretKey key) throws InvalidKeyException {
+        if (ENCRYPTION_ALGORITHM.equals(key.getAlgorithm())) {
+            ByteSource plaintext;
+
+            try {
+                plaintext = cipher.decrypt(ciphertext,key.getEncoded());
+            } catch (CryptoException e) {
+                return null;
             }
+
+            return (Serializable) SerializationUtils.deserialize(plaintext.getBytes());
         } else {
-            throw new InvalidParameterException("Algorithms in SealedObject and SecretKey must match.");
+            throw new InvalidKeyException("Key algorithm must be compatible with "+ ENCRYPTION_ALGORITHM);
         }
     }
 
@@ -135,13 +137,13 @@ public class Crypto {
      * @throws InvalidKeyException
      */
     public static SecretKey generateSecretKey(PrivateKey myKey, PublicKey otherKey) throws InvalidKeyException {
-        if (AGREEMENT_ALGORITHM.equals(myKey.getAlgorithm()) && AGREEMENT_ALGORITHM.equals(otherKey.getAlgorithm())) {
+        if (AGREEMENT_KEY_ALGORITHM.equals(myKey.getAlgorithm()) && AGREEMENT_KEY_ALGORITHM.equals(otherKey.getAlgorithm())) {
             synchronized (agreement) {
                 agreement.init(myKey);
                 agreement.doPhase(otherKey, true);
 
                 try {
-                    return agreement.generateSecret(SECRET_KEY_ALGORITHM);
+                    return agreement.generateSecret(ENCRYPTION_ALGORITHM);
                 } catch (NoSuchAlgorithmException e) {
                     e.printStackTrace();
                     //The Java platform is defective.
@@ -150,17 +152,6 @@ public class Crypto {
             }
         } else {
             throw new InvalidKeyException("Key algorithms must be compatible with "+ AGREEMENT_ALGORITHM);
-        }
-    }
-
-    private static Cipher initCipher() {
-        try {
-            return Cipher.getInstance(ENCRYPTION_ALGORITHM);
-        } catch (NoSuchAlgorithmException|NoSuchPaddingException e) {
-            //The Java platform is defective, it does not support all required Cipher transformations.
-            //See http://docs.oracle.com/javase/7/docs/api/javax/crypto/Cipher.html
-            e.printStackTrace();
-            throw new ExceptionInInitializerError(e);
         }
     }
 
@@ -196,6 +187,14 @@ public class Crypto {
             //See http://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html
             e.printStackTrace();
             throw new ExceptionInInitializerError(e);
+        }
+    }
+
+    private static class GCMCipherService extends DefaultBlockCipherService {
+        public GCMCipherService() {
+            super(ENCRYPTION_ALGORITHM);
+            setMode(OperationMode.GCM);
+            setPaddingScheme(PaddingScheme.NONE);
         }
     }
 }

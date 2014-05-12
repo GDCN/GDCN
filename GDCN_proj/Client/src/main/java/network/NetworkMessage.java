@@ -28,7 +28,7 @@ public class NetworkMessage implements Serializable {
         return type;
     }
 
-    public SealedObject encrypt(SecretKey key) throws InvalidKeyException {
+    public byte[] encrypt(SecretKey key) throws InvalidKeyException {
         try {
             return Crypto.encrypt(this, key);
         } catch (IOException|IllegalBlockSizeException e) {
@@ -38,12 +38,12 @@ public class NetworkMessage implements Serializable {
         }
     }
 
-    public static NetworkMessage decrypt(SealedObject sealedData, SecretKey key) throws InvalidKeyException {
+    public static NetworkMessage decrypt(byte[] ciphertext, SecretKey key) throws InvalidKeyException {
         Serializable data;
 
         try {
-            data = Crypto.decrypt(sealedData, key);
-        } catch (IOException|IllegalBlockSizeException e) {
+            data = Crypto.decrypt(ciphertext, key);
+        } catch (IOException e) {
             e.printStackTrace();
             System.out.println("Decryption failed!");
             return null;

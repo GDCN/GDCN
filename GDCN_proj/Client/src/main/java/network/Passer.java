@@ -8,7 +8,6 @@ import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
-import javax.crypto.SealedObject;
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
@@ -55,7 +54,7 @@ abstract class Passer {
                     knownKeys.put(sender, peerKeys);
 
                     return handshake.reply(dhKeys.getPublic(), getPublicKey());
-                } else if (request instanceof SealedObject) {
+                } else if (request instanceof byte[]) {
                     SecretKey secretKey = knownKeys.get(sender).secretKey;
 
                     if(secretKey == null) {
@@ -63,7 +62,7 @@ abstract class Passer {
                         return "Sender has not shaken hands, cannot decrypt! "+sender;
                     }
 
-                    NetworkMessage message = NetworkMessage.decrypt((SealedObject) request, secretKey);
+                    NetworkMessage message = NetworkMessage.decrypt((byte[]) request, secretKey);
 
                     if(message == null){
                         //Error has occured in decrypt
@@ -243,7 +242,7 @@ abstract class Passer {
 
         SecretKey sharedKey = peerKeys.secretKey;
 
-        SealedObject encryptedMessage;
+        byte[] encryptedMessage;
 
         try {
             encryptedMessage = networkMessage.encrypt(sharedKey);
