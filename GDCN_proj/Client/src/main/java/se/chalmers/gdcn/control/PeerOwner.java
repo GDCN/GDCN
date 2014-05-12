@@ -1,12 +1,13 @@
 package se.chalmers.gdcn.control;
 
-import net.tomp2p.futures.*;
+import net.tomp2p.futures.BaseFutureAdapter;
+import net.tomp2p.futures.FutureBootstrap;
+import net.tomp2p.futures.FutureDHT;
+import net.tomp2p.futures.FutureDiscover;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.p2p.PeerMaker;
 import net.tomp2p.p2p.builder.BootstrapBuilder;
 import net.tomp2p.p2p.builder.DiscoverBuilder;
-import net.tomp2p.p2p.builder.GetBuilder;
-import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
@@ -250,8 +251,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void push(String jobName) {
         //TODO Move to other class?
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
-
-        System.out.println("push done");
     }
 
     @Override
