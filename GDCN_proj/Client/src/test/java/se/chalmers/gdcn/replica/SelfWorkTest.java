@@ -132,7 +132,7 @@ public class SelfWorkTest {
             }
 
             @Override
-            public void work(String address, int port) {
+            public void work(String address, int port, boolean autoWork) {
 
             }
 

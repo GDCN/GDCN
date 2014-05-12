@@ -239,11 +239,11 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
-    public void work(String address, int port) {
+    public void work(String address, int port, final boolean autoWork) {
         //TODO might want to continue on already downloaded task?
 
         if("self".equals(address)){
-            taskPasser.requestWork(peer.getPeerAddress());
+            taskPasser.requestWork(peer.getPeerAddress(), autoWork);
         } else {
             try {
                 DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
@@ -258,7 +258,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                         PeerAddress jobOwner = future.getReporter();
                         assert ! jobOwner.equals(peer.getPeerAddress());
 
-                        taskPasser.requestWork(jobOwner);
+                        taskPasser.requestWork(jobOwner, autoWork);
                     }
                 });
             } catch (UnknownHostException e) {
@@ -380,7 +380,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     @Override
     public void requestWork(int index) {
         int N = getNeighbours().size();
-        taskPasser.requestWork(getNeighbours().get(index%N));
+        taskPasser.requestWork(getNeighbours().get(index % N), false);
     }
 
     private void startInitiate(int port) {

@@ -146,8 +146,9 @@ public class TaskPasser extends Passer {
     /**
      * Starts task process working for this peer
      * @param jobOwner Peer to work for
+     * @param autoWork True -> Will request a new task after successfully finishing a previous task.
      */
-    public void requestWork(final PeerAddress jobOwner){
+    public void requestWork(final PeerAddress jobOwner, final boolean autoWork){
         //TODO do concurrently?
         //TODO make tread safe...
         System.out.println("Request work from " + Passer.print(jobOwner));
@@ -178,7 +179,7 @@ public class TaskPasser extends Passer {
                                         ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
                                         System.out.println("Start processing task, \n\tResultKey: " + replicaBox.getResultKey());
 
-                                        workOnTask(jobOwner, replicaBox);
+                                        workOnTask(jobOwner, replicaBox, autoWork);
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                         break;
                                     case NO_TASK_AVAILABLE:
@@ -201,8 +202,9 @@ public class TaskPasser extends Passer {
      * Works on this task until finished. Calls job owner when done or when failed.
      * @param jobOwner Peer to send result to
      * @param replicaBox Task (replica) to work on
+     * @param autoWork True -> Will request a new task after successfully finishing a previous task.
      */
-    private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox){
+    private void workOnTask(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork){
         final StringHolder stringHolder = new StringHolder();
 
         taskManager.startTask(jobOwner.getID().toString(), replicaBox.getTaskMeta(), stringHolder, new TaskListener() {
@@ -219,8 +221,10 @@ public class TaskPasser extends Passer {
                             System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                             sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
                                     replicaBox.getReplicaID()));
-                            //TODO make option for continue working or stop method:
-                            requestWork(jobOwner);
+
+                            if(autoWork){
+                                requestWork(jobOwner, true);
+                            }
                         } else {
                             taskFailed(taskName, "Couldn't upload result to DHT :P");
                         }

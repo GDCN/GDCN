@@ -140,7 +140,7 @@ public class ConsoleFactory {
                     port = Integer.parseInt(args.get(1));
                 }
 
-                client.work(address, port);
+                client.work(address, port, false);
             }
         });
 
