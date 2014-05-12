@@ -29,25 +29,11 @@ public class NetworkMessage implements Serializable {
     }
 
     public byte[] encrypt(SecretKey key) throws InvalidKeyException {
-        try {
-            return Crypto.encrypt(this, key);
-        } catch (IOException|IllegalBlockSizeException e) {
-            e.printStackTrace();
-            System.out.println("Encryption failed! Message: "+this);
-            return null;
-        }
+        return Crypto.encrypt(this, key);
     }
 
     public static NetworkMessage decrypt(byte[] ciphertext, SecretKey key) throws InvalidKeyException {
-        Serializable data;
-
-        try {
-            data = Crypto.decrypt(ciphertext, key);
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Decryption failed!");
-            return null;
-        }
+        Serializable data = Crypto.decrypt(ciphertext, key);
 
         if (data instanceof NetworkMessage) {
             return (NetworkMessage) data;
