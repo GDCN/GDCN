@@ -100,10 +100,10 @@ public class HashCash {
     /**
      * Checks the validity and authenticity of a solution.
      * @param solution The solution to check.
-     * @param jobOwner
-     * @param worker
-     * @param score
-     * @return
+     * @param jobOwner The issuer of the challenge.
+     * @param worker The worker that claims to have solved a challenge.
+     * @param score The worker's current score.
+     * @return True if the worker solved the solution, false otherwise.
      */
     public boolean validateSolution(Solution solution, WorkerID jobOwner, WorkerID worker, int score) throws InvalidKeyException {
         byte[] seed = hash(jobOwner.toString() + worker + score);

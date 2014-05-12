@@ -174,10 +174,14 @@ public class DenyTaskAttack {
             public void send(String msg) {}
 
             @Override
-            public void put2(String key, String domain, Object value) {}
+            public void put(Number160 key, Number160 domain, Data value) {
+
+            }
 
             @Override
-            public void get2(String key, String domain) {}
+            public void get(Number160 key, Number160 domain) {
+
+            }
 
             @Override
             public void setNeighbourFile(String file) {}
@@ -190,6 +194,11 @@ public class DenyTaskAttack {
 
             @Override
             public void requestWork(int index) {}
+
+            @Override
+            public Number160 getID() {
+                return null;
+            }
         };
     }
 

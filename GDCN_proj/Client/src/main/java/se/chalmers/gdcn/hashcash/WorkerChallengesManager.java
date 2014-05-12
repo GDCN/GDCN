@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.control;
+package se.chalmers.gdcn.hashcash;
 
 import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.network.WorkerID;
@@ -16,28 +16,23 @@ public class WorkerChallengesManager implements Serializable{
     private final Map<WorkerID, Integer> registeredWorkers = new ConcurrentHashMap<>();
     private final Random random = new SecureRandom();
 
+    /**
+     * Registers that a worker has solved a challenge.
+     * @param worker The worker that has solved a challenge.
+     * @param solution The Solution the worker has solved.
+     */
     public void solvedChallenge(WorkerID worker, Solution solution) {
-        if (!registeredWorkers.containsKey(worker)) {
-            return;
-        }
-
-        Integer score = registeredWorkers.get(worker);
+        Integer score = getCurrentScore(worker);
 
         score += random.nextInt(score + solution.getDifficulty()) - solution.getDifficulty();
         registeredWorkers.put(worker,score);
     }
 
     public boolean newWorker(WorkerID worker) {
-        if(registeredWorkers.containsKey(worker)) {
-            return false;
-        } else {
-            registeredWorkers.put(worker, random.nextInt(Integer.MAX_VALUE/4));
-            return true;
-        }
+        return !registeredWorkers.containsKey(worker);
     }
 
     public int getCurrentScore(WorkerID worker) {
-        newWorker(worker);
-        return registeredWorkers.get(worker);
+        return newWorker(worker) ? 0 : registeredWorkers.get(worker);
     }
 }

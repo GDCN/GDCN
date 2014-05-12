@@ -18,11 +18,11 @@ public class TrustQuality {
     }
 
     public static TrustQuality unknown(String reason){
-        return new TrustQuality(Trust.UNKNOWN, Double.MIN_VALUE, reason);
+        return new TrustQuality(Trust.UNKNOWN, -Double.MAX_VALUE, reason);
     }
 
     public static TrustQuality deceitful(){
-        return new TrustQuality(Trust.DECEITFUL, Double.MIN_VALUE, null);
+        return new TrustQuality(Trust.DECEITFUL, -Double.MAX_VALUE, null);
     }
 
     public static TrustQuality trustworthy(double quality){

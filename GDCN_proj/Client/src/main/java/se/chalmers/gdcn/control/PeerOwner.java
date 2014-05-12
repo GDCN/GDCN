@@ -196,6 +196,20 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
+    public void put(final Number160 key, final Number160 domain, final Data value){
+        FutureDHT futureDHT = peer.put(key).setData(value).setDomainKey(domain).start();
+        futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
+
+            @Override
+            public void operationComplete(FutureDHT future) throws Exception {
+                boolean success = future.isSuccess();
+
+                notifier.fireOperationFinished(CommandWord.PUT, new OperationBuilder<Data>(success).setResult(value).setKey(key).create());
+            }
+        });
+    }
+
+    @Override
     public void get(final String name){
         FutureDHT futureDHT = peer.get(Number160.createHash(name)).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
@@ -236,6 +250,8 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void push(String jobName) {
         //TODO Move to other class?
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
+
+        System.out.println("push done");
     }
 
     @Override
@@ -306,37 +322,14 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     }
 
     @Override
-    public void put2(final String key, final String domain, Object value){
-        PutBuilder builder = peer.put(Number160.createHash(key));
-        try {
-            builder.setData(Number160.createHash(domain), new Data(value));
-            FutureDHT futureDHT = builder.start();
-            futureDHT.addListener(new BaseFutureAdapter<BaseFuture>() {
-                @Override
-                public void operationComplete(BaseFuture future) throws Exception {
-                    String s = future.isSuccess()?"succeeded":"failed";
-                    System.out.println("Add under "+key+"/"+domain+s);
-                }
-            });
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    @Override
-    public void get2(final String key, final String domain){
-        GetBuilder getBuilder = peer.get(Number160.createHash(key));
-        getBuilder.setContentKey(Number160.createHash(domain));
-        FutureDHT futureDHT = getBuilder.start();
+    public void get(final Number160 key, final Number160 domain){
+        FutureDHT futureDHT = peer.get(key).setDomainKey(domain).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
             @Override
             public void operationComplete(FutureDHT future) throws Exception {
-                String s = future.isSuccess() ? "succeeded" : "failed";
-                System.out.println("Get2 under " + key + "/" + domain + s);
-                if (future.isSuccess()) {
-                    System.out.println(future.getData().getObject().toString());
-                }
+                boolean success = future.isSuccess();
+                notifier.fireOperationFinished(CommandWord.GET,
+                        new OperationBuilder<Data>(success).setKey(key).setResult(future.getData()).create());
             }
         });
     }
@@ -464,5 +457,10 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             });
             this.get(key);
         }
+    }
+
+    @Override
+    public Number160 getID() {
+        return peer.getPeerID();
     }
 }

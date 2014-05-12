@@ -68,38 +68,12 @@ public class Task implements Runnable{
             command.add(trustedPackage);
         }
 
-        System.out.println("\nCompile command:");
-        for(String c : command){
-            System.out.print(c + " ");
-        }
-        System.out.println("\n");
+        HaskellCompiler haskellCompiler = new HaskellCompiler();
 
-        ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
-
-        Map<String, String> env = pb.environment();
-        if (env.containsKey("GHC_PACKAGE_PATH")) {
-            env.put("GHC_PACKAGE_PATH", Install.HDB_DIR + File.pathSeparator
-                    + env.get("GHC_PACKAGE_PATH"));
-        }
-        else {
-            env.put("GHC_PACKAGE_PATH", Install.HDB_DIR + File.pathSeparator);
-        }
-
-        Process proc = null;
         try {
-            proc = pb.start();
-
-            if (proc.waitFor() != 0) {
-                StringWriter writer = new StringWriter();
-                IOUtils.copy(proc.getErrorStream(), writer, null);
-
-                throw new ExitFailureException(writer.toString());
-            }
+            haskellCompiler.compile(command);
         }
-        catch (Exception e) {
-            if (proc != null) {
-                proc.destroy();
-            }
+        catch (InterruptedException | IOException | ExitFailureException e) {
             e.printStackTrace();
             listener.taskFailed(moduleName, e.getMessage());
         } finally {

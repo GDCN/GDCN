@@ -146,6 +146,21 @@ public class HashCashTest {
         assert !solution.isValid(key2);
     }
 
+    @Test
+    public void testReusedSolution() throws Exception {
+        WorkerChallengesManager wcm = new WorkerChallengesManager();
+        WorkerID jo = randomWorkerID(), w = randomWorkerID();
+
+        Challenge c1 = hc.generateAuthenticationChallenge(jo,w,wcm.getCurrentScore(w));
+        Solution s1 = c1.solve();
+
+        assert hc.validateSolution(s1,jo,w,wcm.getCurrentScore(w));
+
+        wcm.solvedChallenge(w,s1);
+
+        assert !hc.validateSolution(s1,jo,w,wcm.getCurrentScore(w));
+    }
+
     private String randomString() {
         return new BigInteger(130, random).toString(32);
     }

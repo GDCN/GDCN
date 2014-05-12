@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.files;
 
 import com.google.gson.Gson;
+import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
@@ -35,7 +36,7 @@ abstract class AbstractFileMaster{
 
     private final Lock lock = new ReentrantLock();
     private final Condition allDependenciesComplete = lock.newCondition();
-    private final Map<String, FileDep> unresolvedFiles = new HashMap<>();
+    private final Map<Number160, FileDep> unresolvedFiles = new HashMap<>();
 
     private volatile boolean operationFailed = false;
     private volatile boolean stillStartingUp = true;
@@ -96,6 +97,7 @@ abstract class AbstractFileMaster{
             reader = new InputStreamReader(new BufferedInputStream(new FileInputStream(file)));
 
             Gson gson = new Gson();
+
             return gson.fromJson(reader, TaskMeta.class);
 
         } finally {
@@ -145,6 +147,8 @@ abstract class AbstractFileMaster{
             return false;
         }
 
+
+
         while(stillStartingUp || unresolvedFiles.size()>0){
             try {
                 lock.lock();
@@ -185,11 +189,14 @@ abstract class AbstractFileMaster{
             }
         }
 
+
         lock.lock();
         stillStartingUp = false;
         allDependenciesComplete.signalAll();
         lock.unlock();
+
     }
+
 
     /**
      * This file dependency was found locally. What to do?
@@ -236,7 +243,7 @@ abstract class AbstractFileMaster{
             return;
         }
 
-        String key = event.getOperation().getKey().toString();
+        Number160 key = new Number160(event.getOperation().getKey().toString());
 
         if(!unresolvedFiles.containsKey(key)){
             System.out.println("FileDep with key ("+key+") wasn't found in Map for task");
@@ -281,11 +288,11 @@ abstract class AbstractFileMaster{
      * @param args empty array
      */
     public static void main(String[] args){
-        FileDep rawIndata = new FileDep("2_2000.raw", "resources", "Primes_2_2000", false, 25);
+        FileDep rawIndata = new FileDep("2_2000.raw", "resources", Number160.createHash("Primes_2_2000"), false, 25);
         List<FileDep> deps = new ArrayList<>();
         deps.add(rawIndata);
 
-        FileDep algorithm = new FileDep("Prime.hs", "code", "Primes_algorithms", true, 500);
+        FileDep algorithm = new FileDep("Prime.hs", "code", Number160.createHash("Primes_algorithms"), true, 500);
 
         TaskMeta taskMetaTest = new TaskMeta("PrimeTask_01", algorithm, deps);
         System.out.println( new Gson().toJson(taskMetaTest));

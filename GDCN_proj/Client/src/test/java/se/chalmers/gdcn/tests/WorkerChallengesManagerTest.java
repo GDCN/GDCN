@@ -1,7 +1,7 @@
 package se.chalmers.gdcn.tests;
 
 import org.testng.annotations.Test;
-import se.chalmers.gdcn.control.WorkerChallengesManager;
+import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
 import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.network.WorkerID;
