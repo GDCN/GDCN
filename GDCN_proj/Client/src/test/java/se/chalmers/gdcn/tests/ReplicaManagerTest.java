@@ -369,11 +369,22 @@ public class ReplicaManagerTest {
         //Validate here
         assert counter.availablePermits() == 1;
 
-        ReplicaBox replicaBoxC = replicaManager.giveReplicaToWorker(workerC);
-        replicaManager.replicaFinished(replicaBoxC.getReplicaID(), result);
-        //excess replica -> late comer
+        assert null == replicaManager.giveReplicaToWorker(workerC);
+        //excess replica not allowed after Validation!
+    }
 
-        assert counter.availablePermits() == 2;
+    @Test
+    public void removeReplicaTest(){
+        builder.setExpectedReputation(0);
+        builder.setReplicas(1);
+        replicaManager = builder.create();
+
+        loadMeta(taskMetaA);
+
+        ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
+        replicaManager.replicaFinished(replicaBox.getReplicaID(), new byte[0]);
+
+        assert null == replicaManager.giveReplicaToWorker(workerB);
     }
 
     @Test
@@ -403,14 +414,15 @@ public class ReplicaManagerTest {
         byte[] result = new byte[0];
 
         ReplicaBox replicaBoxA = replicaManager.giveReplicaToWorker(workerA);
+        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
 
         replicaManager.replicaFinished(replicaBoxA.getReplicaID(), result);
+        replicaManager.replicaOutdated(replicaBoxB.getReplicaID());
         //Validate here
 
         assert validCounter.availablePermits() == 1;
 
         //Late comer
-        ReplicaBox replicaBoxB = replicaManager.giveReplicaToWorker(workerB);
         replicaManager.replicaFinished(replicaBoxB.getReplicaID(), result);
 
         assert lateCounter.availablePermits() == 1;

@@ -218,7 +218,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         if(taskData.enoughReturned()){
-            taskResultData.excessPendingReplicas.add(replicaID);
+//            taskResultData.excessPendingReplicas.add(replicaID);
+//            throw new AssertionError("EXCESS PENDING REPLICA");
+            return null;
         } else {
             taskResultData.pendingReplicas.add(replicaID);
         }
@@ -291,8 +293,8 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         TaskResultData resultData = resultDataMap.get(taskData.taskID());
-
         awaitingReplica(resultData, replicaID);
+
         taskDatas.remove(taskData);
         taskData.returned(replicaMap.get(replicaID).getWorker());
         taskDatas.add(taskData);
@@ -361,7 +363,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
 
         taskDatas.remove(taskData);
-        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE);
+        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE-1);
         taskDatas.add(taskData);
 
         try {
@@ -460,6 +462,10 @@ public class ReplicaManager implements Serializable, Cloneable{
                             //ignore
                             break;
                     }
+                    //Clean for each ReplicaID
+                    assignedTasks.get(worker).remove(taskData);
+                    replicaMap.remove(replicaID);
+                    taskDataMap.remove(replicaID);
                 }
             }
         }
@@ -469,9 +475,17 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         //Clean up and store data:
         if(bestResult != null){
+            taskDatas.remove(taskData);
+
             //OBS currently, this happens even when there are some workers who say a replica failed
             archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);
-            resultData.returnedReplicas.clear();
+
+            if(resultData.excessPendingReplicas.size()==0 && resultData.pendingReplicas.size()==0){
+                resultDataMap.remove(taskData.taskID());
+            } else {
+                resultData.returnedReplicas.clear();
+            }
+
         } else {
             //Notify
             throw new IllegalStateException("No data was acceptable, probably an error in quality function");
