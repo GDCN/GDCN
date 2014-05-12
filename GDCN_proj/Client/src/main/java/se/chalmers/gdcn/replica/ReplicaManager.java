@@ -218,9 +218,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         }
 
         if(taskData.enoughReturned()){
-//            taskResultData.excessPendingReplicas.add(replicaID);
+            taskResultData.excessPendingReplicas.add(replicaID);
 //            throw new AssertionError("EXCESS PENDING REPLICA");
-            return null;
+//            return null;
         } else {
             taskResultData.pendingReplicas.add(replicaID);
         }
@@ -419,15 +419,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         String jobName = taskData.getJobName();
         Map<ByteArray, Set<ReplicaID>> resultMap = EqualityControl.compareData(resultData.returnedReplicas);
 
-        if(validationListener != null){
-            //For testing:
-            validationListener.propertyChange(new PropertyChangeEvent(this, "Validate", taskData, resultMap));
-            byte[] bytes = resultData.returnedReplicas.values().iterator().next();
-            archive.archiveResult(taskData, new ByteArray(bytes), 1, new HashSet<WorkerID>());
-            return;
-        }
         if(resultMap.size() == 0){
             //Happens when all workers say a task failed
+            //TODO handle
             return;
         }
 
@@ -437,7 +431,15 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         //TODO Implement choice of automatic or manual result validation
         try {
-            Map<ByteArray,TrustQuality> trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap.keySet());
+            Map<ByteArray,TrustQuality> trustMap;
+            if (validationListener == null) {
+                trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap.keySet());
+            } else { //For testing:
+                validationListener.propertyChange(new PropertyChangeEvent(this, "Validate", taskData, resultMap));
+                byte[] bytes = resultData.returnedReplicas.values().iterator().next();
+                trustMap = new HashMap<>();
+                trustMap.put(new ByteArray(bytes), TrustQuality.trustworthy(1));
+            }
 
             for(ByteArray byteArray : trustMap.keySet()){
                 TrustQuality trust = trustMap.get(byteArray);
@@ -480,7 +482,8 @@ public class ReplicaManager implements Serializable, Cloneable{
             //OBS currently, this happens even when there are some workers who say a replica failed
             archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);
 
-            if(resultData.excessPendingReplicas.size()==0 && resultData.pendingReplicas.size()==0){
+            if(resultData.excessPendingReplicas.size()==0 && resultData.pendingReplicas.size()==0
+                    && resultData.outdatedReplicas.size()==0){
                 resultDataMap.remove(taskData.taskID());
             } else {
                 resultData.returnedReplicas.clear();
