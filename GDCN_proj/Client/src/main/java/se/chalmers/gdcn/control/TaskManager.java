@@ -131,6 +131,7 @@ public class TaskManager implements TaskRunner {
                         taskListener.taskFailed(jobName, "Unresolved dependencies");
                     } else {
                         taskListener.taskFinished(jobName);
+                        System.out.println("push done");
                     }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
