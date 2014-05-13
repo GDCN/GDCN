@@ -1,9 +1,9 @@
 {
     "resultKey":"Langermann4",
     "taskName":"LangermannTask_04",
-    "module":{"fileName":"Langermann.hs","fileLocation":"code","dhtKey":"Langermann_algorithms","sticky":true,"checkSum":500},
+    "module":{"fileName":"Langermann.hs","fileLocation":"code","sticky":true,"checkSum":500},
     "dependencies":
     [
-        {"fileName":"seed04.raw","fileLocation":"resources","dhtKey":"Langermann_Seed04","sticky":false,"checkSum":25}
+        {"fileName":"seed04.raw","fileLocation":"resources","sticky":false,"checkSum":25}
     ]
 }
