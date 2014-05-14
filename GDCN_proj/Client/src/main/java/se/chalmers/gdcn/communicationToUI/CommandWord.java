@@ -22,6 +22,7 @@ public enum CommandWord implements WordInterface {
 
     WORK(2, "work", "<ip> <port>", "Work once for job owner with <ip> and <port>."),
     AUTO_WORK(2, "autowork", "<ip> <port>", "Work continually for job owner with <ip> and <port>."),
+    
     PUSH(1, "push", "<job>", "Put <job> files to DHT. These files are found in" + inline() +
             "\"~"+ File.separator +".gdcn"+ File.separator +"jobs"+ File.separator +"<job>"+ File.separator+
             "\" or respective folder."),
@@ -30,7 +31,7 @@ public enum CommandWord implements WordInterface {
     //        "the application folder's subfolder \"jobs\"."),
 
     INSTALL(0, "install", "", "Save initial application data and install libraries."),
-    UNINSTALL(0, "uninstall", "", "Remove all application data."),
+    UNINSTALL(0, "uninstall", "", "Remove all application data except in custom locations."),
     ;
 
     // Note: Cannot use variable since that is illegal forward reference
