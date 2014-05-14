@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.ui;
 
+import org.apache.commons.lang.StringUtils;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
@@ -32,6 +33,7 @@ public class Console implements PropertyChangeListener{
         console.read();
     }
 
+    private final int HELP_INLINE = 24;
 
     private final Holder commandHolder;
 
@@ -60,7 +62,10 @@ public class Console implements PropertyChangeListener{
 
                 println("-- commandname (arity): description --");
                 for(WordInterface word : words){
-                    println(word.getName() + " (" + word.getArity() + "):\t" + word.getHelp());
+                    String init = word.getName() + " " + word.getArguments();
+                    int whitespaces = HELP_INLINE - init.length();
+                    println(init + StringUtils.repeat(" ", whitespaces) + word.getHelp());
+                    println("");
                 }
                 println("");
             }

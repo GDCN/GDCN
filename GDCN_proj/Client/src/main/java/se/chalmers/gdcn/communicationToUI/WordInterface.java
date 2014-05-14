@@ -8,5 +8,7 @@ public interface WordInterface {
 
     String getName();
 
+    String getArguments();
+
     String getHelp();
 }

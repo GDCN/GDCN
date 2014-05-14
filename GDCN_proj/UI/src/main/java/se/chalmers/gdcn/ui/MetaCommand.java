@@ -8,8 +8,8 @@ import se.chalmers.gdcn.communicationToUI.WordInterface;
  * Commands that only exist in context of Console, not in Client
  */
 public enum MetaCommand implements WordInterface{
-    HELP(0,"help","This is the help command"),
-    EXIT(0, "exit", "Exits the program")
+    HELP(0,"help", "This is the help command."),
+    EXIT(0, "exit", "Exits the program.")
     ;
 
     private final int arity;
@@ -36,6 +36,14 @@ public enum MetaCommand implements WordInterface{
     @Override
     public String getName() {
         return name;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getArguments() {
+        return "";
     }
 
     /**
