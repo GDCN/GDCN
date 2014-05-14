@@ -55,7 +55,7 @@ public class Console implements PropertyChangeListener{
         commandMap.put(MetaCommand.HELP.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
-                //TODO use TreeSet instead?
+                //TODO use TreeSet instead for alphabetical order?
                 List<WordInterface> words = new ArrayList<>();
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
@@ -68,6 +68,23 @@ public class Console implements PropertyChangeListener{
                     println("");
                 }
                 println("");
+            }
+        });
+
+        commandMap.put(MetaCommand.ABOUT.getName(), new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                System.out.println("GDCN - General Decentralized Computation Network\n");
+
+                System.out.println("Developed in 2014 by\n" +
+                        "\tJack Pettersson\n" +
+                        "\tLeif Schelin\n" +
+                        "\tNiklas Wärvik\n" +
+                        "\tJoakim Öhman\n");
+
+                System.out.println("@Chalmers University of Technology");
+                System.out.println("Latest version can be found on\n" +
+                        "\thttps://github.com/weeeeeew/GDCN");
             }
         });
 
@@ -90,8 +107,13 @@ public class Console implements PropertyChangeListener{
             case WORK:
                 println("Work on " + event.getOperation().getKey() + " " + success);
                 break;
+            case AUTO_WORK:
+                println("Autowork on " + event.getOperation().getKey() + " " + success);
+                break;
             case PUSH:
                 println("Push job " + event.getOperation().getKey() + " " + success);
+                break;
+            case STOP:
                 break;
             case PUT:
                 println("Put " + event.getOperation().getKey() + " " + success);
@@ -101,6 +123,12 @@ public class Console implements PropertyChangeListener{
                 break;
             case START:
                 println("Start complete.");
+                break;
+            case INSTALL:
+                println("Installation complete.");
+                break;
+            case UNINSTALL:
+                println("Uninstallation complete.");
                 break;
             default:
                 println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
@@ -141,8 +169,8 @@ public class Console implements PropertyChangeListener{
                 try{
                     commandHolder.execute(cmd, wordList);
                 } catch (UnsupportedOperationException e){
-                    println("Unsupported operation (" + cmd + ").");
-                    println("Type \"help\" to see a list of commands. Type \"exit\" to stop");
+                    println("Unsupported operation (\"" + cmd + "\").");
+                    println("Type \"help\" to see a list of commands. Type \"exit\" to stop.");
                 }
             }
         } catch (IOException e) {

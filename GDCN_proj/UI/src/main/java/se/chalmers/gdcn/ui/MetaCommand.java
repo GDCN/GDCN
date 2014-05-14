@@ -8,6 +8,7 @@ import se.chalmers.gdcn.communicationToUI.WordInterface;
  * Commands that only exist in context of Console, not in Client
  */
 public enum MetaCommand implements WordInterface{
+    ABOUT(0,"about","Text about this program."),
     HELP(0,"help", "This is the help command."),
     EXIT(0, "exit", "Exits the program.")
     ;
