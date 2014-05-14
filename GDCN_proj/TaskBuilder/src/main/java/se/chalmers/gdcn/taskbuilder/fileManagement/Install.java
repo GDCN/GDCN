@@ -170,6 +170,7 @@ public class Install {
         String s = paths().getProperty("settings_path") + BOOTSTRAP_NODE_NAME;
 
         File bootstrapFile = new File(s);
+        bootstrapFile.getParentFile().mkdirs();
 
         try {
             BufferedWriter outputStream = new BufferedWriter(new FileWriter(bootstrapFile));
