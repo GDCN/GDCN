@@ -1,5 +1,7 @@
 package se.chalmers.gdcn.ui;
 
+import se.chalmers.gdcn.communicationToUI.WordInterface;
+
 import java.util.List;
 
 /**
@@ -7,4 +9,5 @@ import java.util.List;
 */
 public interface UICommand {
     public void execute(List<String> args);
+    public WordInterface getWord();
 }

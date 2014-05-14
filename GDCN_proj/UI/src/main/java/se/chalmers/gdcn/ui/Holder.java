@@ -23,11 +23,19 @@ public class Holder {
      * @throws UnsupportedOperationException if name doesn't exist
      */
     public void execute(String name, List<String> args) throws UnsupportedOperationException{
-        UICommand UICommand = commandMap.get(name);
-        if(UICommand == null){
-            //TODO if name exist in enum: throw NotImplementedException
-            throw new UnsupportedOperationException("UICommand "+name+" doesn't exist!");
+        UICommand uiCommand = commandMap.get(name);
+        if(uiCommand == null){
+            throw new UnsupportedOperationException("UICommand "+name+" wasn't found!");
         }
-        UICommand.execute(args);
+        int arity = uiCommand.getWord().getArity();
+        if(arity < args.size()){
+            System.out.println("Warning: argument ignored.");
+            if(arity==0){
+                System.out.println("'"+uiCommand.getWord().getName()+"' takes no arguments.\n");
+            } else {
+                System.out.println("'"+uiCommand.getWord().getName()+"' only takes "+arity+" arguments.\n");
+            }
+        }
+        uiCommand.execute(args);
     }
 }

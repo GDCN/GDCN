@@ -1,10 +1,10 @@
 package se.chalmers.gdcn.ui;
 
-import net.tomp2p.peers.Number160;
-import se.chalmers.gdcn.communicationToUI.ClientInterface;
-import se.chalmers.gdcn.communicationToUI.CommandWord;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import se.chalmers.gdcn.communicationToUI.ClientInterface;
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.WordInterface;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,8 +20,8 @@ public class ConsoleFactory {
 
     /**
      * Creates a console and makes it listen to the provided client.
-     * @param client
-     * @return
+     * @param client Client to pass commands to
+     * @return Console instance that can take commands
      */
     public static Console create(final ClientInterface client){
         Map<String, UICommand> commandMap = ConsoleFactory.createCommands(client);
@@ -34,7 +34,7 @@ public class ConsoleFactory {
     /**
      * Creates and encapsulates commands
      * @param client Client to pass commands to
-     * @return
+     * @return Map of commands
      */
     private static Map<String, UICommand> createCommands(final ClientInterface client){
         Map<String, UICommand> commandMap = new HashMap<>();
@@ -48,12 +48,22 @@ public class ConsoleFactory {
                 }
                 client.start(port);
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.START;
+            }
         });
 
         commandMap.put(CommandWord.STOP.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.stop();
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.STOP;
             }
         });
 
@@ -69,6 +79,11 @@ public class ConsoleFactory {
                     e.printStackTrace();
                 }
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.PUT;
+            }
         });
 
         commandMap.put(CommandWord.GET.getName(), new UICommand() {
@@ -76,35 +91,10 @@ public class ConsoleFactory {
             public void execute(List<String> args) {
                 client.get(args.remove(0));
             }
-        });
 
-        //TODO remove command or make better (enum + good output)
-        commandMap.put("connect", new UICommand() {
             @Override
-            public void execute(List<String> args) {
-                String site = "narrens.olf.sgsnet.se";
-                if(args.size() == 1){
-                    site = args.get(0);
-                }
-
-                try {
-                    InetAddress[] inetAddresses = InetAddress.getAllByName(site);
-                    for(InetAddress address : inetAddresses){
-
-                        System.out.println(""+address.toString());
-                    }
-                } catch (UnknownHostException e) {
-                    System.out.println("Unknown host: "+site);
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        //TODO keep or remove?
-        commandMap.put("send", new UICommand() {
-            @Override
-            public void execute(List<String> args) {
-                client.send(args.get(0));
+            public WordInterface getWord() {
+                return CommandWord.GET;
             }
         });
 
@@ -127,6 +117,11 @@ public class ConsoleFactory {
                     System.out.println("Normally two arguments: Host and Port. Zero arguments for default bootstrap.");
                 }
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.BOOTSTRAP;
+            }
         });
 
         commandMap.put(CommandWord.WORK.getName(), new UICommand() {
@@ -143,6 +138,11 @@ public class ConsoleFactory {
 
                 client.work(address, port, false);
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.WORK;
+            }
         });
 
         commandMap.put(CommandWord.AUTO_WORK.getName(), new UICommand() {
@@ -158,6 +158,11 @@ public class ConsoleFactory {
 
                 client.work(address, port, true);
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.AUTO_WORK;
+            }
         });
 
         commandMap.put(CommandWord.INSTALL.getName(), new UICommand() {
@@ -165,12 +170,22 @@ public class ConsoleFactory {
             public void execute(List<String> args) {
                 client.install();
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.INSTALL;
+            }
         });
 
         commandMap.put(CommandWord.UNINSTALL.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.uninstall();
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.UNINSTALL;
             }
         });
 
@@ -180,9 +195,55 @@ public class ConsoleFactory {
                 String jobName = args.get(0);
                 client.push(jobName);
             }
+
+            @Override
+            public WordInterface getWord() {
+                return CommandWord.PUSH;
+            }
         });
 
-        //TODO use enum
+        //////////////////////////////////
+        // Debug or outdated commands:
+        // TODO remove or improve them
+
+        commandMap.put("connect", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String site = "narrens.olf.sgsnet.se";
+                if(args.size() == 1){
+                    site = args.get(0);
+                }
+
+                try {
+                    InetAddress[] inetAddresses = InetAddress.getAllByName(site);
+                    for(InetAddress address : inetAddresses){
+
+                        System.out.println(""+address.toString());
+                    }
+                } catch (UnknownHostException e) {
+                    System.out.println("Unknown host: "+site);
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return null;
+            }
+        });
+
+        commandMap.put("send", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                client.send(args.get(0));
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return null;
+            }
+        });
+
         commandMap.put("neighbours", new UICommand() {
             @Override
             public void execute(List<String> args) {
@@ -192,51 +253,23 @@ public class ConsoleFactory {
                     System.out.println(address.toString());
                 }
             }
-        });
 
-        //TODO use enum
-        commandMap.put("put2", new UICommand() {
             @Override
-            public void execute(List<String> args) {
-                String key = args.get(0);
-                String domain = args.get(1);
-                String value = args.get(2);
-                try {
-                    client.put(new Number160(key), Number160.createHash(domain), new Data(value));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            public WordInterface getWord() {
+                return null;
             }
         });
 
-        //TODO use enum
-        commandMap.put("get2", new UICommand() {
-            @Override
-            public void execute(List<String> args) {
-                Number160 key = new Number160(args.get(0));
-                String domain = args.get(1);
-                client.get(key, Number160.createHash(domain));
-            }
-        });
-
-        //TODO remove entirely? Currently asks neighbour for work.
-        commandMap.put("reqw", new UICommand() {
-            @Override
-            public void execute(List<String> args) {
-                int ix = 0;
-                if(args.size()>0){
-                    ix = Integer.parseInt(args.get(0));
-                }
-                client.requestWork(ix);
-            }
-        });
-
-        //TODO use enum
         commandMap.put("rebootstrap", new UICommand() {
             @Override
             public void execute(List<String> args) {
-                //TODO fix!
+                //TODO fix or delete!
                 client.reBootstrap();
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return null;
             }
         });
 
@@ -245,12 +278,22 @@ public class ConsoleFactory {
             public void execute(List<String> args) {
                 client.clearNeighbourFile();
             }
+
+            @Override
+            public WordInterface getWord() {
+                return null;
+            }
         });
 
         commandMap.put("deleteNeighbourFile", new UICommand() {
             @Override
             public void execute(List<String> args) {
                 client.deleteNeighbourFile();
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return null;
             }
         });
 

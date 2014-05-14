@@ -50,6 +50,11 @@ public class Console implements PropertyChangeListener{
             public void execute(List<String> args) {
                 loop = false;
             }
+
+            @Override
+            public WordInterface getWord() {
+                return MetaCommand.EXIT;
+            }
         });
 
         commandMap.put(MetaCommand.HELP.getName(), new UICommand() {
@@ -69,22 +74,32 @@ public class Console implements PropertyChangeListener{
                 }
                 println("");
             }
+
+            @Override
+            public WordInterface getWord() {
+                return MetaCommand.HELP;
+            }
         });
 
         commandMap.put(MetaCommand.ABOUT.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {
-                System.out.println("GDCN - General Decentralized Computation Network\n");
+                println("GDCN - General Decentralized Computation Network\n");
 
-                System.out.println("Developed in 2014 by\n" +
+                println("Developed in 2014 by\n" +
                         "\tJack Pettersson\n" +
                         "\tLeif Schelin\n" +
                         "\tNiklas Wärvik\n" +
                         "\tJoakim Öhman\n");
 
-                System.out.println("@Chalmers University of Technology");
-                System.out.println("Latest version can be found on\n" +
+                println("@Chalmers University of Technology");
+                println("Latest version can be found on\n" +
                         "\thttps://github.com/weeeeeew/GDCN");
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return MetaCommand.ABOUT;
             }
         });
 
@@ -138,7 +153,7 @@ public class Console implements PropertyChangeListener{
 
     /**
      * Prints message + newline, exchangeable
-     * @param message
+     * @param message String to print
      */
     private void println(String message){
         System.out.println(message);
@@ -146,7 +161,7 @@ public class Console implements PropertyChangeListener{
 
     /**
      * Prints message, exchangeable
-     * @param message
+     * @param message String to print
      */
     private void print(String message){
         System.out.print(message);
@@ -160,7 +175,7 @@ public class Console implements PropertyChangeListener{
         try {
 
             while(loop){
-                print(">> ");
+                print("\n>> ");
                 String line = bufferedReader.readLine();
                 String[] words = line.split("\\s");
                 List<String> wordList = new ArrayList<>(Arrays.asList(words));
