@@ -60,7 +60,7 @@ public class Console implements PropertyChangeListener{
                 words.addAll(Arrays.asList(CommandWord.values()));
                 words.addAll(Arrays.asList(MetaCommand.values()));
 
-                println("-- commandname (arity): description --");
+                println("-- Commandname (arguments): description --");
                 for(WordInterface word : words){
                     String init = word.getName() + " " + word.getArguments();
                     int whitespaces = HELP_INLINE - init.length();
