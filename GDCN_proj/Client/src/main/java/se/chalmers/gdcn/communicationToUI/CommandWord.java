@@ -26,9 +26,6 @@ public enum CommandWord implements WordInterface {
     PUSH(1, "push", "<job>", "Put <job> files to DHT. These files are found in" + inline() +
             "\"~"+ File.separator +".gdcn"+ File.separator +"jobs"+ File.separator +"<job>"+ File.separator+
             "\" or respective folder."),
-    //TODO use Pathmanager to point to current directory?
-    //PUSH(1, "push", "<job>", "Put <job> files to DHT. These are folders found in" + inline() +
-    //        "the application folder's subfolder \"jobs\"."),
 
     INSTALL(0, "install", "", "Save initial application data and install libraries."),
     UNINSTALL(0, "uninstall", "", "Remove all application data except in custom locations."),
