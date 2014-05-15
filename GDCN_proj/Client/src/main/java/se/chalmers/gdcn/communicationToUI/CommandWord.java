@@ -9,20 +9,20 @@ import java.io.File;
  *
  */
 public enum CommandWord implements WordInterface {
-    START(1, "start", "[port]", "Open [port] for network communication. If [port] is" + inline() +
+    START(1, "start", "<port>", "Open <port> for network communication. If <port> is" + inline() +
             "left out, it will use the default port 4001."),
     STOP(0, "stop", "", "Close the port for network communication."),
 
     PUT(2, "put", "<key> <msg>", "Debug command: Put <msg> using <key>."),
     GET(1, "get", "<key>", "Debug command: Get the message of <key>."),
 
-    BOOTSTRAP(2, "bootstrap", "[ip] [port]", "Connect to a network through the peer [ip] that is" + inline() +
-            "using [port]. If the arguments are left out, it will" + inline() +
+    BOOTSTRAP(2, "bootstrap", "<ip> <port>", "Connect to a network through the peer <ip> that is" + inline() +
+            "using <port>. If the arguments are left out, it will" + inline() +
             "attempt to connect to the default bootstrap server."),
 
     WORK(2, "work", "<ip> <port>", "Work once for job owner with <ip> and <port>."),
     AUTO_WORK(2, "autowork", "<ip> <port>", "Work continually for job owner with <ip> and <port>."),
-    
+
     PUSH(1, "push", "<job>", "Put <job> files to DHT. These files are found in" + inline() +
             "\"~"+ File.separator +".gdcn"+ File.separator +"jobs"+ File.separator +"<job>"+ File.separator+
             "\" or respective folder."),
