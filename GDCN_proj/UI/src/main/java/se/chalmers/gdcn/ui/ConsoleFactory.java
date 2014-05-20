@@ -226,7 +226,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -238,7 +238,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -254,27 +254,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return new WordInterface() {
-                    @Override
-                    public int getArity() {
-                        return 0;
-                    }
-
-                    @Override
-                    public String getName() {
-                        return null;
-                    }
-
-                    @Override
-                    public String getArguments() {
-                        return null;
-                    }
-
-                    @Override
-                    public String getHelp() {
-                        return null;
-                    }
-                };
+                return nullWord;
             }
         });
 
@@ -287,7 +267,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -299,7 +279,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -311,10 +291,32 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
         return commandMap;
     }
+
+    private static WordInterface nullWord = new WordInterface() {
+        @Override
+        public int getArity() {
+            return 100;
+        }
+
+        @Override
+        public String getName() {
+            return "";
+        }
+
+        @Override
+        public String getArguments() {
+            return "";
+        }
+
+        @Override
+        public String getHelp() {
+            return "";
+        }
+    };
 }
