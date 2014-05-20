@@ -287,7 +287,27 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return new WordInterface() {
+                    @Override
+                    public int getArity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getArguments() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getHelp() {
+                        return null;
+                    }
+                };
             }
         });
 
