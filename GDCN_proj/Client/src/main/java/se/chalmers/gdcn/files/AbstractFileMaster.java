@@ -162,7 +162,8 @@ abstract class AbstractFileMaster{
                 client.removeListener(operationListener);
                 return false;
             }
-            System.out.println("Test monitor condition before exit loop...");
+            //Disabled for demo
+            //System.out.println("Test monitor condition before exit loop...");
         }
 
         client.removeListener(operationListener);
