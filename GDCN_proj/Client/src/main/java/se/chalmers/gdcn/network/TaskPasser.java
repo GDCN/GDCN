@@ -226,7 +226,7 @@ public class TaskPasser extends Passer {
                                 requestWork(jobOwner, true);
                             }
                         } else {
-                            taskFailed(taskName, "Couldn't upload result to DHT :P");
+                            taskFailed(taskName, "Couldn't upload result to DHT");
                         }
                     }
                 });
