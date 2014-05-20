@@ -1,8 +1,8 @@
 package se.chalmers.gdcn.ui;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.apache.log4j.varia.NullAppender;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
@@ -30,8 +30,7 @@ public class Console implements PropertyChangeListener{
      * @param args
      */
     public static void main(String[] args){
-        Logger.getRootLogger().removeAllAppenders();
-        Logger.getRootLogger().addAppender(new NullAppender());
+        Logger.getRootLogger().setLevel(Level.WARN);
         ClientInterface client = new PeerOwner();
         Console console = ConsoleFactory.create(client);
         console.read();
