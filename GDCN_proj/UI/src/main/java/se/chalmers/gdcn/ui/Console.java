@@ -184,6 +184,9 @@ public class Console implements PropertyChangeListener{
                 List<String> wordList = new ArrayList<>(Arrays.asList(words));
                 String cmd = wordList.remove(0);
 
+                if("".equals(cmd)){
+                    continue;
+                }
                 try{
                     commandHolder.execute(cmd, wordList);
                 } catch (UnsupportedOperationException e){
