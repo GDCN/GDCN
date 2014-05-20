@@ -82,7 +82,7 @@ public class JobUploader extends AbstractFileMaster{
         replicaManager.loadTasksAndReplicate(jobName, taskMetas);
 
         for(FileDep fileDep : allFileDependencies){
-            System.out.println(" Dependency: "+fileDep.getFileName());
+            System.out.println("  Dependency: "+fileDep.getFileName());
         }
 
         TaskMeta totalJobMeta = new TaskMeta("Upload"+jobName, null, new ArrayList<>(allFileDependencies));
