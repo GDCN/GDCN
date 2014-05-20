@@ -28,7 +28,8 @@ abstract class Passer {
             public Object reply(PeerAddress sender, Object request) throws Exception {
 
                 if(peer.getPeerAddress().equals(sender)){
-                    System.out.println("in Passer: ERROR! sender is myself!!!");
+                    //Disabled for demo
+                    //System.out.println("in Passer: ERROR! sender is myself!!!");
                 }
 
                 NetworkMessage message = NetworkMessage.decrypt( request);
