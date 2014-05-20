@@ -107,11 +107,9 @@ public class ConsoleFactory {
 
                 if(args.size()==0){
                     client.bootstrap();
-                    System.out.println("bootstraping to bootstrap node");
                 } else if(args.size()==2){
                     host = args.get(0);
                     port = Integer.parseInt(args.get(1));
-                    System.out.println("connecting to other node");
                     client.bootstrap(host, port);
                 } else {
                     System.out.println("Normally two arguments: Host and Port. Zero arguments for default bootstrap.");
@@ -256,7 +254,27 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return new WordInterface() {
+                    @Override
+                    public int getArity() {
+                        return 0;
+                    }
+
+                    @Override
+                    public String getName() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getArguments() {
+                        return null;
+                    }
+
+                    @Override
+                    public String getHelp() {
+                        return null;
+                    }
+                };
             }
         });
 
