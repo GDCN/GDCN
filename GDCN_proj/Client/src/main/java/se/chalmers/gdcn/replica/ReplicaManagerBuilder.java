@@ -9,7 +9,7 @@ import se.chalmers.gdcn.utils.Time;
  * Created by Leif on 2014-04-16.
  */
 public class ReplicaManagerBuilder {
-    private int replicas = 3;
+    private int replicas = 2;
     private int expectedReputation = 3;
 
     //TODO store milliseconds instead?
