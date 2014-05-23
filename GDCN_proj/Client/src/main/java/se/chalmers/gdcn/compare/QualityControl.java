@@ -95,6 +95,7 @@ public class QualityControl {
             // Compiling quality
             new File(qualityProgramPath).getParentFile().mkdirs();
             String[] command = {"ghc", qualitySourcePath, "-o", qualityProgramPath,
+                    "-i" + pathMan.taskCodeDir(),
                     "-outputdir", pathMan.projectTempDir()};
 
             HaskellCompiler haskellCompiler = new HaskellCompiler();

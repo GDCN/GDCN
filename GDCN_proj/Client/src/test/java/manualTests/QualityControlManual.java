@@ -1,6 +1,7 @@
 package manualTests;
 
 import com.google.gson.Gson;
+import net.tomp2p.peers.Number160;
 import se.chalmers.gdcn.compare.QualityControl;
 import se.chalmers.gdcn.compare.TrustQuality;
 import se.chalmers.gdcn.files.TaskMeta;
@@ -21,10 +22,10 @@ public class QualityControlManual {
 
     private final static String TASK_META = "{\n" +
             "    \"taskName\":\"IncrementTask_01\",\n" +
-            "    \"module\":{\"fileName\":\"Increment.hs\",\"fileLocation\":\"code\",\"dhtKey\":\"Increment_algorithms\",\"sticky\":true,\"checkSum\":500},\n" +
+            "    \"module\":{\"fileName\":\"Increment.hs\",\"fileLocation\":\"code\",\"sticky\":true,\"checkSum\":500},\n" +
             "    \"dependencies\":\n" +
             "    [\n" +
-            "        {\"fileName\":\"0.raw\",\"fileLocation\":\"resources\",\"dhtKey\":\"Increment_0\",\"sticky\":false,\"checkSum\":25}\n" +
+            "        {\"fileName\":\"0.raw\",\"fileLocation\":\"resources\",\"sticky\":false,\"checkSum\":25}\n" +
             "    ]\n" +
             "}";
 
@@ -32,6 +33,7 @@ public class QualityControlManual {
 
         Gson gson = new Gson();
         TaskMeta taskMeta = gson.fromJson(TASK_META, TaskMeta.class);
+        taskMeta.getModule().setDhtKey(Number160.createHash(taskMeta.getModule().getFileName()));
 
         List<byte[]> results = new ArrayList<>();
 
