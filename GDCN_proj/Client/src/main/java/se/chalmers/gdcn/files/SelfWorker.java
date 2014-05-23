@@ -13,7 +13,6 @@ import java.io.IOException;
  */
 public class SelfWorker {
 
-//    private final FileSolver fileSolver;
     private final String taskName;
     private final PathManager pathManager;
 
