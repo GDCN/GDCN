@@ -15,6 +15,8 @@ import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.deceitful.Deceitful;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
+import se.chalmers.gdcn.deceitful.DeceitfulWork;
+import se.chalmers.gdcn.deceitful.SpamWork;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.deceitful.FalseWork;
 import se.chalmers.gdcn.network.TaskPasser;
@@ -258,10 +260,23 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     @Deceitful
     @Override
     public void falseWork(String address, int port){
-        final FalseWork falseWork = new FalseWork(taskPasser, this, peer);
+        deceit(address, port, new FalseWork(taskPasser, this, peer));
+    }
 
+    @Deceitful
+    public void spamWork(String address, int port){
+        deceit(address, port, new SpamWork(4,taskManager, this));
+    }
+
+    @Deceitful
+    public void stopWork(String address, int port){
+        //todo
+    }
+
+    @Deceitful
+    private void deceit(String address, int port, final DeceitfulWork deceitfulWork){
         if("self".equals(address)){
-            falseWork.requestWork(peer.getPeerAddress());
+            deceitfulWork.requestWork(peer.getPeerAddress());
             return;
         }
 
@@ -278,7 +293,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                     PeerAddress jobOwner = future.getReporter();
                     assert ! jobOwner.equals(peer.getPeerAddress());
 
-                    falseWork.requestWork(jobOwner);
+                    deceitfulWork.requestWork(jobOwner);
                 }
             });
         } catch (UnknownHostException e) {

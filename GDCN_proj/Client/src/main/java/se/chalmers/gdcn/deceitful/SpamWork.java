@@ -28,6 +28,9 @@ public class SpamWork implements DeceitfulWork{
     private final SpamWorkerNode[] spamWorkerNodes;
     private KeyPairGenerator keyPairGenerator = null;
 
+    private int startPort = 37000;
+    private long timeout = 25000L;
+
     public SpamWork(int times, TaskManager taskManager, ClientInterface client) {
         this.taskManager = taskManager;
         this.client = client;
@@ -41,13 +44,21 @@ public class SpamWork implements DeceitfulWork{
         }
     }
 
+    public void setStartPort(int startPort) {
+        this.startPort = startPort;
+    }
+
+    public void setTimeout(long timeout) {
+        this.timeout = timeout;
+    }
+
     @Deceitful
     @Override
     public void requestWork(final PeerAddress jobOwner) {
         try {
             for(int ix=0; ix<peers.length; ++ix){
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
-                Peer peer = new PeerMaker(keyPair).setPorts(11345+ix).makeAndListen();
+                Peer peer = new PeerMaker(keyPair).setPorts(startPort+ix).makeAndListen();
                 DataFilesManager dataFilesManager = new DataFilesManager("DECEIT",""+ix);
                 TaskPasser taskPasser = new TaskPasser(peer, taskManager, client, dataFilesManager);
 
@@ -65,18 +76,25 @@ public class SpamWork implements DeceitfulWork{
                 @Override
                 public void run() {
                     try {
-                        Thread.sleep(12000L);
+                        Thread.sleep(timeout);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                     System.out.println("Shutdown all peers");
-                    for(Peer peer : peers){
-                        peer.shutdown();
-                    }
+                    stop();
                 }
             });
         } catch (IOException e) {
             e.printStackTrace();
+            stop();
+        }
+    }
+
+    private void stop(){
+        for(Peer peer : peers){
+            if(peer != null && !peer.isShutdown()){
+                peer.shutdown();
+            }
         }
     }
 
