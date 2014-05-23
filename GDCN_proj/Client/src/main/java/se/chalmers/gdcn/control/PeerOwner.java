@@ -15,6 +15,7 @@ import net.tomp2p.storage.Data;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
 import se.chalmers.gdcn.files.DataFilesManager;
+import se.chalmers.gdcn.network.FalseWork;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -251,6 +252,36 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void push(String jobName) {
         //TODO Move to other class?
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
+    }
+
+    @Override
+    public void falseWork(String address, int port){
+        final FalseWork falseWork = new FalseWork(taskPasser, this, peer);
+
+        if("self".equals(address)){
+            falseWork.requestWork(peer.getPeerAddress());
+            return;
+        }
+
+        try {
+            DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
+            discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>(){
+                @Override
+                public void operationComplete(FutureDiscover future) throws Exception {
+                    if(!future.isSuccess()){
+                        notifier.fireOperationFinished(CommandWord.WORK,
+                                new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
+                        return;
+                    }
+                    PeerAddress jobOwner = future.getReporter();
+                    assert ! jobOwner.equals(peer.getPeerAddress());
+
+                    falseWork.requestWork(jobOwner);
+                }
+            });
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
