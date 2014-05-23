@@ -35,19 +35,16 @@ public class FalseWork{
             @Override
             public void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork) {
                 final Number160 resultKey = replicaBox.getResultKey();
-//                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
+                final String taskName = replicaBox.getTaskMeta().getTaskName();
+                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
 
                 client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
                     @Override
                     protected void operationFinished(Operation operation) {
                         if(operation.isSuccess()){
-//                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
+                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
                             taskPasser.sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
                                     replicaBox.getReplicaID()));
-
-//                            if(autoWork){
-//                                requestWork(jobOwner, true);
-//                            }
                         }
                     }
                 });
@@ -64,6 +61,7 @@ public class FalseWork{
                     result = new byte[100];
                 }
                 random.nextBytes(result);
+                System.out.println("Returning "+result.length+" random bytes.");
 
                 client.put(resultKey, jobOwner.getID(), new Data(result));
             }
