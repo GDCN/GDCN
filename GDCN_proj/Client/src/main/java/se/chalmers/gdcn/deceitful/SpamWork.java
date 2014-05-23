@@ -18,6 +18,9 @@ import java.security.NoSuchAlgorithmException;
 
 /**
  * Created by HalfLeif on 2014-05-23.
+ *
+ * TODO doesn't work atm, fix later if want to use this one
+ * @deprecated 
  */
 public class SpamWork implements DeceitfulWork{
 

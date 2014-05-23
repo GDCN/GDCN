@@ -19,7 +19,7 @@ abstract class Passer {
 
     private final Peer peer;
 
-    private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
+    private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0, false, true);
 
     protected Passer(final Peer peer) {
         this.peer = peer;
@@ -42,8 +42,10 @@ abstract class Passer {
 
                 switch (message.getType()){
                     case REQUEST:
-                        Serializable reply = handleRequest(sender, message.getObject());
-                        return reply;
+
+                        System.out.println(print(peer.getPeerAddress())+" received req from "+print(sender));
+
+                        return handleRequest(sender, message.getObject());
                     case NO_REPLY:
                         handleNoReply(sender, message.getObject());
                         return "Message was Handled in some way...";
@@ -75,7 +77,7 @@ abstract class Passer {
      * @param message message
      * @param onReturn what you will do when it answers
      */
-    protected void sendRequest(PeerAddress receiver, Serializable message, final OnReplyCommand onReturn){
+    protected void sendRequest(final PeerAddress receiver, Serializable message, final OnReplyCommand onReturn){
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
         final NetworkMessage networkMessage = new NetworkMessage(message, NetworkMessage.Type.REQUEST);
@@ -89,11 +91,11 @@ abstract class Passer {
                     System.out.println("WHY: "+future.getFailedReason());
                     return;
                 }
-                System.out.println("Success sending " + networkMessage.toString());
+                System.out.println("Success sending " + networkMessage.toString() + " to " + print(receiver));
                 for(PeerAddress address : future.getRawDirectData2().keySet()){
                     Object answer = future.getRawDirectData2().get(address);
                     onReturn.execute(answer);
-                    System.out.println(""+print(address)+" answered with "+answer);
+                    System.out.println(print(address)+" answered with "+answer);
                 }
             }
         });

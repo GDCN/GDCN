@@ -285,7 +285,7 @@ public class TaskPasser extends Passer {
         switch(taskMessage.getType()){
             case REQUEST_CHALLENGE:
 
-                System.out.println("Received request for a Challenge");
+                System.out.println("Received request for a Challenge from "+print(sender));
 
                 int score = workerChallengesManager.getCurrentScore(workerID);
 
@@ -296,7 +296,7 @@ public class TaskPasser extends Passer {
 
             case REQUEST_TASK:
 
-                System.out.println("Received request for a Task");
+                System.out.println("Received request for a Task from "+print(sender));
                 Solution solution = (Solution) taskMessage.getActualContent();
 
                 score = workerChallengesManager.getCurrentScore(workerID);
