@@ -387,11 +387,13 @@ public class ReplicaManager implements Serializable, Cloneable{
                     try {
                         byte[] result = FileManagementUtils.fromFile(new File(resultPath));
 
-                        //TODO put jobOwner result in special position?
-                        taskResultData.returnedReplicas.put(replicaID, result);
-                        runner.getTaskListener().taskFinished(taskName);
+                        replicaFinished(replicaID, result);
 
-                        decideValidate(replicaID, taskData, taskResultData);
+                        //TODO put jobOwner result in special position?
+//                        taskResultData.returnedReplicas.put(replicaID, result);
+//                        runner.getTaskListener().taskFinished(taskName);
+//
+//                        decideValidate(replicaID, taskData, taskResultData);
 
                     } catch (IOException e) {
                         e.printStackTrace();
