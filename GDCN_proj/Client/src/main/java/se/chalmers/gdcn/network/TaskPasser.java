@@ -161,8 +161,6 @@ public class TaskPasser extends Passer {
      * @param workMethod How the work is done
      */
     public void requestWork(final PeerAddress jobOwner, final boolean autoWork, final WorkMethod workMethod){
-        //TODO do concurrently?
-        //TODO make tread safe...
         System.out.println("Request workMethod from " + Passer.print(jobOwner));
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {

@@ -29,7 +29,7 @@ public class StopWork extends AbstractDeceitfulWork {
             public void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork) {
                 final Number160 resultKey = replicaBox.getResultKey();
                 final String taskName = replicaBox.getTaskMeta().getTaskName();
-                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
+                System.out.println("Task " + taskName + " finished. Will never notify job owner!");
             }
         });
     }
