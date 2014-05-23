@@ -4,6 +4,7 @@ import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import se.chalmers.gdcn.Deceitful;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
@@ -16,6 +17,7 @@ import java.util.Random;
 /**
  * Created by HalfLeif on 2014-05-23.
  */
+@Deceitful
 public class FalseWork{
 
     private final TaskPasser taskPasser;
@@ -30,6 +32,13 @@ public class FalseWork{
         this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
     }
 
+    /**
+     * Simple attempt returning a random result to a jobOwner for a given task.
+     * Result size is hard-coded after the Module-name of the task.
+     *
+     * @param jobOwner jobOwner to dupe
+     */
+    @Deceitful
     public void requestWork(PeerAddress jobOwner){
         taskPasser.requestWork(jobOwner, false, new WorkMethod() {
             @Override
