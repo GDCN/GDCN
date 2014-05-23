@@ -334,6 +334,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
+
                 return nullWord;
             }
         });
