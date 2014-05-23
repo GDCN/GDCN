@@ -7,7 +7,6 @@ import java.security.PublicKey;
  * Created by HalfLeif on 2014-04-01.
  *
  * Class to identify a worker.
- * TODO extend Identifier<PublicKey>
 */
 public class WorkerID implements Serializable {
     private final PublicKey publicKey;

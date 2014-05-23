@@ -52,7 +52,7 @@ public class WorkerReputationManager implements Serializable{
      * @param worker Worker node
      * @return true if worker was added, false if existed already
      */
-    public boolean registerWorker(WorkerID worker){
+    public synchronized boolean registerWorker(WorkerID worker){
         if(registeredWorkers.keySet().contains(worker)){
             return false;
         }
@@ -69,7 +69,7 @@ public class WorkerReputationManager implements Serializable{
      * @param worker Worker node
      * @return true if and only if worker is registered and has reputation.
      */
-    public boolean hasWorkerReputation(WorkerID worker){
+    public synchronized boolean hasWorkerReputation(WorkerID worker){
         if(!registeredWorkers.keySet().contains(worker)){
             return false;
         }
@@ -90,7 +90,7 @@ public class WorkerReputationManager implements Serializable{
      * @param worker Worker node
      * @param action Action to take on misbehavior
      */
-    public void reportWorker(WorkerID worker, DisciplinaryAction action){
+    public synchronized void reportWorker(WorkerID worker, DisciplinaryAction action){
         if(!registeredWorkers.containsKey(worker)){
             //This can happen when a Worker is reported for not computing the registration task properly.
             return;
@@ -115,7 +115,7 @@ public class WorkerReputationManager implements Serializable{
      * Worker finished some task nicely. Promote the worker.
      * @param worker Worker node
      */
-    public void promoteWorker(WorkerID worker){
+    public synchronized void promoteWorker(WorkerID worker){
         if(!registeredWorkers.containsKey(worker)){
             throw new IllegalArgumentException("Worker doesn't exist");
         }
@@ -129,7 +129,7 @@ public class WorkerReputationManager implements Serializable{
      * @param worker Worker node
      * @return Current reputation or zero if not registered
      */
-    public int getReputation(WorkerID worker){
+    public synchronized int getReputation(WorkerID worker){
         if(!registeredWorkers.containsKey(worker)){
             return 0;
 //            throw new IllegalArgumentException("Worker doesn't exist");
