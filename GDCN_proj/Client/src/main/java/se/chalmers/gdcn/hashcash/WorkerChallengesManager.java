@@ -1,6 +1,5 @@
 package se.chalmers.gdcn.hashcash;
 
-import se.chalmers.gdcn.hashcash.Solution;
 import se.chalmers.gdcn.network.WorkerID;
 
 import java.io.Serializable;
@@ -24,7 +23,7 @@ public class WorkerChallengesManager implements Serializable{
     public void solvedChallenge(WorkerID worker, Solution solution) {
         Integer score = getCurrentScore(worker);
 
-        score += random.nextInt(score + solution.getDifficulty()) - solution.getDifficulty();
+        score += random.nextInt(solution.getDifficulty());
         registeredWorkers.put(worker,score);
     }
 
