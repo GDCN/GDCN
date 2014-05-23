@@ -601,6 +601,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         @Override
         protected void handleTimeout(ReplicaID element) {
             ReplicaManager.this.replicaOutdated(element);
+            System.out.println("Replica outdated: "+element);
         }
     }
 
