@@ -1,35 +1,25 @@
-package se.chalmers.gdcn.network;
+package se.chalmers.gdcn.deceitful;
 
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import se.chalmers.gdcn.Deceitful;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
+import se.chalmers.gdcn.network.DeceitfulWork;
+import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.TaskPasser.WorkMethod;
 import se.chalmers.gdcn.replica.ReplicaBox;
-
-import java.util.Random;
 
 /**
  * Created by HalfLeif on 2014-05-23.
  */
-@Deceitful
-public class FalseWork{
-
-    private final TaskPasser taskPasser;
-    private final ClientInterface client;
-    private final WorkerID myWorkerID;
-
-    private final Random random = new Random();
+public class FalseWork extends DeceitfulWork {
 
     public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer) {
-        this.taskPasser = taskPasser;
-        this.client = client;
-        this.myWorkerID = new WorkerID(peer.getPeerBean().getKeyPair().getPublic());
+        super(client, taskPasser, peer);
     }
 
     /**
@@ -39,6 +29,7 @@ public class FalseWork{
      * @param jobOwner jobOwner to dupe
      */
     @Deceitful
+    @Override
     public void requestWork(PeerAddress jobOwner){
         taskPasser.requestWork(jobOwner, false, new WorkMethod() {
             @Override
@@ -52,8 +43,7 @@ public class FalseWork{
                     protected void operationFinished(Operation operation) {
                         if(operation.isSuccess()){
                             System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                            taskPasser.sendNoReplyMessage(jobOwner, new TaskMessage(TaskMessageType.RESULT_UPLOADED, myWorkerID,
-                                    replicaBox.getReplicaID()));
+                            notifyJobOwner(taskPasser, jobOwner, myWorkerID, replicaBox.getReplicaID());
                         }
                     }
                 });

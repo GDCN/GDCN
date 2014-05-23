@@ -100,7 +100,7 @@ abstract class Passer {
     }
 
     /**
-     * Send messaage to a peer without expecting something in reply
+     * Send message to a peer without expecting something in reply
      * @param receiver peer
      * @param message message
      */

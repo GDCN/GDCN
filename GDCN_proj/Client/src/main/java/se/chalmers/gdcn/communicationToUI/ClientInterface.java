@@ -1,6 +1,6 @@
 package se.chalmers.gdcn.communicationToUI;
 
-import se.chalmers.gdcn.Deceitful;
+import se.chalmers.gdcn.deceitful.Deceitful;
 
 /**
  * Created by HalfLeif on 2014-02-26.
