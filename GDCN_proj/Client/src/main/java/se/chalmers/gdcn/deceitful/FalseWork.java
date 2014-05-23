@@ -8,7 +8,7 @@ import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
-import se.chalmers.gdcn.network.DeceitfulWork;
+import se.chalmers.gdcn.network.AbstractDeceitfulWork;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.TaskPasser.WorkMethod;
 import se.chalmers.gdcn.replica.ReplicaBox;
@@ -16,7 +16,7 @@ import se.chalmers.gdcn.replica.ReplicaBox;
 /**
  * Created by HalfLeif on 2014-05-23.
  */
-public class FalseWork extends DeceitfulWork {
+public class FalseWork extends AbstractDeceitfulWork {
 
     public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer) {
         super(client, taskPasser, peer);
