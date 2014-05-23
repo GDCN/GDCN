@@ -1,6 +1,8 @@
 package se.chalmers.gdcn.ui;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
@@ -28,6 +30,7 @@ public class Console implements PropertyChangeListener{
      * @param args
      */
     public static void main(String[] args){
+        Logger.getRootLogger().setLevel(Level.WARN);
         ClientInterface client = new PeerOwner();
         Console console = ConsoleFactory.create(client);
         console.read();
@@ -120,7 +123,7 @@ public class Console implements PropertyChangeListener{
                 println("Bootstrap " + success);
                 break;
             case WORK:
-                println("Work on " + event.getOperation().getKey() + " " + success);
+                println("WorkMethod on " + event.getOperation().getKey() + " " + success);
                 break;
             case AUTO_WORK:
                 println("Autowork on " + event.getOperation().getKey() + " " + success);
@@ -181,6 +184,9 @@ public class Console implements PropertyChangeListener{
                 List<String> wordList = new ArrayList<>(Arrays.asList(words));
                 String cmd = wordList.remove(0);
 
+                if("".equals(cmd)){
+                    continue;
+                }
                 try{
                     commandHolder.execute(cmd, wordList);
                 } catch (UnsupportedOperationException e){

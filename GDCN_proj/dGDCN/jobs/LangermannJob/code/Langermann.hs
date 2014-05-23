@@ -32,7 +32,7 @@ top :: Double
 top = 10
 
 tests :: Int
-tests = 10000000
+tests = 10000
 
 -- Vector and matrix functions
 
@@ -82,7 +82,7 @@ search depth = do
 
 multiSearch :: State StdGen (Vector, Double)
 multiSearch = do
-    results <- repeatM (search 10000) (tests `div` 10000)
+    results <- repeatM (search 100) (tests `div` 100)
     return $ maximumBy (\a b -> compare (snd a) (snd b)) results
 
 fullSearch :: Int -> (Vector, Double)

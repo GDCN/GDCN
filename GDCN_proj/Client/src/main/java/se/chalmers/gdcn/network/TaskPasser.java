@@ -61,6 +61,7 @@ public class TaskPasser extends Passer {
      * @param peer This peer
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
+     * @param dm Manager for data files
      */
     public TaskPasser(Peer peer, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
@@ -153,8 +154,17 @@ public class TaskPasser extends Passer {
      * @param autoWork True -> Will request a new task after successfully finishing a previous task.
      */
     public void requestWork(final PeerAddress jobOwner, final boolean autoWork){
-        //TODO do concurrently?
-        //TODO make tread safe...
+        requestWork(jobOwner, autoWork, null);
+    }
+
+    /**
+     * Used for modified attempts
+     *
+     * @param jobOwner Peer to work for
+     * @param autoWork True -> Will request a new task after successfully finishing a previous task.
+     * @param workMethod How the work is done
+     */
+    public void requestWork(final PeerAddress jobOwner, final boolean autoWork, final WorkMethod workMethod){
         System.out.println("Request work from " + Passer.print(jobOwner));
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
@@ -183,7 +193,12 @@ public class TaskPasser extends Passer {
                                         ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
                                         System.out.println("Start processing task, \n\tResultKey: " + replicaBox.getResultKey());
 
-                                        workOnTask(jobOwner, replicaBox, autoWork);
+                                        if(workMethod == null){
+                                            workOnTask(jobOwner, replicaBox, autoWork);
+                                        } else {
+                                            workMethod.work(jobOwner, replicaBox, autoWork);
+                                        }
+
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                         break;
                                     case NO_TASK_AVAILABLE:
@@ -200,6 +215,10 @@ public class TaskPasser extends Passer {
                 });
             }
         });
+    }
+
+    public static interface WorkMethod {
+        void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork);
     }
 
     /**
@@ -230,7 +249,7 @@ public class TaskPasser extends Passer {
                                 requestWork(jobOwner, true);
                             }
                         } else {
-                            taskFailed(taskName, "Couldn't upload result to DHT :P");
+                            taskFailed(taskName, "Couldn't upload result to DHT");
                         }
                     }
                 });
@@ -270,7 +289,7 @@ public class TaskPasser extends Passer {
         switch(taskMessage.getType()){
             case REQUEST_CHALLENGE:
 
-                System.out.println("Received request for a Challenge");
+                System.out.println("Received request for a Challenge from "+print(sender));
 
                 int score = workerChallengesManager.getCurrentScore(workerID);
 
@@ -281,7 +300,7 @@ public class TaskPasser extends Passer {
 
             case REQUEST_TASK:
 
-                System.out.println("Received request for a Task");
+                System.out.println("Received request for a Task from "+print(sender));
                 Solution solution = (Solution) taskMessage.getActualContent();
 
                 score = workerChallengesManager.getCurrentScore(workerID);

@@ -107,11 +107,9 @@ public class ConsoleFactory {
 
                 if(args.size()==0){
                     client.bootstrap();
-                    System.out.println("bootstraping to bootstrap node");
                 } else if(args.size()==2){
                     host = args.get(0);
                     port = Integer.parseInt(args.get(1));
-                    System.out.println("connecting to other node");
                     client.bootstrap(host, port);
                 } else {
                     System.out.println("Normally two arguments: Host and Port. Zero arguments for default bootstrap.");
@@ -131,8 +129,10 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()>1){
+                if(args.size()==1){
                     address = args.get(0);
+                }
+                if(args.size()>1){
                     port = Integer.parseInt(args.get(1));
                 }
 
@@ -151,8 +151,10 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()>1){
+                if(args.size()==1){
                     address = args.get(0);
+                }
+                if(args.size()>1){
                     port = Integer.parseInt(args.get(1));
                 }
 
@@ -162,6 +164,69 @@ public class ConsoleFactory {
             @Override
             public WordInterface getWord() {
                 return CommandWord.AUTO_WORK;
+            }
+        });
+
+        commandMap.put("falsework", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==1){
+                    address = args.get(0);
+                }
+                if(args.size()>1){
+                    port = Integer.parseInt(args.get(1));
+                }
+                client.falseWork(address, port);
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return nullWord;
+            }
+        });
+
+        commandMap.put("stopwork", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==1){
+                    address = args.get(0);
+                }
+                if(args.size()>1){
+                    port = Integer.parseInt(args.get(1));
+                }
+                client.stopWork(address, port);
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return nullWord;
+            }
+        });
+
+        commandMap.put("spamwork", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==1){
+                    address = args.get(0);
+                }
+                if(args.size()>1){
+                    port = Integer.parseInt(args.get(1));
+                }
+                client.spamWork(address, port);
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return nullWord;
             }
         });
 
@@ -228,7 +293,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -240,7 +305,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -256,7 +321,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -269,7 +334,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -281,7 +346,7 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
@@ -293,10 +358,32 @@ public class ConsoleFactory {
 
             @Override
             public WordInterface getWord() {
-                return null;
+                return nullWord;
             }
         });
 
         return commandMap;
     }
+
+    private static WordInterface nullWord = new WordInterface() {
+        @Override
+        public int getArity() {
+            return 100;
+        }
+
+        @Override
+        public String getName() {
+            return "";
+        }
+
+        @Override
+        public String getArguments() {
+            return "";
+        }
+
+        @Override
+        public String getHelp() {
+            return "";
+        }
+    };
 }

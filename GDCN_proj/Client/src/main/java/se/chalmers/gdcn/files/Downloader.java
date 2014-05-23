@@ -29,7 +29,7 @@ public class Downloader extends AbstractFileMaster {
      */
     @Override
     protected void ifFileExist(FileDep fileDep) {
-        System.out.println("Found file :D - " + FileManagementUtils.pathTo(pathManager, fileDep));
+        System.out.println("Found file: " + FileManagementUtils.pathTo(pathManager, fileDep));
         super.fileDependencyResolved(fileDep);
     }
 

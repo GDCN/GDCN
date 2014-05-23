@@ -82,7 +82,7 @@ public class JobUploader extends AbstractFileMaster{
         replicaManager.loadTasksAndReplicate(jobName, taskMetas);
 
         for(FileDep fileDep : allFileDependencies){
-            System.out.println(" Dependency: "+fileDep.getFileName());
+            System.out.println("  Dependency: "+fileDep.getFileName());
         }
 
         TaskMeta totalJobMeta = new TaskMeta("Upload"+jobName, null, new ArrayList<>(allFileDependencies));
@@ -98,7 +98,7 @@ public class JobUploader extends AbstractFileMaster{
         File file = FileManagementUtils.pathTo(pathManager, fileDep);
 
         try {
-            System.out.println("Put " + FileManagementUtils.pathTo(pathManager, fileDep));
+//            System.out.println("Put " + FileManagementUtils.pathTo(pathManager, fileDep));
             Data data = new Data(FileManagementUtils.fromFile(file));
             client.put(fileDep.getDhtKey(), client.getID(), data);
             //Handling OperationFinished is done in AbstractFileMaster

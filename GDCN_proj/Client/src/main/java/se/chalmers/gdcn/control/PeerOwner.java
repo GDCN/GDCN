@@ -12,6 +12,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
+import se.chalmers.gdcn.deceitful.*;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
 import se.chalmers.gdcn.files.DataFilesManager;
@@ -251,6 +252,52 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void push(String jobName) {
         //TODO Move to other class?
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
+    }
+
+    @Deceitful
+    @Override
+    public void falseWork(String address, int port){
+        deceit(address, port, new FalseWork(taskPasser, this, peer));
+    }
+
+    @Deceitful
+    @Override
+    public void spamWork(String address, int port){
+        deceit(address, port, new SpamWork(1,taskManager, this));
+    }
+
+    @Deceitful
+    @Override
+    public void stopWork(String address, int port){
+        deceit(address, port, new StopWork(this, taskPasser, peer));
+    }
+
+    @Deceitful
+    private void deceit(String address, int port, final DeceitfulWork deceitfulWork){
+        if("self".equals(address)){
+            deceitfulWork.requestWork(peer.getPeerAddress());
+            return;
+        }
+
+        try {
+            DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
+            discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>(){
+                @Override
+                public void operationComplete(FutureDiscover future) throws Exception {
+                    if(!future.isSuccess()){
+                        notifier.fireOperationFinished(CommandWord.WORK,
+                                new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
+                        return;
+                    }
+                    PeerAddress jobOwner = future.getReporter();
+                    assert ! jobOwner.equals(peer.getPeerAddress());
+
+                    deceitfulWork.requestWork(jobOwner);
+                }
+            });
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

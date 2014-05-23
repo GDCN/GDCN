@@ -132,6 +132,21 @@ public class SelfWorkTest {
             }
 
             @Override
+            public void spamWork(String address, int port) {
+
+            }
+
+            @Override
+            public void stopWork(String address, int port) {
+
+            }
+
+            @Override
+            public void falseWork(String address, int port) {
+
+            }
+
+            @Override
             public void work(String address, int port, boolean autoWork) {
 
             }

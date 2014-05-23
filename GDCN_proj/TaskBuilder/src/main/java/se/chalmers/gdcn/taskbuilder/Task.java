@@ -181,9 +181,11 @@ public class Task implements Runnable{
 
     private static void outputStdErr(String output){
         //TODO output in more general fashion
-        System.out.println("\n-- StdErr:");
-        System.out.println(output);
-        System.out.println("-- end of StdErr.");
+        //Cleaned up for demo
+        System.out.println();
+        //System.out.println("\n-- StdErr:");
+        //System.out.println(output);
+        //System.out.println("-- end of StdErr.");
     }
 
 //    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
