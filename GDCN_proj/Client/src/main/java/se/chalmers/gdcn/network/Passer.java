@@ -42,9 +42,6 @@ abstract class Passer {
 
                 switch (message.getType()){
                     case REQUEST:
-
-                        System.out.println(print(peer.getPeerAddress())+" received req from "+print(sender));
-
                         return handleRequest(sender, message.getObject());
                     case NO_REPLY:
                         handleNoReply(sender, message.getObject());

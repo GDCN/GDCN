@@ -22,6 +22,7 @@ import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
 import se.chalmers.gdcn.replica.ReplicaManagerBuilder;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
+import se.chalmers.gdcn.utils.Time;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -93,6 +94,9 @@ public class TaskPasser extends Passer {
 
         if (replicaManager1 == null) {
             ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID, taskManager);
+            //TODO appropriate timeout
+            replicaManagerBuilder.setTimeoutLength(15, Time.SECOND);
+            replicaManagerBuilder.setTimerUpdateInterval(1, Time.SECOND);
             replicaManager = replicaManagerBuilder.create();
         } else {
             replicaManager = replicaManager1;
@@ -172,7 +176,7 @@ public class TaskPasser extends Passer {
                 }
 
                 final Challenge challenge = (Challenge) taskMessage.getActualContent();
-                System.out.println("Challenge received: "+challenge.toString());
+                System.out.println("Challenge received: " + challenge.toString());
 
                 ThreadService.submit(new Runnable() {
                     @Override

@@ -325,6 +325,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         replicaTimer.remove(replicaID);
 
         if( workSelfIfRequired && !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
+            //TODO loops here
             workSelf(taskData);
         }
 
@@ -359,16 +360,19 @@ public class ReplicaManager implements Serializable, Cloneable{
         return sum;
     }
 
-    private void workSelf(final TaskData taskData){
+    //TODO clean
+    private void workSelf(final TaskData taskDataX){
+        ReplicaBox replicaBox = giveReplicaToWorker(workerReputationManager.getMyWorkerID());
+        final TaskData taskData = taskDataMap.get(replicaBox.getReplicaID());
+
         TaskMeta meta = taskData.getTaskMeta();
 
-        //todo nicer replicaID
-        //todo reuse giveReplica method?
-        final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
+        final ReplicaID replicaID = replicaBox.getReplicaID();
 
-        taskDatas.remove(taskData);
-        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE-1);
-        taskDatas.add(taskData);
+//        final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
+//        taskDatas.remove(taskData);
+//        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE-1);
+//        taskDatas.add(taskData);
 
         try {
             SelfWorker selfWorker = new SelfWorker(meta, taskData.getJobName());
@@ -378,7 +382,7 @@ public class ReplicaManager implements Serializable, Cloneable{
             Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
                 @Override
                 public void taskFinished(String taskName) {
-                    System.out.println("ReplicaManager#workSelf - YAY, "+taskName+ "finished");
+                    System.out.println("ReplicaManager#workSelf: "+taskName+ " finished.");
 
                     try {
                         byte[] result = FileManagementUtils.fromFile(new File(resultPath));
@@ -601,6 +605,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         @Override
         protected void handleTimeout(ReplicaID element) {
             ReplicaManager.this.replicaOutdated(element);
+            System.out.println("Replica outdated: "+element);
         }
     }
 

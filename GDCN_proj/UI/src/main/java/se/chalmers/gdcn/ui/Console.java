@@ -97,7 +97,7 @@ public class Console implements PropertyChangeListener{
 
                 println("@Chalmers University of Technology");
                 println("Latest version can be found on\n" +
-                        "\thttps://github.com/weeeeeew/GDCN");
+                        "\thttps://github.com/GDCN/GDCN");
             }
 
             @Override

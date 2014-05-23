@@ -62,6 +62,7 @@ public class WorkerTimeoutManager implements Serializable{
                 throw new IllegalStateException("Expected worker to be active!");
             }
             passiveWorkers.add(element);
+            System.out.println("Worker timeout: "+element);
         }
     }
 }
