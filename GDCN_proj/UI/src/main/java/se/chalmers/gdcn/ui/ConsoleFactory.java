@@ -188,6 +188,48 @@ public class ConsoleFactory {
             }
         });
 
+        commandMap.put("stopwork", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==1){
+                    address = args.get(0);
+                }
+                if(args.size()>1){
+                    port = Integer.parseInt(args.get(1));
+                }
+                client.stopWork(address, port);
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return nullWord;
+            }
+        });
+
+        commandMap.put("spamwork", new UICommand() {
+            @Override
+            public void execute(List<String> args) {
+                String address = "narrens.olf.sgsnet.se";
+                int port = 4001;
+
+                if(args.size()==1){
+                    address = args.get(0);
+                }
+                if(args.size()>1){
+                    port = Integer.parseInt(args.get(1));
+                }
+                client.spamWork(address, port);
+            }
+
+            @Override
+            public WordInterface getWord() {
+                return nullWord;
+            }
+        });
+
         commandMap.put(CommandWord.INSTALL.getName(), new UICommand() {
             @Override
             public void execute(List<String> args) {

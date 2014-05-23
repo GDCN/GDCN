@@ -12,13 +12,10 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
-import se.chalmers.gdcn.deceitful.Deceitful;
+import se.chalmers.gdcn.deceitful.*;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
-import se.chalmers.gdcn.deceitful.DeceitfulWork;
-import se.chalmers.gdcn.deceitful.SpamWork;
 import se.chalmers.gdcn.files.DataFilesManager;
-import se.chalmers.gdcn.deceitful.FalseWork;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -263,14 +260,16 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         deceit(address, port, new FalseWork(taskPasser, this, peer));
     }
 
+    @Override
     @Deceitful
     public void spamWork(String address, int port){
         deceit(address, port, new SpamWork(4,taskManager, this));
     }
 
+    @Override
     @Deceitful
     public void stopWork(String address, int port){
-        //todo
+        deceit(address, port, new StopWork(this, taskPasser, peer));
     }
 
     @Deceitful
