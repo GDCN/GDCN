@@ -60,6 +60,7 @@ public class TaskPasser extends Passer {
      * @param peer This peer
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
+     * @param dm Manager for data files
      */
     public TaskPasser(Peer peer, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
@@ -149,9 +150,20 @@ public class TaskPasser extends Passer {
      * @param autoWork True -> Will request a new task after successfully finishing a previous task.
      */
     public void requestWork(final PeerAddress jobOwner, final boolean autoWork){
+        requestWork(jobOwner, autoWork, null);
+    }
+
+    /**
+     * Used for modified attempts
+     *
+     * @param jobOwner Peer to work for
+     * @param autoWork True -> Will request a new task after successfully finishing a previous task.
+     * @param workMethod How the work is done
+     */
+    public void requestWork(final PeerAddress jobOwner, final boolean autoWork, final WorkMethod workMethod){
         //TODO do concurrently?
         //TODO make tread safe...
-        System.out.println("Request work from " + Passer.print(jobOwner));
+        System.out.println("Request workMethod from " + Passer.print(jobOwner));
 
         sendRequest(jobOwner, new TaskMessage(TaskMessageType.REQUEST_CHALLENGE, myWorkerID, ""), new OnReplyCommand() {
             @Override
@@ -179,7 +191,12 @@ public class TaskPasser extends Passer {
                                         ReplicaBox replicaBox = (ReplicaBox) taskMessage2.getActualContent();
                                         System.out.println("Start processing task, \n\tResultKey: " + replicaBox.getResultKey());
 
-                                        workOnTask(jobOwner, replicaBox, autoWork);
+                                        if(workMethod == null){
+                                            workOnTask(jobOwner, replicaBox, autoWork);
+                                        } else {
+                                            workMethod.work(jobOwner, replicaBox, autoWork);
+                                        }
+
                                         System.out.println("Some Task was received from " + Passer.print(jobOwner));
                                         break;
                                     case NO_TASK_AVAILABLE:
@@ -196,6 +213,10 @@ public class TaskPasser extends Passer {
                 });
             }
         });
+    }
+
+    public static interface WorkMethod {
+        void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork);
     }
 
     /**

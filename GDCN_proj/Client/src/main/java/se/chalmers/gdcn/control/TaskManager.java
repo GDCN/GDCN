@@ -26,7 +26,7 @@ public class TaskManager implements TaskRunner {
 
     /**
      *
-     * @param taskListener Listener for the different kinds of things TaskManager can do such as Upload job or Work on task
+     * @param taskListener Listener for the different kinds of things TaskManager can do such as Upload job or WorkMethod on task
      * @param client Client such as {@link se.chalmers.gdcn.control.PeerOwner} that can do network operations.
      */
     public TaskManager(TaskListener taskListener, ClientInterface client) {
@@ -53,7 +53,7 @@ public class TaskManager implements TaskRunner {
     }
 
     /**
-     * Work on this task
+     * WorkMethod on this task
      * @param projectName Name of working directory that contains /resources etc
      * @param taskMeta Meta information of the task
      * @param resultFileNameHolder Holder that will contain the absolute path of the future result file of this task.
