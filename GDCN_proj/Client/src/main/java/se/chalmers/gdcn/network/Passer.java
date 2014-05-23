@@ -129,6 +129,6 @@ abstract class Passer {
      * @return Readable string
      */
     public static String print(PeerAddress peerAddress){
-        return peerAddress.getInetAddress().toString();
+        return peerAddress.getInetAddress().toString()+":"+peerAddress.portTCP();
     }
 }

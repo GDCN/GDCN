@@ -169,6 +169,10 @@ public class ReplicaManager implements Serializable, Cloneable{
         notGiven.removeAll(alreadyGiven);
         if(notGiven.size()==0){
             //No task left to work on for that worker
+
+            //TODO remove this output
+            System.out.println("ReplicaManager: tasks "+taskDatas.size());
+            System.out.println("ReplicaManager: alreadyGiven "+alreadyGiven.size());
             return null;
         }
 

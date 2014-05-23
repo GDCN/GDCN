@@ -58,11 +58,11 @@ public class SpamWork implements DeceitfulWork{
         try {
             for(int ix=0; ix<peers.length; ++ix){
                 KeyPair keyPair = keyPairGenerator.generateKeyPair();
-                Peer peer = new PeerMaker(keyPair).setPorts(startPort+ix).makeAndListen();
+                Peer peer1 = new PeerMaker(keyPair).setPorts(startPort+ix).makeAndListen();
                 DataFilesManager dataFilesManager = new DataFilesManager("DECEIT",""+ix);
-                TaskPasser taskPasser = new TaskPasser(peer, taskManager, client, dataFilesManager);
+                TaskPasser taskPasser = new TaskPasser(peer1, taskManager, client, dataFilesManager);
 
-                final SpamWorkerNode spamWorkerNode = new SpamWorkerNode(client, taskPasser, peer);
+                final SpamWorkerNode spamWorkerNode = new SpamWorkerNode(client, taskPasser, peer1);
                 spamWorkerNodes[ix] = spamWorkerNode;
 
                 taskManager.submit(new Runnable() {
