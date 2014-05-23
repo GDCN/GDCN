@@ -12,6 +12,7 @@ import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.peers.PeerMapChangeListener;
 import net.tomp2p.storage.Data;
+import se.chalmers.gdcn.Deceitful;
 import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.communicationToUI.Operation.OperationBuilder;
 import se.chalmers.gdcn.files.DataFilesManager;
@@ -254,6 +255,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         taskManager.uploadJob(jobName, taskPasser.getReplicaManager());
     }
 
+    @Deceitful
     @Override
     public void falseWork(String address, int port){
         final FalseWork falseWork = new FalseWork(taskPasser, this, peer);
