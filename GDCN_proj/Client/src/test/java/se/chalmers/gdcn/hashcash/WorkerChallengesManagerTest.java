@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.tests;
+package se.chalmers.gdcn.hashcash;
 
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
@@ -51,8 +51,8 @@ public class WorkerChallengesManagerTest {
             int s2 = wcm.getCurrentScore(w1);
             int s3 = wcm.getCurrentScore(w2);
 
-            assert s1 != s2 && s1 + difficulty != s2;
-            assert s3 != difficulty && s3 != s1;
+            assert s1 + difficulty != s2;
+            assert s3 != difficulty;
         }
     }
 

@@ -23,7 +23,7 @@ public class WorkerChallengesManager implements Serializable{
     public void solvedChallenge(WorkerID worker, Solution solution) {
         Integer score = getCurrentScore(worker);
 
-        score += random.nextInt(solution.getDifficulty());
+        score += (random.nextInt(1+Math.abs(score + solution.getDifficulty())) - solution.getDifficulty()) % (Integer.MAX_VALUE/4);
         registeredWorkers.put(worker,score);
     }
 
