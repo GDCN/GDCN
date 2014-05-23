@@ -46,7 +46,7 @@ public class SelfWorkTest {
     public void oneTest(){
         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
         replicaManager.replicaOutdated(replicaBox.getReplicaID());
-        //...
+        // will selfwork here
 
         lock.acquireUninterruptibly();
     }

@@ -388,10 +388,12 @@ public class ReplicaManager implements Serializable, Cloneable{
                         byte[] result = FileManagementUtils.fromFile(new File(resultPath));
 
                         replicaFinished(replicaID, result);
+                        //TODO is this really necessary: to tell UI?
+                        runner.getTaskListener().taskFinished(taskName);
 
                         //TODO put jobOwner result in special position?
 //                        taskResultData.returnedReplicas.put(replicaID, result);
-//                        runner.getTaskListener().taskFinished(taskName);
+
 //
 //                        decideValidate(replicaID, taskData, taskResultData);
 
