@@ -326,7 +326,7 @@ public class ReplicaManager implements Serializable, Cloneable{
 
         if( workSelfIfRequired && !isThereTaskWithEnoughReputationAlready() && sumActiveReputation() < EXPECTED_REPUTATION){
             //TODO loops here
-            workSelf(taskData);
+            workSelf();
         }
 
         if(! taskData.enoughReturned()){
@@ -360,19 +360,19 @@ public class ReplicaManager implements Serializable, Cloneable{
         return sum;
     }
 
-    //TODO clean
-    private void workSelf(final TaskData taskDataX){
+    /**
+     * Works on the most appropriate task himself. Reuses smart assignment.
+     */
+    private void workSelf(){
         ReplicaBox replicaBox = giveReplicaToWorker(workerReputationManager.getMyWorkerID());
-        final TaskData taskData = taskDataMap.get(replicaBox.getReplicaID());
-
-        TaskMeta meta = taskData.getTaskMeta();
+        if(replicaBox == null){
+            //If job owner has already worked on all available tasks.
+            return;
+        }
 
         final ReplicaID replicaID = replicaBox.getReplicaID();
-
-//        final ReplicaID replicaID = new ReplicaID("SelfWork_"+meta.getTaskName());
-//        taskDatas.remove(taskData);
-//        taskData.giveTask(workerReputationManager.getMyWorkerID(), Float.MAX_VALUE-1);
-//        taskDatas.add(taskData);
+        final TaskData taskData = taskDataMap.get(replicaID);
+        TaskMeta meta = taskData.getTaskMeta();
 
         try {
             SelfWorker selfWorker = new SelfWorker(meta, taskData.getJobName());
@@ -401,7 +401,7 @@ public class ReplicaManager implements Serializable, Cloneable{
                 @Override
                 public void taskFailed(String taskName, String reason) {
                     System.out.println("ERROR "+taskName+": "+reason);
-                    //TODO report error to UI, use TaskManager for that?
+
                     taskResultData.failedReplicas.add(replicaID);
                     runner.getTaskListener().taskFailed(taskName, reason);
 
