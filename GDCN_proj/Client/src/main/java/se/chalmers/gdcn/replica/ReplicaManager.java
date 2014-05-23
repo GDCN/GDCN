@@ -382,7 +382,7 @@ public class ReplicaManager implements Serializable, Cloneable{
             Task taskRunner = selfWorker.workSelf(meta, new TaskListener() {
                 @Override
                 public void taskFinished(String taskName) {
-                    System.out.println("ReplicaManager#workSelf - YAY, "+taskName+ "finished");
+                    System.out.println("ReplicaManager#workSelf: "+taskName+ " finished.");
 
                     try {
                         byte[] result = FileManagementUtils.fromFile(new File(resultPath));
