@@ -123,7 +123,7 @@ public class Console implements PropertyChangeListener{
                 println("Bootstrap " + success);
                 break;
             case WORK:
-                println("WorkMethod on " + event.getOperation().getKey() + " " + success);
+                println("Work on " + event.getOperation().getKey() + " " + success);
                 break;
             case AUTO_WORK:
                 println("Autowork on " + event.getOperation().getKey() + " " + success);
