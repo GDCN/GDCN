@@ -14,32 +14,52 @@ import java.io.IOException;
 public class SelfWorker {
 
     private final String taskName;
-    private final PathManager pathManager;
+    private final PathManager jobPathManager;
+    private final PathManager workerPathManager;
 
     public SelfWorker(TaskMeta taskMeta, String jobName) throws TaskMetaDataException {
         taskName = taskMeta.getTaskName();
-        pathManager = PathManager.jobOwner(jobName);
+        jobPathManager = PathManager.jobOwner(jobName);
+        workerPathManager = PathManager.worker(jobName);
     }
 
+    /**
+     * Returns absolute path to result file from this self work.
+     * This file will be in the /data directory.
+     * @return Absolute path
+     */
     public String futureResultFilePath(){
-        return pathManager.getResultFilePath(taskName);
+//        return jobPathManager.getResultFilePath(taskName);
+        return workerPathManager.getResultFilePath(taskName);
     }
 
+    /**
+     * Creates a Task object for the local job owner to work on himself.
+     *
+     * @param taskMeta Meta info of this replica
+     * @param listener Listener for success or failure
+     * @return Runnable Task
+     * @throws TaskMetaDataException
+     */
     public Task workSelf(TaskMeta taskMeta, TaskListener listener) throws TaskMetaDataException {
         try {
-            copyFiles(taskMeta);
+            copyFiles();
         } catch (IOException e) {
             e.printStackTrace();
             listener.taskFailed(taskName, e.getMessage());
         }
 
-        return new Task(pathManager.getProjectName(), taskMeta.getTaskName(), FileManagementUtils.moduleName(taskMeta),
-                FileManagementUtils.getResourceFiles(pathManager, taskMeta), listener);
+        return new Task(jobPathManager.getProjectName(), taskMeta.getTaskName(), FileManagementUtils.moduleName(taskMeta),
+                FileManagementUtils.getResourceFiles(jobPathManager, taskMeta), listener);
     }
 
-    private void copyFiles(TaskMeta taskMeta) throws IOException {
-        PathManager workPathMan = PathManager.worker(pathManager.getProjectName());
-        FileUtils.copyDirectory( new File(pathManager.taskResourcesDir()), new File(workPathMan.taskResourcesDir()));
-        FileUtils.copyDirectory( new File(pathManager.taskCodeDir()), new File(workPathMan.taskCodeDir()));
+    /**
+     * Copies files from jobs/ to data/ folder in order to perform local work.
+     * @throws IOException
+     */
+    private void copyFiles() throws IOException {
+//        PathManager workerPathManager = PathManager.worker(jobPathManager.getProjectName());
+        FileUtils.copyDirectory( new File(jobPathManager.taskResourcesDir()), new File(workerPathManager.taskResourcesDir()));
+        FileUtils.copyDirectory( new File(jobPathManager.taskCodeDir()), new File(workerPathManager.taskCodeDir()));
     }
 }

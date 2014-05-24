@@ -2,14 +2,12 @@ package se.chalmers.gdcn.taskbuilder;
 
 import org.apache.commons.io.IOUtils;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
-import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Class for tasks, compiling and executing Haskell code
@@ -27,6 +25,14 @@ public class Task implements Runnable{
 
     private final TaskListener listener;
 
+    /**
+     *
+     * @param projectName Name of local folder to work in
+     * @param taskName Name of the task
+     * @param moduleName Name of the Haskell module
+     * @param initDataFiles List of paths to respective resource files
+     * @param listener Listener on success or failure
+     */
     public Task(String projectName, String taskName, String moduleName, List<String> initDataFiles, TaskListener listener) {
         this.projectName = projectName;
         this.taskName = taskName;
