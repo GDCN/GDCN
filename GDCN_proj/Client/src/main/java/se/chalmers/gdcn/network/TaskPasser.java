@@ -71,6 +71,7 @@ public class TaskPasser extends Passer {
         this.client = client;
         this.dataFilesManager = dm;
 
+        WorkerNames.getInstance().setLocalID(myWorkerID);
         secretKey = dataFilesManager.getSecretKey();
 
         if(secretKey == null) {

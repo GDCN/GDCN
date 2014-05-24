@@ -11,6 +11,7 @@ import java.util.Map;
 public class WorkerNames{
     private final Map<WorkerID, String> names = new HashMap<>();
     private Integer counter = 0;
+    private WorkerID myself = null;
 
     private final static WorkerNames instance = new WorkerNames();
 
@@ -35,10 +36,33 @@ public class WorkerNames{
         return true;
     }
 
+    /**
+     * Get local nick name for worker.
+     * @param workerID worker
+     * @return local nick name
+     */
     public String getName(WorkerID workerID){
         synchronized (names){
             return names.get(workerID);
         }
+    }
+
+    /**
+     * Set workerID of this local peer.
+     * @param workerID myself
+     */
+    public void setLocalID(WorkerID workerID){
+        if(myself.equals(workerID)){
+            return;
+        }
+
+        final WorkerID oldMe = myself;
+        synchronized (names){
+            names.remove(workerID);
+            names.remove(myself);
+            names.put(workerID, "Myself");
+        }
+        registerName(oldMe);
     }
 
 
