@@ -45,7 +45,7 @@ public class WorkerNameTest {
         String a = names.getName(workerA);
         assert a != null;
         assert !a.equals(myselfString);
-        
+
         assert names.getName(workerB).equals(myselfString);
     }
 }

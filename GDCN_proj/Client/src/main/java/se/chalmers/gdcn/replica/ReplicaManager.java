@@ -454,6 +454,8 @@ public class ReplicaManager implements Serializable, Cloneable{
                 trustMap.put(new ByteArray(bytes), TrustQuality.trustworthy(1));
             }
 
+            System.out.println("\nValidate "+taskData.getTaskMeta().getTaskName()+":");
+
             for(ByteArray byteArray : trustMap.keySet()){
                 TrustQuality trust = trustMap.get(byteArray);
                 Set<ReplicaID> replicaIDs = resultMap.get(byteArray);
@@ -466,7 +468,7 @@ public class ReplicaManager implements Serializable, Cloneable{
                 for(ReplicaID replicaID:replicaIDs){
                     WorkerID worker = replicaMap.get(replicaID).getWorker();
 
-                    System.out.println(WorkerNames.getInstance().getName(worker) +
+                    System.out.println("\t"+WorkerNames.getInstance().getName(worker) +
                             " was found to be "+trust.getTrust().name());
                     switch (trust.getTrust()){
                         case TRUSTWORTHY:
@@ -495,7 +497,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         if(bestResult != null){
             taskDatas.remove(taskData);
 
-            System.out.println("The best result had the quality: "+trustMap.get(bestResult).getQuality());
+            System.out.println("\tThe best result had the quality: "+trustMap.get(bestResult).getQuality());
 
             //OBS currently, this happens even when there are some workers who say a replica failed
             archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);
