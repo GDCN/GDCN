@@ -191,11 +191,21 @@ public class Console implements PropertyChangeListener{
                 if("".equals(cmd)){
                     continue;
                 }
+                boolean exception = true;
                 try{
                     commandHolder.execute(cmd, wordList);
+                    exception = false;
                 } catch (UnsupportedOperationException e){
                     println("Unsupported operation (\"" + cmd + "\").");
-                    println("Type \"help\" to see a list of commands. Type \"exit\" to stop.");
+                } catch (NumberFormatException e){
+                    println("Expected a number here.");
+                } catch (Exception e){
+                    println("Unexpected exception!");
+                    println(e.getMessage());
+                } finally {
+                    if(exception){
+                        println("Type \"help\" to see a list of commands. Type \"exit\" to stop.");
+                    }
                 }
             }
         } catch (IOException e) {
