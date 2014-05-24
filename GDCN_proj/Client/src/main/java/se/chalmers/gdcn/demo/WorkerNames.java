@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Created by Leif on 2014-05-24.
  */
-public class WorkerNames {
+public class WorkerNames{
     private final Map<WorkerID, String> names = new HashMap<>();
     private Integer counter = 0;
 

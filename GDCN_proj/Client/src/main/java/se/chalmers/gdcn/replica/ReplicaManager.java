@@ -8,6 +8,7 @@ import se.chalmers.gdcn.compare.TrustQuality;
 import se.chalmers.gdcn.control.TaskRunner;
 import se.chalmers.gdcn.control.WorkerReputationManager;
 import se.chalmers.gdcn.control.WorkerTimeoutManager;
+import se.chalmers.gdcn.demo.WorkerNames;
 import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.files.SelfWorker;
 import se.chalmers.gdcn.files.TaskMeta;
@@ -440,10 +441,10 @@ public class ReplicaManager implements Serializable, Cloneable{
         Set<WorkerID> correctWorkers = new HashSet<>();
         double bestQuality = 0;
         ByteArray bestResult = null;
+        Map<ByteArray,TrustQuality> trustMap = null;
 
         //TODO Implement choice of automatic or manual result validation
         try {
-            Map<ByteArray,TrustQuality> trustMap;
             if (validationListener == null) {
                 trustMap = QualityControl.compareQuality(jobName, taskData.getTaskMeta(), resultMap.keySet());
             } else { //For testing:
@@ -464,6 +465,9 @@ public class ReplicaManager implements Serializable, Cloneable{
 
                 for(ReplicaID replicaID:replicaIDs){
                     WorkerID worker = replicaMap.get(replicaID).getWorker();
+
+                    System.out.println(WorkerNames.getInstance().getName(worker) +
+                            " was found to be "+trust.getTrust().name());
                     switch (trust.getTrust()){
                         case TRUSTWORTHY:
                             workerReputationManager.promoteWorker(worker);
@@ -490,6 +494,8 @@ public class ReplicaManager implements Serializable, Cloneable{
         //Clean up and store data:
         if(bestResult != null){
             taskDatas.remove(taskData);
+
+            System.out.println("The best result had the quality: "+trustMap.get(bestResult).getQuality());
 
             //OBS currently, this happens even when there are some workers who say a replica failed
             archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);

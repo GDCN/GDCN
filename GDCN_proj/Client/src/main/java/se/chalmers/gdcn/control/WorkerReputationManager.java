@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.control;
 
+import se.chalmers.gdcn.demo.WorkerNames;
 import se.chalmers.gdcn.network.WorkerID;
 
 import java.io.Serializable;
@@ -57,6 +58,7 @@ public class WorkerReputationManager implements Serializable{
             return false;
         }
         registeredWorkers.put(worker, 0);
+        WorkerNames.getInstance().registerName(worker);
         return true;
     }
 
