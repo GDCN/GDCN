@@ -20,8 +20,8 @@ public enum CommandWord implements WordInterface {
             "using <port>. If the arguments are left out, it will" + inline() +
             "attempt to connect to the default bootstrap server."),
 
-    WORK(2, "work", "<ip> <port>", "WorkMethod once for job owner with <ip> and <port>."),
-    AUTO_WORK(2, "autowork", "<ip> <port>", "WorkMethod continually for job owner with <ip> and <port>."),
+    WORK(2, "work", "<ip> <port>", "Work once for job owner with <ip> and <port>."),
+    AUTO_WORK(2, "autowork", "<ip> <port>", "Work continually for job owner with <ip> and <port>."),
 
     PUSH(1, "push", "<job>", "Put <job> files to DHT. These files are found in" + inline() +
             "\"~"+ File.separator +".gdcn"+ File.separator +"jobs"+ File.separator +"<job>"+ File.separator+
