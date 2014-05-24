@@ -52,15 +52,17 @@ public class WorkerNames{
      * @param workerID myself
      */
     public void setLocalID(WorkerID workerID){
-        if(myself.equals(workerID)){
+        if(myself != null && myself.equals(workerID)){
             return;
         }
 
         final WorkerID oldMe = myself;
         synchronized (names){
             names.remove(workerID);
-            names.remove(myself);
             names.put(workerID, "Myself");
+            myself = workerID;
+
+            names.remove(oldMe);
         }
         registerName(oldMe);
     }
