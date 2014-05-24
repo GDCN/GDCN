@@ -39,6 +39,7 @@ public class QualityControlManual {
 
         // Path to the resource files
         String path = "/home/joakim/GDCN/GDCN_proj/dGDCN/jobs/TrivialJob/resources/";
+//        String path = "D:\\Documents\\Programm\\GDCN\\GDCN_proj\\dGDCN\\jobs\\TrivialJob\\resources\\";
 
         // You might want to move dGDCN to .gdcn
         // and compile Valid.hs and move to "valid" dir of the job
@@ -55,7 +56,7 @@ public class QualityControlManual {
         int id = 0;
         for (byte[] result : results) {
             resultMap.put(new ByteArray(result), new HashSet<ReplicaID>());
-            System.out.println("Result " + id++ + " has id " + result.toString());
+            System.out.println("Result " + id++ + " has id " + ByteArray.print(result));
         }
 
         System.out.println("\t-------------------");
@@ -63,7 +64,7 @@ public class QualityControlManual {
         Map<ByteArray,TrustQuality> qualityMap = QualityControl.compareQuality("TrivialJob", taskMeta, resultMap.keySet());
 
         for (Entry<ByteArray, TrustQuality> entry : qualityMap.entrySet()) {
-            System.out.println(entry.getKey().getData().toString() + " has trust " + entry.getValue().getTrust()
+            System.out.println(ByteArray.print(entry.getKey().getData()) + " has trust " + entry.getValue().getTrust()
                     + " and quality " + entry.getValue().getQuality());
         }
     }
