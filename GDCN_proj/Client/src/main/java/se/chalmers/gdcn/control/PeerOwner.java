@@ -118,8 +118,15 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     public void bootstrap() {
         List<String[]> bsn = dataFilesManager.getBootstrapNodes();
 
+        if(bsn.size() == 0){
+            System.out.println("No known nodes to bootstrap to.");
+            //TODO attempt default bootstrap!
+        }
+
         for(String[] s : bsn) {
             bootstrap(s[0], Integer.parseInt(s[1]));
+
+            System.out.println("Attempt bootstrap to "+s[0]+" : "+s[1]);
             if(getNeighbours().size() > 0) {
                 return;
             }
