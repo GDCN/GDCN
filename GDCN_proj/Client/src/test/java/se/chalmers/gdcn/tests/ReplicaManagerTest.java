@@ -381,8 +381,16 @@ public class ReplicaManagerTest {
 
         loadMeta(taskMetaA);
 
+        replicaManager.setValidationListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                //ignore
+            }
+        });
+
         ReplicaBox replicaBox = replicaManager.giveReplicaToWorker(workerA);
         replicaManager.replicaFinished(replicaBox.getReplicaID(), new byte[0]);
+        //Validates here
 
         assert null == replicaManager.giveReplicaToWorker(workerB);
     }
