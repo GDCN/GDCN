@@ -61,4 +61,25 @@ public class CanonicalResult  implements Serializable{
     public Set<WorkerID> getAdvocatingWorkers() {
         return advocatingWorkers;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CanonicalResult)) return false;
+
+        CanonicalResult that = (CanonicalResult) o;
+
+        if (hash != that.hash) return false;
+        if (Double.compare(that.quality, quality) != 0) return false;
+        if (advocatingWorkers != null ? !advocatingWorkers.equals(that.advocatingWorkers) : that.advocatingWorkers != null)
+            return false;
+        if (location != null ? !location.equals(that.location) : that.location != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return hash;
+    }
 }

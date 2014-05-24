@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.replica;
 
+import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -77,5 +78,15 @@ public class ArchiveTest {
         }
 
         assert !result;
+    }
+
+    @Test
+    public void serializeTest() throws IOException, ClassNotFoundException {
+        Data data = new Data(archive);
+        Archive deserialized = (Archive) data.getObject();
+
+        CanonicalResult archivedResult = deserialized.getArchivedResult(taskData.taskID());
+        assert archivedResult != canonicalResult;
+        assert archivedResult.equals(canonicalResult);
     }
 }
