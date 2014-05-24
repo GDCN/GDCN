@@ -14,7 +14,7 @@ import java.util.Set;
  *
  * Comparable result that doesn't take so much space
  */
-public class CanonicalResult {
+public class CanonicalResult  implements Serializable{
     private final double quality;
     private final int hash; //TODO Use better hash algorithm?
     private final File location;
