@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.control;
 
+import se.chalmers.gdcn.demo.WorkerNames;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.utils.SerializableTimer;
 import se.chalmers.gdcn.utils.Time;
@@ -62,7 +63,7 @@ public class WorkerTimeoutManager implements Serializable{
                 throw new IllegalStateException("Expected worker to be active!");
             }
             passiveWorkers.add(element);
-            System.out.println("Worker timeout: "+element);
+            System.out.println("Worker timeout: "+ WorkerNames.getInstance().getName(element));
         }
     }
 }

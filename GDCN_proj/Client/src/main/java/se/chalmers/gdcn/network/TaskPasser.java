@@ -10,13 +10,14 @@ import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.TaskManager;
 import se.chalmers.gdcn.control.ThreadService;
-import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
 import se.chalmers.gdcn.control.WorkerReputationManager;
+import se.chalmers.gdcn.demo.WorkerNames;
 import se.chalmers.gdcn.files.DataFilesManager;
 import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.hashcash.Challenge;
 import se.chalmers.gdcn.hashcash.HashCash;
 import se.chalmers.gdcn.hashcash.Solution;
+import se.chalmers.gdcn.hashcash.WorkerChallengesManager;
 import se.chalmers.gdcn.replica.ReplicaBox;
 import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.replica.ReplicaManager.ReplicaID;
@@ -285,11 +286,14 @@ public class TaskPasser extends Passer {
 
         TaskMessage taskMessage = TaskMessage.check(messageContent);
         WorkerID workerID = taskMessage.getSenderID();
+        final WorkerNames names = WorkerNames.getInstance();
+        names.registerName(workerID);
 
         switch(taskMessage.getType()){
             case REQUEST_CHALLENGE:
 
-                System.out.println("Received request for a Challenge from "+print(sender));
+//                System.out.println("Received request for a Challenge from "+print(sender));
+                System.out.println(names.getName(workerID)+" requests a Challenge.");
 
                 int score = workerChallengesManager.getCurrentScore(workerID);
 
@@ -300,7 +304,8 @@ public class TaskPasser extends Passer {
 
             case REQUEST_TASK:
 
-                System.out.println("Received request for a Task from "+print(sender));
+//                System.out.println("Received request for a Task from "+print(sender));
+                System.out.println(names.getName(workerID)+" requests a Task.");
                 Solution solution = (Solution) taskMessage.getActualContent();
 
                 score = workerChallengesManager.getCurrentScore(workerID);
