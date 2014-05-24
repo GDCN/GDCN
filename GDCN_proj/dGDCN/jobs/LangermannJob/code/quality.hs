@@ -15,7 +15,7 @@ main = do args <- getArgs
                   result <- catch (evaluate (decode resultData :: Vector))
                                   (\e -> (e :: ErrorCall) `seq` do putStrLn "Deceitful result!"
                                                                    exitSuccess)
-                  let (x, y) = result
+                  let [x, y] = result
                   if x >= 0 && x <= 10 && y >= 0 && y <= 10
                      then do putStrLn (show $ langermann result)
                              exitSuccess
