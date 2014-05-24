@@ -129,7 +129,7 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()==1){
+                if(args.size()>0){
                     address = args.get(0);
                 }
                 if(args.size()>1){
@@ -151,7 +151,7 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()==1){
+                if(args.size()>0){
                     address = args.get(0);
                 }
                 if(args.size()>1){
@@ -173,7 +173,7 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()==1){
+                if(args.size()>0){
                     address = args.get(0);
                 }
                 if(args.size()>1){
@@ -194,7 +194,7 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()==1){
+                if(args.size()>0){
                     address = args.get(0);
                 }
                 if(args.size()>1){
@@ -215,7 +215,7 @@ public class ConsoleFactory {
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
-                if(args.size()==1){
+                if(args.size()>0){
                     address = args.get(0);
                 }
                 if(args.size()>1){

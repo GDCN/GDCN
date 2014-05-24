@@ -70,8 +70,9 @@ public class Operation<E>{
             return this;
         }
 
-        public void setReason(String reason) {
+        public OperationBuilder<E> setReason(String reason) {
             this.reason = reason;
+            return this;
         }
 
         public Operation<E> create(){

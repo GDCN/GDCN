@@ -152,6 +152,10 @@ public class Console implements PropertyChangeListener{
                 println("Console: Returned cmd with unimplemented output: " + event.getCommandWord().getName());
                 break;
         }
+        String reason = event.getOperation().getReason();
+        if(reason!=null){
+            println(reason);
+        }
     }
 
     /**

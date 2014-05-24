@@ -308,13 +308,15 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             taskPasser.requestWork(peer.getPeerAddress(), autoWork);
         } else {
             try {
+                System.out.println("Attempt work for "+address+" : "+port);
                 DiscoverBuilder discoverBuilder = peer.discover().setInetAddress(InetAddress.getByName(address)).setPorts(port);
                 discoverBuilder.start().addListener(new BaseFutureAdapter<FutureDiscover>(){
                     @Override
                     public void operationComplete(FutureDiscover future) throws Exception {
                         if(!future.isSuccess()){
                             notifier.fireOperationFinished(CommandWord.WORK,
-                                    new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE).create());
+                                    new OperationBuilder<>(false).setErrorCode(ErrorCode.DISCOVER_FAILURE)
+                                            .setReason(future.getFailedReason()).create());
                             return;
                         }
                         PeerAddress jobOwner = future.getReporter();
