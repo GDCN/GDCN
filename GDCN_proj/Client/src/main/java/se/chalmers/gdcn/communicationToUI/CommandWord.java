@@ -18,7 +18,7 @@ public enum CommandWord implements WordInterface {
 
     BOOTSTRAP(2, "bootstrap", "<ip> <port>", "Connect to a network through the peer <ip> that is" + inline() +
             "using <port>. If the arguments are left out, it will" + inline() +
-            "attempt to connect to the default bootstrap server."),
+            "attempt to connect to the default bootstrap node."),
 
     WORK(2, "work", "<ip> <port>", "Work once for job owner with <ip> and <port>."),
     AUTO_WORK(2, "autowork", "<ip> <port>", "Work continually for job owner with <ip> and <port>."),
