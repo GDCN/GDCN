@@ -458,8 +458,20 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
             e.printStackTrace();
         }
 
+        String myAddress = null;
+        if(peer!= null){
+            try {
+                //peer.getPeerAddress().getInetAddress().getHostAddress() returns 127.0.0.1 instead of local IP
+                //might be useful to return global IP
+                myAddress = InetAddress.getLocalHost().getHostAddress()+" : "+port;
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+                //ignore
+            }
+        }
         notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<Integer>(peer != null).setResult(port).create());
+                new OperationBuilder<String>(peer != null).setResult(myAddress)
+                        .setReason("Peer could not be created for some reason!").create());
 
 //        downloadEventualResults();
         peer.getPeerBean().getPeerMap().addPeerMapChangeListener(new PeerMapChangeListener() {

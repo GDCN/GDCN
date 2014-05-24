@@ -140,7 +140,13 @@ public class Console implements PropertyChangeListener{
                 println("Got " + event.getOperation().getKey() + " " + success);
                 break;
             case START:
-                println("Start complete.");
+                print("Start complete");
+                String address = event.getOperation().getResult().toString();
+                if(address != null){
+                    println(": "+address);
+                } else {
+                    println("\n"+event.getOperation().getReason());
+                }
                 break;
             case INSTALL:
                 println("Installation complete.");
