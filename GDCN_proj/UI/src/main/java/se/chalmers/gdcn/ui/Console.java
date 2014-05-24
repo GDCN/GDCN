@@ -145,7 +145,7 @@ public class Console implements PropertyChangeListener{
                 if(address != null){
                     println(": "+address);
                 } else {
-                    println("\n"+event.getOperation().getReason());
+                    println(".");
                 }
                 break;
             case INSTALL:

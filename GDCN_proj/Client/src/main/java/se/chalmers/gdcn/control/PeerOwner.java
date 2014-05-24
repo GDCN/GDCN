@@ -469,9 +469,11 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
                 //ignore
             }
         }
+        boolean success = peer != null;
         notifier.fireOperationFinished(CommandWord.START,
-                new OperationBuilder<String>(peer != null).setResult(myAddress)
-                        .setReason("Peer could not be created for some reason!").create());
+                new OperationBuilder<String>(success).setResult(myAddress)
+                        .setReason(success? null:"Peer could not be created for some reason! Try another port.")
+                        .create());
 
 //        downloadEventualResults();
         peer.getPeerBean().getPeerMap().addPeerMapChangeListener(new PeerMapChangeListener() {
