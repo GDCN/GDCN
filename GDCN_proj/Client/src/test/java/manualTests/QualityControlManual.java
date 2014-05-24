@@ -40,6 +40,7 @@ public class QualityControlManual {
         // Path to the resource files
         String path = "/home/joakim/GDCN/GDCN_proj/dGDCN/jobs/TrivialJob/resources/";
 //        String path = "D:\\Documents\\Programm\\GDCN\\GDCN_proj\\dGDCN\\jobs\\TrivialJob\\resources\\";
+//        String path = "/Users/HalfLeif/Documents/Chalmers/GDBN/GDCN_proj/dGDCN/jobs/TrivialJob/resources/";
 
         // You might want to move dGDCN to .gdcn
         // and compile Valid.hs and move to "valid" dir of the job
