@@ -120,6 +120,12 @@ public class BinaryTest {
         assert success;
     }
 
+    @Test
+    public void testDouble(){
+        System.out.println("NEG. MAX VALUE: "+ -Double.MAX_VALUE);
+        System.out.println("MIN VALUE: "+ Double.MIN_VALUE);
+    }
+
     private boolean identical(byte[] a, byte[] b){
         if(a.length!=b.length){
             return false;

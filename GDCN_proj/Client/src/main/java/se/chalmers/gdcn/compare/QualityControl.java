@@ -32,8 +32,8 @@ public class QualityControl {
     private final String resultFileInit;
     private final List<String> taskDeps = new ArrayList<>();
 
-//    private double bestQuality = -Double.MAX_VALUE;
-    private double bestQuality = Double.MIN_VALUE;
+    //MIN_VALUE is the minimal positive number, not the minimal number
+    private double bestQuality = -Double.MAX_VALUE;
     private final CountDownLatch waitForAll;
 
     /**
