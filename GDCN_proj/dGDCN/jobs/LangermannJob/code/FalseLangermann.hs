@@ -1,5 +1,5 @@
 
-module Langermann where
+module FalseLangermann where
 
 import Data.List
 import Control.Monad.State.Lazy
