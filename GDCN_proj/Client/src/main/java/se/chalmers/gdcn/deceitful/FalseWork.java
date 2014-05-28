@@ -8,19 +8,20 @@ import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
-import se.chalmers.gdcn.files.FileManagementUtils;
+import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.files.FalseMeta;
+import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.AbstractDeceitfulWork;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.TaskPasser.WorkMethod;
 import se.chalmers.gdcn.replica.ReplicaBox;
-import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
-
-import java.io.File;
 
 /**
  * Created by HalfLeif on 2014-05-23.
  */
 public class FalseWork extends AbstractDeceitfulWork {
+
+    private TaskManager taskManager;
 
     public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer) {
         super(client, taskPasser, peer);
@@ -40,6 +41,12 @@ public class FalseWork extends AbstractDeceitfulWork {
             public void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork) {
                 final Number160 resultKey = replicaBox.getResultKey();
                 final String taskName = replicaBox.getTaskMeta().getTaskName();
+
+                
+
+                TaskMeta taskMeta = FalseMeta.falsify(replicaBox.getTaskMeta(), "");
+//                taskManager.startTask("FalseWork");
+
                 System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
 
                 client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
@@ -66,14 +73,9 @@ public class FalseWork extends AbstractDeceitfulWork {
                 random.nextBytes(result);
                 System.out.println("Returning "+result.length+" random bytes.");
 
-                PathManager pathManager = PathManager.worker("False_"+moduleName);
-                String s = pathManager.taskResourcesDir()+"falseResult_"+replicaBox.getTaskMeta().getTaskName()+".raw";
-                File f = new File(s);
-                f.getParentFile().mkdirs();
-                FileManagementUtils.toFile(f, result);
-
                 client.put(resultKey, jobOwner.getID(), new Data(result));
             }
         });
     }
+
 }
