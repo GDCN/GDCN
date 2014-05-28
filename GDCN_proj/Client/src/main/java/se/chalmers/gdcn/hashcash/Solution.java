@@ -67,7 +67,8 @@ public class Solution implements Serializable {
 
     @Override
     public String toString() {
-        return "Solution{\n" +
+        return "Solution{"+
+                "\n" +
                 "\ttoken='" + ByteArray.print(token) + "',\n" +
                 "\tchallenge=" + challenge + '\n' +
                 '}';

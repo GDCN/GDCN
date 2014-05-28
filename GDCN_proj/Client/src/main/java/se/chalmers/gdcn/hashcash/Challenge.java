@@ -1,7 +1,5 @@
 package se.chalmers.gdcn.hashcash;
 
-import se.chalmers.gdcn.utils.ByteArray;
-
 import javax.crypto.Mac;
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
@@ -112,10 +110,13 @@ public class Challenge implements Serializable {
 
     @Override
     public String toString() {
-        return "Challenge{\n" +
-                "\tseed='" + ByteArray.print(seed) + "',\n" +
-                "\tdifficulty='" + difficulty + "',\n" +
-                "\tmac='" + ByteArray.print(mac) + '\n' +
+        return "Challenge{" +
+//                "\n" +
+                //disabled for demo
+//                "\tseed='" + ByteArray.print(seed) + "',\n" +
+                "\tdifficulty='" + difficulty +
+//                "',\n" +
+//                "\tmac='" + ByteArray.print(mac) + '\n' +
                 '}';
     }
 

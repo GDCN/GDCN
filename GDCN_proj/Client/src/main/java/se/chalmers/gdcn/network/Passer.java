@@ -89,8 +89,8 @@ abstract class Passer {
                     System.out.println("WHY: "+future.getFailedReason());
                     return;
                 }
-                //Disabled for demo
-                //System.out.println("Success sending " + networkMessage.toString() + " to " + print(receiver));
+
+                System.out.println("Success sending " + networkMessage.toString() + " to " + print(receiver));
                 for(PeerAddress address : future.getRawDirectData2().keySet()){
                     Object answer = future.getRawDirectData2().get(address);
                     onReturn.execute(answer);
@@ -120,7 +120,7 @@ abstract class Passer {
                     return;
                 }
                 //Disabled for demo
-                //System.out.println("Success sending " + networkMessage.toString());
+                System.out.println("Success sending " + networkMessage.toString());
             }
         });
     }
