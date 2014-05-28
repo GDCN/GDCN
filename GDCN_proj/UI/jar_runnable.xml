@@ -10,7 +10,7 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/..</directory>
+            <directory>${project.basedir}../</directory>
             <outputDirectory>/scripts</outputDirectory>
             <includes>
                 <include>*.sh</include>
@@ -20,7 +20,7 @@
 
     <dependencySets>
         <dependencySet>
-            <outputDirectory>/libs</outputDirectory>
+            <outputDirectory>deps</outputDirectory>
             <useProjectArtifact>true</useProjectArtifact>
             <unpack>true</unpack>
             <scope>runtime</scope>
