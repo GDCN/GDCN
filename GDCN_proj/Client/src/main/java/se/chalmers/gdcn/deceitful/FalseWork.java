@@ -8,22 +8,30 @@ import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
+import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.files.FalseMeta;
 import se.chalmers.gdcn.files.FileManagementUtils;
+import se.chalmers.gdcn.files.TaskMeta;
 import se.chalmers.gdcn.network.AbstractDeceitfulWork;
+import se.chalmers.gdcn.network.StringHolder;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.TaskPasser.WorkMethod;
 import se.chalmers.gdcn.replica.ReplicaBox;
-import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Created by HalfLeif on 2014-05-23.
  */
 public class FalseWork extends AbstractDeceitfulWork {
 
-    public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer) {
+    private final TaskManager taskManager;
+
+    public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer, TaskManager taskManager) {
         super(client, taskPasser, peer);
+        this.taskManager = taskManager;
     }
 
     /**
@@ -38,42 +46,47 @@ public class FalseWork extends AbstractDeceitfulWork {
         taskPasser.requestWork(jobOwner, false, new WorkMethod() {
             @Override
             public void work(final PeerAddress jobOwner, final ReplicaBox replicaBox, final boolean autoWork) {
-                final Number160 resultKey = replicaBox.getResultKey();
-                final String taskName = replicaBox.getTaskMeta().getTaskName();
-                System.out.println("Task " + taskName + " finished. Attempt to upload and notify job owner.");
+                TaskMeta originalMeta = replicaBox.getTaskMeta();
+                final StringHolder stringHolder = new StringHolder();
 
-                client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
+                TaskMeta falseMeta = FalseMeta.falsify(originalMeta, "False"+originalMeta.getModule().getFileName());
+                taskManager.startTask("FalseWork", falseMeta, stringHolder, jobOwner, new TaskListener() {
                     @Override
-                    protected void operationFinished(Operation operation) {
-                        if(operation.isSuccess()){
-                            System.out.println("Task "+taskName+" finished. Job owner notified if still online.");
-                            notifyJobOwner(taskPasser, jobOwner, myWorkerID, replicaBox.getReplicaID());
+                    public void taskFinished(String taskName) {
+                        final Number160 resultKey = replicaBox.getResultKey();
+                        final String taskName1 = replicaBox.getTaskMeta().getTaskName();
+
+                        client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
+                            @Override
+                            protected void operationFinished(Operation operation) {
+                                if (operation.isSuccess()) {
+                                    System.out.println("FalseWork: Task " + taskName1 + " finished. Job owner notified if still online.");
+                                    notifyJobOwner(taskPasser, jobOwner, myWorkerID, replicaBox.getReplicaID());
+                                }
+                            }
+                        });
+
+                        System.out.println("FalseWork: Task " + taskName + " finished. Attempt to upload and notify job owner.");
+                        byte[] result = null;
+                        try {
+                            result = FileManagementUtils.fromFile(new File(stringHolder.getString()));
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            taskFailed(taskName, e.getMessage());
+                        }
+                        if (result != null) {
+                            System.out.println("\nResult holds " + result.length + " bytes.");
+                            client.put(resultKey, jobOwner.getID(), new Data(result));
                         }
                     }
+
+                    @Override
+                    public void taskFailed(String taskName, String reason) {
+
+                    }
                 });
-
-                byte[] result;
-                String moduleName = replicaBox.getTaskMeta().getModule().getFileName();
-
-                if("Langermann.hs".equals(moduleName)){
-                    result = new byte[58];
-                } else if("Prime.hs".equals(moduleName)) {
-                    result = new byte[6153];
-                } else {
-                    System.out.println("FalseWork: Unknown module - "+moduleName);
-                    result = new byte[100];
-                }
-                random.nextBytes(result);
-                System.out.println("Returning "+result.length+" random bytes.");
-
-                PathManager pathManager = PathManager.worker("False_"+moduleName);
-                String s = pathManager.taskResourcesDir()+"falseResult_"+replicaBox.getTaskMeta().getTaskName()+".raw";
-                File f = new File(s);
-                f.getParentFile().mkdirs();
-                FileManagementUtils.toFile(f, result);
-
-                client.put(resultKey, jobOwner.getID(), new Data(result));
             }
         });
     }
+
 }
