@@ -182,20 +182,20 @@ public class QualityControl {
         else if (quality > bestQuality) {
             for (Map.Entry<ByteArray, TrustQuality> entry : trustMap.entrySet()) {
                 if (entry.getValue().getTrust() == Trust.TRUSTWORTHY) {
-                    entry.setValue(TrustQuality.deceitful());
+                    entry.setValue(TrustQuality.deceitful(entry.getValue().getQuality()));
                 }
             }
             trustMap.put(result, TrustQuality.trustworthy(quality));
             bestQuality = quality;
         }
         else {
-            trustMap.put(result, TrustQuality.deceitful());
+            trustMap.put(result, TrustQuality.deceitful(quality));
         }
         waitForAll.countDown();
     }
 
     private synchronized void punish(ByteArray result) {
-        trustMap.put(result, TrustQuality.deceitful());
+        trustMap.put(result, TrustQuality.deceitful(-Double.MAX_VALUE));
         waitForAll.countDown();
     }
 

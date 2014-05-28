@@ -21,8 +21,8 @@ public class TrustQuality {
         return new TrustQuality(Trust.UNKNOWN, -Double.MAX_VALUE, reason);
     }
 
-    public static TrustQuality deceitful(){
-        return new TrustQuality(Trust.DECEITFUL, -Double.MAX_VALUE, null);
+    public static TrustQuality deceitful(double quality){
+        return new TrustQuality(Trust.DECEITFUL, quality, null);
     }
 
     public static TrustQuality trustworthy(double quality){
