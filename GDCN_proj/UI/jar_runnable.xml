@@ -1,7 +1,6 @@
 <assembly xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.0 http://maven.apache.org/xsd/assembly-1.1.0.xsd">
-    <!-- TODO: a jarjar format would be better -->
     <id>jar_runnable</id>
     <formats>
         <format>jar</format>
@@ -10,8 +9,8 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}/..</directory>
-            <outputDirectory>/scripts</outputDirectory>
+            <directory>${project.basedir}</directory>
+            <outputDirectory>/</outputDirectory>
             <includes>
                 <include>*.sh</include>
             </includes>
