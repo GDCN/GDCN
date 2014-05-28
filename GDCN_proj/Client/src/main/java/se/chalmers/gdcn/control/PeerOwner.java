@@ -264,7 +264,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
     @Deceitful
     @Override
     public void falseWork(String address, int port){
-        deceit(address, port, new FalseWork(taskPasser, this, peer));
+        deceit(address, port, new FalseWork(taskPasser, this, peer, taskManager));
     }
 
     @Deceitful

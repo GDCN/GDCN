@@ -469,7 +469,9 @@ public class ReplicaManager implements Serializable, Cloneable{
                     WorkerID worker = replicaMap.get(replicaID).getWorker();
 
                     System.out.println("\t"+WorkerNames.getInstance().getName(worker) +
-                            " was found to be "+trust.getTrust().name());
+                            " was found to be "+trust.getTrust().name() +
+                            (trust.getTrust() == Trust.UNKNOWN ? "" : " with quality " +
+                            trust.getQuality()));
                     switch (trust.getTrust()){
                         case TRUSTWORTHY:
                             workerReputationManager.promoteWorker(worker);
