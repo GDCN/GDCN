@@ -12,28 +12,12 @@
     <artifactId>UI</artifactId>
 
     <build>
-        <!--
-        <resources>
-            <resource>
-                <directory>${project.basedir}/TaskBuilder/src/main/haskell</directory>
-                <includes>
-                    <include>*.hs</include>
-                    <include>*.cabal</include>
-                </includes>
-            </resource>
-        </resources>
-        -->
 
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
                     <descriptor>bin.xml</descriptor>
-                    <!--
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    -->
 
                     <finalName>GDCN_console_${project.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
