@@ -32,7 +32,7 @@ top :: Double
 top = 10
 
 tests :: Int
-tests = 10000
+tests = 1
 
 -- Vector and matrix functions
 
@@ -86,7 +86,7 @@ multiSearch = do
     return $ maximumBy (\a b -> compare (snd a) (snd b)) results
 
 fullSearch :: Int -> (Vector, Double)
-fullSearch seed = evalState multiSearch (mkStdGen seed)
+fullSearch seed = evalState (search tests) (mkStdGen seed)
 
 run :: [ByteString] -> (ByteString, String)
 run (seedData:_) = let seed = decode seedData :: Int
