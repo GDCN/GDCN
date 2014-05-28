@@ -27,10 +27,11 @@ import java.io.IOException;
  */
 public class FalseWork extends AbstractDeceitfulWork {
 
-    private TaskManager taskManager;
+    private final TaskManager taskManager;
 
-    public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer) {
+    public FalseWork(TaskPasser taskPasser, ClientInterface client, Peer peer, TaskManager taskManager) {
         super(client, taskPasser, peer);
+        this.taskManager = taskManager;
     }
 
     /**
@@ -58,8 +59,8 @@ public class FalseWork extends AbstractDeceitfulWork {
                         client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.PUT) {
                             @Override
                             protected void operationFinished(Operation operation) {
-                                if(operation.isSuccess()){
-                                    System.out.println("FalseWork: Task "+taskName1+" finished. Job owner notified if still online.");
+                                if (operation.isSuccess()) {
+                                    System.out.println("FalseWork: Task " + taskName1 + " finished. Job owner notified if still online.");
                                     notifyJobOwner(taskPasser, jobOwner, myWorkerID, replicaBox.getReplicaID());
                                 }
                             }
@@ -73,8 +74,8 @@ public class FalseWork extends AbstractDeceitfulWork {
                             e.printStackTrace();
                             taskFailed(taskName, e.getMessage());
                         }
-                        if(result != null){
-                            System.out.println("\nResult holds "+result.length+" bytes.");
+                        if (result != null) {
+                            System.out.println("\nResult holds " + result.length + " bytes.");
                             client.put(resultKey, jobOwner.getID(), new Data(result));
                         }
                     }
