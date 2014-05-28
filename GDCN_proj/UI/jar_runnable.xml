@@ -20,11 +20,10 @@
             <directory>${project.basedir}/../TaskBuilder/src/main/haskell</directory>
             <outputDirectory>haskell</outputDirectory>
             <includes>
-                <include>**/*</include>
+                <include>**/*.hs</include>
+                <include>**/*.cabal</include>
+                <include>**/*.txt</include>
             </includes>
-            <excludes>
-                <exclude>.DS_Store</exclude>
-            </excludes>
         </fileSet>
     </fileSets>
 
