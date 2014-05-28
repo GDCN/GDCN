@@ -19,8 +19,9 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>GDCN_console</finalName>
+                    <finalName>GDCN_console_${pom.version}</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
+                    <outputDirectory>../target</outputDirectory>
                     <archive>
                         <manifest>
                             <mainClass>se.chalmers.gdcn.ui.Console</mainClass>
