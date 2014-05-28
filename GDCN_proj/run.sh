@@ -1,0 +1,1 @@
+screen -L -S GDCN_Screen java -jar UI/target/GDCN_console.jar
