@@ -8,10 +8,14 @@ import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
+import se.chalmers.gdcn.files.FileManagementUtils;
 import se.chalmers.gdcn.network.AbstractDeceitfulWork;
 import se.chalmers.gdcn.network.TaskPasser;
 import se.chalmers.gdcn.network.TaskPasser.WorkMethod;
 import se.chalmers.gdcn.replica.ReplicaBox;
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+
+import java.io.File;
 
 /**
  * Created by HalfLeif on 2014-05-23.
@@ -61,6 +65,12 @@ public class FalseWork extends AbstractDeceitfulWork {
                 }
                 random.nextBytes(result);
                 System.out.println("Returning "+result.length+" random bytes.");
+
+                PathManager pathManager = PathManager.worker("False_"+moduleName);
+                String s = pathManager.taskResourcesDir()+"falseResult_"+replicaBox.getTaskMeta().getTaskName()+".raw";
+                File f = new File(s);
+                f.getParentFile().mkdirs();
+                FileManagementUtils.toFile(f, result);
 
                 client.put(resultKey, jobOwner.getID(), new Data(result));
             }
