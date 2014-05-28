@@ -1,1 +1,1 @@
-mvn -Dmaven.test.skip=true -f UI/pom.xml assembly:assembly
+mvn -Dmaven.test.skip=true -f UI/pom.xml assembly:single
