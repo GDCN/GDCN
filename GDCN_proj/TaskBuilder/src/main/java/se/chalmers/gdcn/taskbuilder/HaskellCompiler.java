@@ -16,13 +16,14 @@ public class HaskellCompiler {
 
     public void compile(String[] command) throws IOException, InterruptedException, ExitFailureException{
 
-        System.out.println("\nCompile command:");
-        for(String c : command){
-            System.out.print(c + " ");
-        }
-        System.out.println("\n");
+        //System.out.println("\nCompile command:");
+        //for(String c : command){
+        //    System.out.print(c + " ");
+        //}
+        //System.out.println("\n");
 
-        ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
+        //ProcessBuilder pb = new ProcessBuilder(command).inheritIO();
+        ProcessBuilder pb = new ProcessBuilder(command);
 
         Map<String, String> env = pb.environment();
         if (env.containsKey("GHC_PACKAGE_PATH")) {

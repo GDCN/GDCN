@@ -101,6 +101,8 @@ public class QualityControl {
 
             HaskellCompiler haskellCompiler = new HaskellCompiler();
 
+            System.out.println("Compiling quality checker...");
+
             try {
                 haskellCompiler.compile(command);
             } catch (ExitFailureException e) {

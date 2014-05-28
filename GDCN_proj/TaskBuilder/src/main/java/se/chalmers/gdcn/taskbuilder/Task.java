@@ -3,6 +3,7 @@ package se.chalmers.gdcn.taskbuilder;
 import org.apache.commons.io.IOUtils;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.taskbuilder.utils.FormatString;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -76,6 +77,10 @@ public class Task implements Runnable{
 
         HaskellCompiler haskellCompiler = new HaskellCompiler();
 
+        // For demo
+        System.out.println("Compiling task...");
+        System.out.println();
+
         try {
             haskellCompiler.compile(command);
         }
@@ -98,16 +103,21 @@ public class Task implements Runnable{
         command.addAll(initDataPaths);
 
         //TODO remove this output?
-        System.out.println("\nRun command:");
-        for(String c : command){
-            System.out.print(c + " ");
-        }
-        System.out.println("\n");
+        //System.out.println("\nRun command:");
+        // For demo
+        //for(String c : command){
+        //    System.out.print(c + " ");
+        //}
+        //System.out.println("\n");
+
+        System.out.println("Running task...");
+        System.out.println();
 
         Process proc = null;
 
         try {
-            proc = new ProcessBuilder(command).inheritIO().start();
+            //proc = new ProcessBuilder(command).inheritIO().start();
+            proc = new ProcessBuilder(command).start();
 
             if (proc.waitFor() != 0) {
                 StringWriter writer = new StringWriter();
@@ -121,9 +131,15 @@ public class Task implements Runnable{
 //                outputStdErr(fromInstream(proc.getErrorStream()));
 
                 // Currently haskell doesn't print anything to stderr...
+                //StringWriter writer = new StringWriter();
+                //IOUtils.copy(proc.getErrorStream(), writer, null);
+                //outputStdErr(writer.toString());
+
                 StringWriter writer = new StringWriter();
-                IOUtils.copy(proc.getErrorStream(), writer, null);
-                outputStdErr(writer.toString());
+                IOUtils.copy(proc.getInputStream(), writer, null);
+                System.out.println("Result of task:");
+                System.out.println(FormatString.colour(writer.toString(), FormatString.Colour.GREEN));
+                System.out.println();
 
                 listener.taskFinished(taskName);
 //                return IOUtils.toByteArray(proc.getInputStream());

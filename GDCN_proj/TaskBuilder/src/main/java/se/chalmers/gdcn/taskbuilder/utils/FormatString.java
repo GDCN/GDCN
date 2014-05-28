@@ -1,4 +1,4 @@
-package se.chalmers.gdcn.utils;
+package se.chalmers.gdcn.taskbuilder.utils;
 
 /**
  * Formats strings for printing with in a terminal
