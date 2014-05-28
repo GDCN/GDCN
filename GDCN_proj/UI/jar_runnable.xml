@@ -10,7 +10,7 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}../</directory>
+            <directory>${project.basedir}/..</directory>
             <outputDirectory>/scripts</outputDirectory>
             <includes>
                 <include>*.sh</include>

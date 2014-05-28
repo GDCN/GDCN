@@ -12,7 +12,6 @@
     <artifactId>UI</artifactId>
 
     <build>
-
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
