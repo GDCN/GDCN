@@ -29,7 +29,7 @@ abstract class Passer {
 
     private final static RequestP2PConfiguration requestConfiguration = new RequestP2PConfiguration(1, 10, 0);
 
-    private final Map<PeerAddress,PeerKeys> knownKeys = new HashMap<>();
+    protected final Map<PeerAddress,PeerKeys> knownKeys = new HashMap<>();
 
     //TODO save dhKeys.
     private final KeyPair dhKeys = Crypto.generateAgreementKeyPair();
@@ -292,7 +292,7 @@ abstract class Passer {
         return peer.getPeerBean().getKeyPair().getPublic();
     }
 
-    private class PeerKeys<P extends PublicKey> {
+    protected class PeerKeys<P extends PublicKey> {
         public final P publicKey;
         public final SecretKey secretKey;
 
