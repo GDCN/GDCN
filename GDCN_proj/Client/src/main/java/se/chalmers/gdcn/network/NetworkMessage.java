@@ -58,7 +58,8 @@ public class NetworkMessage implements Serializable {
 
     @Override
     public String toString() {
-        return "NetwM{ " + type +
+        return //"NetwM"+
+                "{" + type +
                 ", " + object +
                 '}';
     }

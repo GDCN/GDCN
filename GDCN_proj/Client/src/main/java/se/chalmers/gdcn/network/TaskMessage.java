@@ -40,7 +40,8 @@ class TaskMessage implements Serializable {
 
     @Override
     public String toString() {
-        return "TaskMsg{ " + type +
+        return //"TaskMsg"+
+                "{" + type +
                 //disabled for demo
 //                ", " + actualContent +
                 '}';
