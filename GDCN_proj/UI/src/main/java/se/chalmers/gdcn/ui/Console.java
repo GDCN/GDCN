@@ -134,10 +134,12 @@ public class Console implements PropertyChangeListener{
             case STOP:
                 break;
             case PUT:
-                println("Put " + event.getOperation().getKey() + " " + success);
+                //Disabled for demo
+                //println("Put " + event.getOperation().getKey() + " " + success);
                 break;
             case GET:
-                println("Got " + event.getOperation().getKey() + " " + success);
+                //Disabled for demo
+                //println("Got " + event.getOperation().getKey() + " " + success);
                 break;
             case START:
                 print("Start complete");

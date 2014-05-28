@@ -38,7 +38,8 @@ abstract class Passer {
                     System.out.println("Decrypt returned NULL!");
                     return "Decrypt was NULL";
                 }
-                System.out.println("ObjectDataReply received: " + message.toString());
+                //Disabled for demo
+                //System.out.println("ObjectDataReply received: " + message.toString());
 
                 switch (message.getType()){
                     case REQUEST:
@@ -88,7 +89,8 @@ abstract class Passer {
                     System.out.println("WHY: "+future.getFailedReason());
                     return;
                 }
-                System.out.println("Success sending " + networkMessage.toString() + " to " + print(receiver));
+                //Disabled for demo
+                //System.out.println("Success sending " + networkMessage.toString() + " to " + print(receiver));
                 for(PeerAddress address : future.getRawDirectData2().keySet()){
                     Object answer = future.getRawDirectData2().get(address);
                     onReturn.execute(answer);
@@ -117,7 +119,8 @@ abstract class Passer {
                     System.out.println("WHY: "+future.getFailedReason());
                     return;
                 }
-                System.out.println("Success sending " + networkMessage.toString());
+                //Disabled for demo
+                //System.out.println("Success sending " + networkMessage.toString());
             }
         });
     }
