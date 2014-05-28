@@ -9,11 +9,22 @@
 
     <fileSets>
         <fileSet>
-            <directory>${project.basedir}</directory>
+            <directory>${project.basedir}/..</directory>
             <outputDirectory>scripts</outputDirectory>
             <includes>
                 <include>*.sh</include>
             </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>${project.basedir}/../TaskBuilder/src/main/haskell</directory>
+            <outputDirectory>haskell</outputDirectory>
+            <includes>
+                <include>**/*</include>
+            </includes>
+            <excludes>
+                <exclude>.DS_Store</exclude>
+            </excludes>
         </fileSet>
     </fileSets>
 
