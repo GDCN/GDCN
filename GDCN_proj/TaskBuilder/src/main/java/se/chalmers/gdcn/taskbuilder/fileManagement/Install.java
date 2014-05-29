@@ -143,6 +143,7 @@ public class Install {
                 }
             }
 
+            //buildir: .../GDCN_proj/TaskBuilder/.../haskell/gdcn-trusted/
             File buildDir = new File(bin_path + HPKG_NAME);
             Process makeLib = new ProcessBuilder(libCmd).directory(buildDir).start();
 
