@@ -9,6 +9,7 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by joakim on 2014-04-01.
@@ -49,7 +50,7 @@ public class Validifier {
                 IOUtils.copy(proc.getInputStream(), writer, null);
 
                 try {
-                    NumberFormat numberFormat = NumberFormat.getInstance();
+                    NumberFormat numberFormat = NumberFormat.getInstance(Locale.ENGLISH);
                     double quality = numberFormat.parse(writer.toString()).doubleValue();
 
                     // Result accepted
