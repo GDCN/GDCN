@@ -1,9 +1,19 @@
 package se.chalmers.gdcn.taskbuilder.fileManagement;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import se.chalmers.gdcn.taskbuilder.ExitFailureException;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,6 +35,10 @@ public class Install {
 
     public static final String LIB_DIR = APPDATA + "lib";
     public static final String HDB_DIR = APPDATA + "hdb.conf.d";
+
+    //private constructor
+    private Install(){
+    }
 
     /**
      * Simply runs {@link Install#install()}
@@ -125,7 +139,107 @@ public class Install {
         return props;
     }
 
+    /**
+     * Extracts haskell dirs in jar file.
+     * @return {@link java.io.File} to extracted directory
+     */
+    private static File extractHaskellDirs(){
+        Install obj = new Install();
+        URL resource = obj.getClass().getResource("/haskell");
+        System.out.println("HaskellFolder: " + resource);
+
+        File r = null;
+        try {
+            r = new File(resource.toURI());
+            System.out.println("URI successful: "+r.getAbsolutePath());
+        } catch (Exception e) {
+            //URISyntaxException?
+            e.printStackTrace();
+
+            try {
+                r = new File(resource.getPath());
+                System.out.println("String successful: "+r.getAbsolutePath());
+            } catch (Exception e1) {
+                e1.printStackTrace();
+            }
+        }
+
+        File haskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+        haskellDir.mkdirs();
+//        InputStream resourceStream = obj.getClass().getResourceAsStream("/haskell");
+
+        try {
+            FileUtils.copyDirectory(r, haskellDir, false);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        return haskellDir;
+    }
+
+    private static boolean extractHaskellDirs2(File targetDir){
+        targetDir.mkdirs();
+
+//        Install obj = new Install();
+        URL resource = Thread.currentThread().getClass().getResource("/haskell");
+        System.out.println("HaskellFolder URL: " + resource);
+
+        URI res = null;
+        try {
+             res = resource.toURI();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        System.out.println("HaskellFolder URI: " + res);
+
+        Map<String, String> env = new HashMap<>();
+        try {
+//            FileSystem fileSystem = FileSystems.newFileSystem(res, env);
+            FileSystem fileSystem = FileSystems.newFileSystem(res, env);
+//            Path path = fileSystem.getPath(".");
+            Path path = Paths.get(res);
+            System.out.println("Paths: "+Paths.get(res));
+            System.out.println("FileSystem: "+fileSystem.getPath("/haskell"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+//        InputStream resourceStream = obj.getClass().getResourceAsStream("/haskell");
+//        FileInputStream fileInputStream = new FileInputStream(resourceStream);
+
+//        try {
+//            FileUtils.copyDirectory(r, haskellDir, false);
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+
+        //todo fix
+        return false;
+    }
+
     private static void installHaskellLibraries(String bin_path) {
+        File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+
+        if( !extractHaskellDirs2(targetHaskellDir) ){
+            File sourceDir = new File(bin_path + HPKG_NAME);
+            try {
+                FileUtils.copyDirectory(sourceDir, targetHaskellDir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Extracted location: "+targetHaskellDir);
+
+        //buildir: .../GDCN_proj/TaskBuilder/.../haskell/gdcn-trusted/
+        File buildDir = new File(targetHaskellDir.getAbsolutePath() + HPKG_NAME);
+        System.out.println("Build dir: "+buildDir);
+
         String[] dbCmd = {"ghc-pkg", "init", HDB_DIR};
         String[] libCmd = {"runhaskell", "Setup", LIB_DIR, HDB_DIR};
 
@@ -143,8 +257,7 @@ public class Install {
                 }
             }
 
-            //buildir: .../GDCN_proj/TaskBuilder/.../haskell/gdcn-trusted/
-            File buildDir = new File(bin_path + HPKG_NAME);
+
             Process makeLib = new ProcessBuilder(libCmd).directory(buildDir).start();
 
             if (makeLib.waitFor() != 0) {
