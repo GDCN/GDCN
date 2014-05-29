@@ -28,6 +28,8 @@ public class Install {
     public static final String HDB_DIR = APPDATA + "hdb.conf.d";
 
     public static final String STD_BIN = APPDATA + "bin" + SEPARATOR;
+    public static final String HASKELL_SUBDIR = "haskell";
+    public static final String HEADER_LOCATION = STD_BIN+HASKELL_SUBDIR+SEPARATOR;
 
     //private constructor
     private Install(){
@@ -124,7 +126,7 @@ public class Install {
 
 //        String subHeaderPath = "TaskBuilder" + SEPARATOR + "src" + SEPARATOR + "main" + SEPARATOR + "haskell" + SEPARATOR;
 //        props.put("bin_path", System.getProperty("user.dir") + SEPARATOR + subHeaderPath);
-        props.put("bin_path", STD_BIN);
+        props.put("bin_path", HEADER_LOCATION);
         props.put("data_path", APPDATA + "data" + File.separator);
         props.put("job_path", APPDATA + "jobs" + File.separator);
         props.put("settings_path", APPDATA + "settings" + File.separator);
@@ -134,7 +136,6 @@ public class Install {
 
     private static void installHaskellLibraries() {
         final File targetHaskellDir = new File(STD_BIN);
-        final String subdir = "haskell";
 
         try {
             Install obj = new Install();
@@ -145,13 +146,13 @@ public class Install {
             System.out.println("Location URL: "+location);
 
             File jar = new File(location.toURI());
-            JarExtractor.extract(jar, subdir, targetHaskellDir);
+            JarExtractor.extract(jar, HASKELL_SUBDIR, targetHaskellDir);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        File buildDir = new File(targetHaskellDir.getAbsolutePath() + SEPARATOR + subdir + SEPARATOR + HPKG_NAME);
+        File buildDir = new File(HEADER_LOCATION + SEPARATOR + HPKG_NAME);
         System.out.println("Build dir: "+buildDir);
 
         String[] dbCmd = {"ghc-pkg", "init", HDB_DIR};

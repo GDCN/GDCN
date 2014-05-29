@@ -199,8 +199,7 @@ public class PathManager {
             input = new FileInputStream(file);
             prop.load(input);
 
-            // subdirectory haskell
-            headerLocation = prop.getProperty("bin_path") + File.separator + "haskell";
+            headerLocation = prop.getProperty("bin_path");
             dataPath = prop.getProperty("data_path");
             jobPath = prop.getProperty("job_path");
             settingsPath = prop.getProperty("settings_path");
