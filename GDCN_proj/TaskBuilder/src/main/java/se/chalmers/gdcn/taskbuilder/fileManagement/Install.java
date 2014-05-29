@@ -308,21 +308,25 @@ public class Install {
 
     private static void installHaskellLibraries(String bin_path) {
         File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+        String subdir = "haskell";
 
-        extractHaskellDirs5();
+        try {
+            Install obj = new Install();
+//            URL resource = obj.getClass().getResource("/");
+//            System.out.println("Resource URL: "+resource);
 
-//        if( !extractHaskellDirs2(targetHaskellDir) ){
-//            File sourceDir = new File(bin_path + HPKG_NAME);
-//            try {
-//                FileUtils.copyDirectory(sourceDir, targetHaskellDir);
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//        }
-        System.out.println("Extracted location: "+targetHaskellDir);
+            URL location = obj.getClass().getProtectionDomain().getCodeSource().getLocation();
+            System.out.println("Location URL: "+location);
 
-        //buildir: .../GDCN_proj/TaskBuilder/.../haskell/gdcn-trusted/
-        File buildDir = new File(targetHaskellDir.getAbsolutePath() + HPKG_NAME);
+            File jar = new File(location.toURI());
+
+            JarExtractor.extract(jar, subdir, targetHaskellDir);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        File buildDir = new File(targetHaskellDir.getAbsolutePath() + SEPARATOR + subdir + SEPARATOR + HPKG_NAME);
         System.out.println("Build dir: "+buildDir);
 
         String[] dbCmd = {"ghc-pkg", "init", HDB_DIR};
