@@ -1,1 +1,1 @@
-mvn -Dmaven.test.skip=true install
+mvn -q -Dmaven.test.skip=true install

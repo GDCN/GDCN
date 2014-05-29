@@ -12,9 +12,12 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.CodeSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.jar.JarFile;
+import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -223,17 +226,71 @@ public class Install {
         return false;
     }
 
+    private static void extractHaskellDirs5(){
+        Install obj = new Install();
+        CodeSource codeSource = obj.getClass().getProtectionDomain().getCodeSource();
+        URL location = codeSource.getLocation();
+        try {
+            JarFile jarFile = new JarFile(location.getFile());
+            System.out.println("Jarfile: "+ jarFile);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void extractHaskellDirs4(){
+        File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+        Install obj = new Install();
+        CodeSource codeSource = obj.getClass().getProtectionDomain().getCodeSource();
+        URL location = codeSource.getLocation();
+
+        System.out.println("Location: "+location);
+
+        JarInputStream jarInputStream = null;
+        try{
+            jarInputStream = new JarInputStream(new FileInputStream(location.getFile()));
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            if (jarInputStream != null) {
+                try {
+                    jarInputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+//        ZipInputStream zipInputStream = new ZipInputStream(location.getFile());
+
+
+    }
+
+    private static void extractHaskellDirs3(){
+        File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+
+//        URL resource = Thread.currentThread().getContextClassLoader().getResource("haskell");
+//        System.out.println("URL resource: "+resource);
+
+        InputStream resourceStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("haskell");
+
+    }
+
     private static void installHaskellLibraries(String bin_path) {
         File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
 
-        if( !extractHaskellDirs2(targetHaskellDir) ){
-            File sourceDir = new File(bin_path + HPKG_NAME);
-            try {
-                FileUtils.copyDirectory(sourceDir, targetHaskellDir);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+        extractHaskellDirs5();
+
+//        if( !extractHaskellDirs2(targetHaskellDir) ){
+//            File sourceDir = new File(bin_path + HPKG_NAME);
+//            try {
+//                FileUtils.copyDirectory(sourceDir, targetHaskellDir);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
         System.out.println("Extracted location: "+targetHaskellDir);
 
         //buildir: .../GDCN_proj/TaskBuilder/.../haskell/gdcn-trusted/

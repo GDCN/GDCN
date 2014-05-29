@@ -1,1 +1,1 @@
-mvn -Dmaven.test.skip=true -f UI/pom.xml package
+mvn -q -Dmaven.test.skip=true -f UI/pom.xml package
