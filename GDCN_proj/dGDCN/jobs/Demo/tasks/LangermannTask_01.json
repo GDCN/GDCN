@@ -1,0 +1,9 @@
+{
+    "resultKey":"Langermann1",
+    "taskName":"LangermannTask_01",
+    "module":{"fileName":"Langermann.hs","fileLocation":"code","sticky":true,"checkSum":500},
+    "dependencies":
+    [
+        {"fileName":"seed01.raw","fileLocation":"resources","sticky":false,"checkSum":25}
+    ]
+}
