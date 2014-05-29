@@ -10,7 +10,9 @@ import se.chalmers.gdcn.utils.Time;
  */
 public class ReplicaManagerBuilder {
     private int replicas = 2;
-    private int expectedReputation = 3;
+    //private int expectedReputation = 3;
+    //Changed for demo
+    private int expectedReputation = 1;
 
     //TODO store milliseconds instead?
     private Time timeoutLengthUnit = Time.MINUTE;
