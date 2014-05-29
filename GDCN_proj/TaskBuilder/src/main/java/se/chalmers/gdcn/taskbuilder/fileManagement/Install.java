@@ -16,6 +16,7 @@ import java.security.CodeSource;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 import java.util.regex.Matcher;
@@ -230,10 +231,37 @@ public class Install {
         Install obj = new Install();
         CodeSource codeSource = obj.getClass().getProtectionDomain().getCodeSource();
         URL location = codeSource.getLocation();
+        System.out.println("URL: "+ location);
+
         try {
             JarFile jarFile = new JarFile(location.getFile());
-            System.out.println("Jarfile: "+ jarFile);
+
+            JarEntry haskellEntry = jarFile.getJarEntry("haskell");
+            if(haskellEntry == null){
+                System.out.println("HaskellEntry null!!!");
+            }
+
+            File targetHaskellDir = new File(APPDATA + SEPARATOR + "tempHaskell");
+            File targetFile = new File(targetHaskellDir + SEPARATOR + haskellEntry.getName());
+
+
+            InputStream inputStream = jarFile.getInputStream(haskellEntry);
+            FileOutputStream fileOutputStream = new FileOutputStream(targetFile);
+            while(inputStream.available() > 0){
+                fileOutputStream.write(inputStream.read());
+            }
+
+            inputStream.close();
+            fileOutputStream.close();
+
+            //            Enumeration<JarEntry> entries = jarFile.entries();
+//            while (entries.hasMoreElements()){
+//                JarEntry entry = entries.nextElement();
+//            }
+
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e){
             e.printStackTrace();
         }
     }
