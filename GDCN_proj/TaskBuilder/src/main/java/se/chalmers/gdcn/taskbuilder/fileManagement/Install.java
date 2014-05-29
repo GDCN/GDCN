@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.taskbuilder.fileManagement;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import se.chalmers.gdcn.taskbuilder.ExitFailureException;
 
@@ -124,8 +125,6 @@ public class Install {
     private static Properties paths(){
         Properties props = new Properties();
 
-//        String subHeaderPath = "TaskBuilder" + SEPARATOR + "src" + SEPARATOR + "main" + SEPARATOR + "haskell" + SEPARATOR;
-//        props.put("bin_path", System.getProperty("user.dir") + SEPARATOR + subHeaderPath);
         props.put("bin_path", HEADER_LOCATION);
         props.put("data_path", APPDATA + "data" + File.separator);
         props.put("job_path", APPDATA + "jobs" + File.separator);
@@ -139,14 +138,25 @@ public class Install {
 
         try {
             Install obj = new Install();
-//            URL resource = obj.getClass().getResource("/");
-//            System.out.println("Resource URL: "+resource);
-
             URL location = obj.getClass().getProtectionDomain().getCodeSource().getLocation();
-            System.out.println("Location URL: "+location);
 
-            File jar = new File(location.toURI());
-            JarExtractor.extract(jar, HASKELL_SUBDIR, targetHaskellDir);
+            if(location.getFile().endsWith(".jar")){
+                System.out.println("Location URL: "+location);
+
+                File jar = new File(location.toURI());
+                JarExtractor.extract(jar, HASKELL_SUBDIR, targetHaskellDir);
+            } else {
+                //If executed from within IDE
+                System.out.println("Couldn't locate jar. Assumes is in source folder, attempt copy directly...");
+
+                String subHeaderPath = "TaskBuilder" + SEPARATOR + "src" + SEPARATOR + "main" + SEPARATOR + "haskell" + SEPARATOR;
+                String path = System.getProperty("user.dir") + SEPARATOR + subHeaderPath;
+                System.out.println("Path: "+path);
+
+                File haskellSourceDir = new File(path);
+                FileUtils.copyDirectory(haskellSourceDir, new File(HEADER_LOCATION));
+            }
+
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -14,35 +14,36 @@ import java.util.jar.JarFile;
 public class JarExtractor {
 
     /**
-     * Extracts part of a jar file to a location.
-     * @param jar Jar file to extract from
-     * @param subdir Subdir of jar to extract from
+     * Extracts a subdirectory of a jar file to a custom location.
+     *
+     * @param jar jar file to extract from
+     * @param subDir subDir of jar to extract
      * @param targetDir Target directory to extract to
      */
-    public static void extract(File jar, String subdir, File targetDir) throws IOException {
+    public static void extract(File jar, String subDir, File targetDir) throws IOException {
         JarFile jarFile = new JarFile(jar);
 
         targetDir.mkdirs();
         System.out.println("Target dir: "+targetDir);
-        System.out.println("exist? " + targetDir.exists());
+//        System.out.println("exist? " + targetDir.exists());
 
         Enumeration<JarEntry> entries = jarFile.entries();
         while (entries.hasMoreElements()){
             JarEntry entry = entries.nextElement();
             String name = entry.getName();
 
-            if(! "haskell".equals(name.split(File.separator)[0])){
+            if(! subDir.equals(name.split(File.separator)[0])){
                 continue;
             }
 //            System.out.println("Entry: "+name);
             File targetFile = new File(targetDir + File.separator + name);
 
             if(entry.isDirectory()){
-                System.out.println("is Dir: "+name);
+                System.out.println("dir: "+name);
                 targetFile.mkdir();
                 continue;
             } else {
-                System.out.println("not Dir: "+name);
+                System.out.println("file: "+name);
             }
 
             InputStream inputStream = jarFile.getInputStream(entry);
@@ -54,6 +55,8 @@ public class JarExtractor {
             inputStream.close();
             fileOutputStream.close();
         }
+
+        System.out.println("\nExtraction complete.");
     }
 
 }
