@@ -15,7 +15,7 @@ public class ReplicaManagerBuilder {
     private int expectedReputation = 1;
 
     //TODO store milliseconds instead?
-    private Time timeoutLengthUnit = Time.MINUTE;
+    private Time timeoutLengthUnit = Time.HOUR;
     private int timeoutLengthValue = 5;
 
     private long timerUpdateIntervalMillis = 50000;
