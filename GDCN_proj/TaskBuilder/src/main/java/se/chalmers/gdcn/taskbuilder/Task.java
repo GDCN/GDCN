@@ -78,6 +78,7 @@ public class Task implements Runnable{
         HaskellCompiler haskellCompiler = new HaskellCompiler();
 
         // For demo
+        System.out.println();
         System.out.println("Compiling task...");
         System.out.println();
 

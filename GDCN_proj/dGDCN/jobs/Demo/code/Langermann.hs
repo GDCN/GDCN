@@ -4,6 +4,7 @@ module Langermann where
 import Data.List
 import Control.Monad.State.Lazy
 import System.Random
+import Text.Printf
 
 import Data.ByteString.Lazy (ByteString)
 import GDCN.Trusted.Data.Binary (encode, decode)
@@ -92,9 +93,15 @@ run :: [ByteString] -> (ByteString, String)
 run (seedData:_) = let seed = decode seedData :: Int
                        (resultVec, resultN) = fullSearch seed
                        resultData = encode resultVec
-                   in (resultData, show resultVec ++ " -> " ++ show resultN)
+                   in (resultData, show2DecVec resultVec ++ " -> " ++ show2Dec resultN)
 
 --
+
+show2Dec :: Double -> String
+show2Dec d = printf "%.3f" d
+
+show2DecVec :: Vector -> String
+show2DecVec [x, y] = "[" ++ show2Dec x ++ ", " ++ show2Dec y ++ "]"
 
 repeatM :: Monad m => m a -> Int -> m [a]
 repeatM m 0 = return []

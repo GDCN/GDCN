@@ -16,6 +16,7 @@ import se.chalmers.gdcn.files.TaskMetaDataException;
 import se.chalmers.gdcn.network.WorkerID;
 import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
+import se.chalmers.gdcn.taskbuilder.utils.FormatString;
 import se.chalmers.gdcn.utils.ByteArray;
 import se.chalmers.gdcn.utils.Identifier;
 import se.chalmers.gdcn.utils.SerializableTimer;
@@ -468,19 +469,25 @@ public class ReplicaManager implements Serializable, Cloneable{
                 for(ReplicaID replicaID:replicaIDs){
                     WorkerID worker = replicaMap.get(replicaID).getWorker();
 
-                    System.out.println("\t"+WorkerNames.getInstance().getName(worker) +
-                            " was found to be "+trust.getTrust().name() +
-                            (trust.getTrust() == Trust.UNKNOWN ? "" : " with quality " +
-                            trust.getQuality()));
+//                  System.out.println("\t"+WorkerNames.getInstance().getName(worker) +
+//                          " was found to be "+trust.getTrust().name() +
+//                          (trust.getTrust() == Trust.UNKNOWN ? "" : " with quality " +
+//                          trust.getQuality()));
+                    System.out.print("\t"+WorkerNames.getInstance().getName(worker) + " was found to be ");
                     switch (trust.getTrust()){
                         case TRUSTWORTHY:
+                            System.out.printf(FormatString.colour(trust.getTrust().name(), FormatString.Colour.GREEN) +
+                                    " with quality " + "%.3f\n", trust.getQuality());
                             workerReputationManager.promoteWorker(worker);
                             correctWorkers.add(worker);
                             break;
                         case DECEITFUL:
+                            System.out.printf(FormatString.colour(trust.getTrust().name(), FormatString.Colour.YELLOW) +
+                                    " with quality " + "%.3f\n", trust.getQuality());
                             workerReputationManager.reportWorker(worker);
                             break;
                         case UNKNOWN:
+                            System.out.println(FormatString.colour(trust.getTrust().name(), FormatString.Colour.YELLOW));
                             //ignore
                             break;
                     }
@@ -499,7 +506,9 @@ public class ReplicaManager implements Serializable, Cloneable{
         if(bestResult != null){
             taskDatas.remove(taskData);
 
-            System.out.println("\tThe best result had the quality: "+trustMap.get(bestResult).getQuality());
+            //Disabled for demo
+            //System.out.println("\tThe best result had the quality: "+trustMap.get(bestResult).getQuality());
+            System.out.println();
 
             //OBS currently, this happens even when there are some workers who say a replica failed
             archive.archiveResult(taskData, bestResult, bestQuality, correctWorkers);
