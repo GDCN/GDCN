@@ -3,10 +3,7 @@ package se.chalmers.gdcn.ui;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import se.chalmers.gdcn.communicationToUI.ClientInterface;
-import se.chalmers.gdcn.communicationToUI.CommandWord;
-import se.chalmers.gdcn.communicationToUI.OperationFinishedEvent;
-import se.chalmers.gdcn.communicationToUI.WordInterface;
+import se.chalmers.gdcn.communicationToUI.*;
 import se.chalmers.gdcn.control.PeerOwner;
 
 import java.beans.PropertyChangeEvent;
@@ -30,6 +27,11 @@ public class Console implements PropertyChangeListener{
      * @param args
      */
     public static void main(String[] args){
+        List<String> arguments = Arrays.asList(args);
+
+        if (!arguments.contains("-nosplash"))
+            SplashScreen.print();
+
         Logger.getRootLogger().setLevel(Level.WARN);
         ClientInterface client = new PeerOwner();
         Console console = ConsoleFactory.create(client);
