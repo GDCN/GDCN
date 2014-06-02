@@ -8,6 +8,16 @@ import se.chalmers.gdcn.taskbuilder.utils.FormatString;
 public class SplashScreen {
 
     private static final String SPLASH = "\n" +
+            "   _____ _____   _____ _   _ \n" +
+            "  / ____|  __ \\ / ____| \\ | |\n" +
+            " | |  __| |  | | |    |  \\| |\n" +
+            " | | |_ | |  | | |    | . ` |\n" +
+            " | |__| | |__| | |____| |\\  |\n" +
+            "  \\_____|_____/ \\_____|_| \\_|\n" +
+            "\n" +
+            "General Decentralized Computation Network\n";
+
+    /*private static final String SPLASH = "\n" +
                 "        GGGGGGGGGGGGG DDDDDDDDDDDDD                 CCCCCCCCCCCCC NNNNNNNN        NNNNNNNN\n" +
                 "     GGG::::::::::::G D::::::::::::DDD           CCC::::::::::::C N:::::::N       N::::::N\n" +
                 "   GG:::::::::::::::G D:::::::::::::::DD       CC:::::::::::::::C N::::::::N      N::::::N\n" +
@@ -25,7 +35,7 @@ public class SplashScreen {
                 "     GGG::::::GGG:::G D::::::::::::DDD           CCC::::::::::::C N::::::N        N::::::N\n" +
                 "        GGGGGG   GGGG DDDDDDDDDDDDD                 CCCCCCCCCCCCC NNNNNNNN         NNNNNNN\n" +
                 "\n" +
-                "                       General Decentralized Computation Network\n";
+                "                       General Decentralized Computation Network\n";*/
 
     public static void print() {
         System.out.println(FormatString.colour(SPLASH, FormatString.Colour.YELLOW));
