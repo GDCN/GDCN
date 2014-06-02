@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.communicationToUI;
 
 import se.chalmers.gdcn.taskbuilder.utils.FormatString;
+import se.chalmers.gdcn.taskbuilder.utils.FormatString.Colour;
 
 /**
  * Created by joakim on 6/1/14.
@@ -38,6 +39,6 @@ public class SplashScreen {
                 "                       General Decentralized Computation Network\n";
 
     public static void print() {
-        System.out.println(FormatString.colour(SPLASH, FormatString.Colour.YELLOW));
+        System.out.println(FormatString.colour(SPLASH, Colour.GREEN));
     }
 }
