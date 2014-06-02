@@ -97,8 +97,8 @@ public class TaskPasser extends Passer {
         if (replicaManager1 == null) {
             ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID, taskManager);
             //TODO appropriate timeout
-            replicaManagerBuilder.setTimeoutLength(15, Time.SECOND);
-            replicaManagerBuilder.setTimerUpdateInterval(1, Time.SECOND);
+            replicaManagerBuilder.setTimeoutLength(15, Time.HOUR);
+            replicaManagerBuilder.setTimerUpdateInterval(1, Time.MINUTE);
             replicaManager = replicaManagerBuilder.create();
         } else {
             replicaManager = replicaManager1;
