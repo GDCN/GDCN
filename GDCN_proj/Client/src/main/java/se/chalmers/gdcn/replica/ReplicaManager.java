@@ -87,7 +87,8 @@ public class ReplicaManager implements Serializable, Cloneable{
     /**
      * Please use {@link se.chalmers.gdcn.replica.ReplicaManagerBuilder} for constructing this class
      */
-    ReplicaManager(WorkerReputationManager workerReputationManager, TaskRunner runner, Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
+    ReplicaManager(WorkerReputationManager workerReputationManager, TaskRunner runner,
+                   Time timeUnit, long updateInterval, int replicas, int expectedReputation, int calendarValue){
         REPLICAS = replicas;
         EXPECTED_REPUTATION = expectedReputation;
         TIME_UNIT = timeUnit;
