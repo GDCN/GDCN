@@ -9,7 +9,6 @@ import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
 
 import javax.crypto.SecretKey;
-import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;

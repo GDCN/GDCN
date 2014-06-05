@@ -212,18 +212,6 @@ public class ConsoleFactory {
         commandMap.put("spamwork", new UICommand() {
             @Override
             public void execute(List<String> args) {
-<<<<<<< HEAD:GDCN_proj/UI/src/main/java/ui/console/ConsoleFactory.java
-
-                String address = "narrens.olf.sgsnet.se";
-                int port = 4001;
-
-                if(args.size()>1){
-                    address = args.get(0);
-                    port = Integer.parseInt(args.get(1));
-                }
-
-                client.work(address, port);
-=======
                 String address = "narrens.olf.sgsnet.se";
                 int port = 4001;
 
@@ -239,7 +227,6 @@ public class ConsoleFactory {
             @Override
             public WordInterface getWord() {
                 return nullWord;
->>>>>>> dev1:GDCN_proj/UI/src/main/java/se/chalmers/gdcn/ui/ConsoleFactory.java
             }
         });
 
@@ -321,13 +308,7 @@ public class ConsoleFactory {
                 return nullWord;
             }
         });
-
-<<<<<<< HEAD:GDCN_proj/UI/src/main/java/ui/console/ConsoleFactory.java
-        //TODO remove entirely? Currently asks neighbour for work.
-        commandMap.put("reqw", new UICommand() {
-=======
         commandMap.put("neighbours", new UICommand() {
->>>>>>> dev1:GDCN_proj/UI/src/main/java/se/chalmers/gdcn/ui/ConsoleFactory.java
             @Override
             public void execute(List<String> args) {
                 List<PeerAddress> neighbours = client.getNeighbours();

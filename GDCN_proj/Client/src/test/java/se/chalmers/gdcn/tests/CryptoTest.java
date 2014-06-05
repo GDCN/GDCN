@@ -1,4 +1,4 @@
-package unitTests;
+package se.chalmers.gdcn.tests;
 
 import se.chalmers.gdcn.network.Crypto;
 import org.testng.annotations.BeforeClass;
