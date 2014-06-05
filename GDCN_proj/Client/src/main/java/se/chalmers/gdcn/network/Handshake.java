@@ -1,9 +1,7 @@
-package network;
+package se.chalmers.gdcn.network;
 
-import javax.crypto.interfaces.DHPublicKey;
 import java.io.Serializable;
 import java.security.PublicKey;
-import java.security.interfaces.DSAPublicKey;
 
 /**
  * Created by weeeeeew on 2014-04-10.

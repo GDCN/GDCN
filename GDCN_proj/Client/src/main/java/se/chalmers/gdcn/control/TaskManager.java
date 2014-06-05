@@ -1,17 +1,3 @@
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/control/TaskManager.java
-package control;
-
-import command.communicationToUI.ClientInterface;
-import files.Downloader;
-import files.JobUploader;
-import files.TaskMeta;
-import files.TaskMetaDataException;
-import network.StringHolder;
-import replica.ReplicaManager;
-import taskbuilder.Task;
-import taskbuilder.communicationToClient.TaskFailureListener;
-import taskbuilder.communicationToClient.TaskListener;
-=======
 package se.chalmers.gdcn.control;
 
 import net.tomp2p.peers.PeerAddress;
@@ -25,7 +11,6 @@ import se.chalmers.gdcn.replica.ReplicaManager;
 import se.chalmers.gdcn.taskbuilder.Task;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/control/TaskManager.java
 
 import java.io.FileNotFoundException;
 import java.util.concurrent.ExecutorService;
@@ -69,10 +54,6 @@ public class TaskManager implements TaskRunner {
      *
      * @param runnable Runnable
      */
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/control/TaskManager.java
-    public void submit(Runnable runnable){
-        threadPool.submit(runnable);
-=======
     @Override
     public void submit(Runnable runnable){
         ThreadService.submit(runnable);
@@ -81,7 +62,6 @@ public class TaskManager implements TaskRunner {
     @Override
     public TaskListener getTaskListener() {
         return taskListener;
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/control/TaskManager.java
     }
 
     /**
@@ -92,15 +72,9 @@ public class TaskManager implements TaskRunner {
      * @param subjectListener Can be null, will be combined with the TaskManagers own listener.
      */
     public void startTask(final String projectName, final TaskMeta taskMeta, final StringHolder resultFileNameHolder,
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/control/TaskManager.java
-                          final TaskListener subjectListener){
-
-        threadPool.submit(new Runnable() {
-=======
                           final PeerAddress jobOwner, final TaskListener subjectListener){
 
         ThreadService.submit(new Runnable() {
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/control/TaskManager.java
             @Override
             public void run() {
                 //Delegates error passing to client (ie PeerOwner). Makes call to his listeners
@@ -139,15 +113,8 @@ public class TaskManager implements TaskRunner {
                             taskListener.taskFailed(taskName, reason);
                         }
                     });
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/control/TaskManager.java
 
-                    final String resultPath = task.getResultFilePath();
-                    resultFileNameHolder.setString(resultPath);
-
-                    threadPool.submit(task);
-=======
                     ThreadService.submit(task);
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/control/TaskManager.java
                 } catch (TaskMetaDataException e) {
                     e.printStackTrace();
                     if(subjectListener != null) {
@@ -166,11 +133,7 @@ public class TaskManager implements TaskRunner {
      * @param replicaManager Manager that will produce replicas of each task
      */
     public void uploadJob(final String jobName, final ReplicaManager replicaManager){
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/control/TaskManager.java
-        threadPool.submit(new Runnable() {
-=======
         ThreadService.submit(new Runnable() {
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/control/TaskManager.java
             @Override
             public void run() {
                 try {

@@ -7,7 +7,6 @@ import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
-import network.Handshake;
 
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
@@ -35,11 +34,9 @@ abstract class Passer {
     //TODO save dhKeys.
     private final KeyPair dhKeys = Crypto.generateAgreementKeyPair();
 
-//    public Passer(final Peer peer) {
-//=======
-protected Passer(final Peer peer) {
-    this.peer = peer;
-    peer.setObjectDataReply(new ObjectDataReply() {
+    protected Passer(final Peer peer) {
+        this.peer = peer;
+        peer.setObjectDataReply(new ObjectDataReply() {
         @Override
         public Object reply(PeerAddress sender, Object request) throws Exception {
 
@@ -48,7 +45,6 @@ protected Passer(final Peer peer) {
                 //System.out.println("in Passer: ERROR! sender is myself!!!");
             }
 
-//<<<<<<< HEAD:GDCN_proj/Client/src/main/java/network/Passer.java
             if (request instanceof Handshake) {
                 Handshake handshake = (Handshake) request;
                 PublicKey exchangeKey = handshake.agreementKey;
@@ -74,7 +70,8 @@ protected Passer(final Peer peer) {
                     System.out.println("Decrypt returned NULL!");
                     return "Decrypt was NULL";
                 }
-                System.out.println("ObjectDataReply received: " + message.toString());
+                //Disabled for demo
+                //System.out.println("ObjectDataReply received: " + message.toString());
 
                 switch (message.getType()){
                     case REQUEST:
@@ -84,25 +81,9 @@ protected Passer(final Peer peer) {
                         return "Message was Handled in some way...";
                 }
                 return "Message was read but not Handled! Type: "+message.getType().name();
-//=======
-//                NetworkMessage message = NetworkMessage.decrypt( request);
-//                if(message == null){
-//                    //Error has occured in decrypt
-//                    System.out.println("Decrypt returned NULL!");
-//                    return "Decrypt was NULL";
-//                }
-//                //Disabled for demo
-//                //System.out.println("ObjectDataReply received: " + message.toString());
-//
-//                switch (message.getType()){
-//                    case REQUEST:
-//                        return handleRequest(sender, message.getObject());
-//                    case NO_REPLY:
-//                        handleNoReply(sender, message.getObject());
-//                        return "Message was Handled in some way...";
-////>>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/network/Passer.java
-//                }
-//                return "The request was neither a Handshake nor encrypted. Nothing to be done. Request: "+request;
+
+                }
+                return "The request was neither a Handshake nor encrypted. Nothing to be done. Request: "+request;
             }
         });
     }
@@ -122,8 +103,7 @@ protected Passer(final Peer peer) {
      */
     protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
 
-    //TODO make either private or protected final. If chose protected -> add javadoc
-    protected void sendHandshake(final PeerAddress receiver, final OnReplyCommand onCompletion) {
+    private void sendHandshake(final PeerAddress receiver, final OnReplyCommand onCompletion) {
         final Handshake handshake = new Handshake((DHPublicKey) dhKeys.getPublic(), getPublicKey());
         SendBuilder sendBuilder = peer.send(receiver.getID());
 

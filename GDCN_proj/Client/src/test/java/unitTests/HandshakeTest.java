@@ -1,7 +1,7 @@
 package unitTests;
 
 import se.chalmers.gdcn.network.Crypto;
-import network.Handshake;
+import se.chalmers.gdcn.network.Handshake;
 import org.testng.annotations.Test;
 
 import java.security.KeyPairGenerator;
