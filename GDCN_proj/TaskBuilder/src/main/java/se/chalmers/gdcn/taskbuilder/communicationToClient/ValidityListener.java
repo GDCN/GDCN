@@ -11,11 +11,7 @@ public interface ValidityListener {
      * Called when a validation of a workers result of a task has been successful
      * @param quality
      */
-<<<<<<< HEAD:GDCN_proj/TaskBuilder/src/main/java/taskbuilder/communicationToClient/ValidityListener.java
-    public void validityOk(int quality);
-=======
     public void validityOk(double quality);
->>>>>>> dev1:GDCN_proj/TaskBuilder/src/main/java/se/chalmers/gdcn/taskbuilder/communicationToClient/ValidityListener.java
 
     /**
      * Called when a validation of a workers result of a task has found to be corrupt

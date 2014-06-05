@@ -10,14 +10,8 @@ import java.io.Serializable;
 class Replica implements Serializable{
 
     private final ReplicaBox replicaBox;
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/replica/Replica.java
 
-    private WorkerID worker = null;
-    private byte[] result = null;
-
-=======
     private final WorkerID worker;
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/Replica.java
 
     /**
      * Replica is the object that job owner holds to keep track of who worked on this replica
@@ -42,10 +36,6 @@ class Replica implements Serializable{
         Replica replica = (Replica) o;
 
         return replicaBox.equals(replica.replicaBox);
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/replica/Replica.java
-
-=======
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/Replica.java
     }
 
     @Override
@@ -60,20 +50,4 @@ class Replica implements Serializable{
     public WorkerID getWorker() {
         return worker;
     }
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/replica/Replica.java
-
-    public byte[] getResult() {
-        return result;
-    }
-
-    public void setWorker(WorkerID worker) {
-        this.worker = worker;
-    }
-
-    public void setResult(byte[] result) {
-        this.result = result;
-    }
-
-=======
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/Replica.java
 }

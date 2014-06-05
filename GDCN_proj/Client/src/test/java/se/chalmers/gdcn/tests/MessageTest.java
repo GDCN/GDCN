@@ -1,11 +1,7 @@
 package se.chalmers.gdcn.tests;
 
-<<<<<<< HEAD:GDCN_proj/Client/src/test/java/unitTests/MessageTest.java
-import network.Crypto;
-import network.NetworkMessage;
-=======
+import se.chalmers.gdcn.network.Crypto;
 import se.chalmers.gdcn.network.NetworkMessage;
->>>>>>> dev1:GDCN_proj/Client/src/test/java/se/chalmers/gdcn/tests/MessageTest.java
 import org.testng.annotations.Test;
 
 import javax.crypto.IllegalBlockSizeException;

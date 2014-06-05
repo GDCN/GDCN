@@ -7,14 +7,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.text.NumberFormat;
 import java.text.ParseException;
-<<<<<<< HEAD:GDCN_proj/TaskBuilder/src/main/java/taskbuilder/Validifier.java
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-=======
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
->>>>>>> dev1:GDCN_proj/TaskBuilder/src/main/java/se/chalmers/gdcn/taskbuilder/Validifier.java
 
 /**
  * Created by joakim on 2014-04-01.
@@ -55,14 +50,8 @@ public class Validifier {
                 IOUtils.copy(proc.getInputStream(), writer, null);
 
                 try {
-<<<<<<< HEAD:GDCN_proj/TaskBuilder/src/main/java/taskbuilder/Validifier.java
-                    NumberFormat numberFormat = NumberFormat.getInstance();
-                    numberFormat.setParseIntegerOnly(true);
-                    int quality = numberFormat.parse(writer.toString()).intValue();
-=======
                     NumberFormat numberFormat = NumberFormat.getInstance(Locale.ENGLISH);
                     double quality = numberFormat.parse(writer.toString()).doubleValue();
->>>>>>> dev1:GDCN_proj/TaskBuilder/src/main/java/se/chalmers/gdcn/taskbuilder/Validifier.java
 
                     // Result accepted
                     listener.validityOk(quality);
@@ -90,11 +79,7 @@ public class Validifier {
     public static void main(String[] args) {
         ValidityListener vl = new ValidityListener() {
             @Override
-<<<<<<< HEAD:GDCN_proj/TaskBuilder/src/main/java/taskbuilder/Validifier.java
-            public void validityOk(int quality) {
-=======
             public void validityOk(double quality) {
->>>>>>> dev1:GDCN_proj/TaskBuilder/src/main/java/se/chalmers/gdcn/taskbuilder/Validifier.java
                 System.out.println("Validity Ok. Q: "+quality);
             }
 

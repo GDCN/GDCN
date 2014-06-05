@@ -24,11 +24,8 @@ public class ReplicaBox implements Serializable {
      * @param taskMeta TaskMeta for this replica
      *
      */
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/replica/ReplicaBox.java
-    ReplicaBox(TaskMeta taskMeta, int index) {
-=======
+
     ReplicaBox(TaskMeta taskMeta) {
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/replica/ReplicaBox.java
         this.resultKey = Number160.createHash(random.nextLong());
         this.taskMeta = taskMeta;
         this.replicaID = generateReplicaID(taskMeta);

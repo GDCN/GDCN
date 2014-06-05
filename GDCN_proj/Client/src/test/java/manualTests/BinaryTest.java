@@ -1,24 +1,14 @@
 package manualTests;
 
-<<<<<<< HEAD
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.Operation;
-import command.communicationToUI.OperationFinishedListener;
-import control.PeerOwner;
-=======
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.Operation;
 import se.chalmers.gdcn.communicationToUI.OperationFinishedListener;
 import se.chalmers.gdcn.control.PeerOwner;
->>>>>>> dev1
 import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-<<<<<<< HEAD
-=======
 import se.chalmers.gdcn.utils.ByteArray;
->>>>>>> dev1
 
 import java.util.Arrays;
 import java.util.Random;
@@ -44,12 +34,6 @@ public class BinaryTest {
     }
 
     @Test
-<<<<<<< HEAD
-    public void testBytes(){
-        final byte[] bytes = generate();
-        final Number160 key = Number160.createHash("SomeReallyGoodKey");
-        System.out.println("Original: "+print(bytes));
-=======
     public void testPrint(){
 
         byte[] bytes = new byte[2];
@@ -83,7 +67,6 @@ public class BinaryTest {
         final byte[] bytes = generate();
         final Number160 key = Number160.createHash("SomeReallyGoodKey");
         System.out.println("Original: "+ ByteArray.print(bytes));
->>>>>>> dev1
 
         assert identical(bytes, bytes);
         assert ! identical(bytes, generate());
@@ -108,11 +91,8 @@ public class BinaryTest {
                         System.out.println("Raw object got: "+result.toString());
                         Data resultData = (Data) result;
                         byte[] raw = resultData.getData();
-<<<<<<< HEAD
-                        System.out.println("Raw getData: "+print(raw));
-=======
+
                         System.out.println("Raw getData: "+ ByteArray.print(raw));
->>>>>>> dev1
 
                         success &=  identical(bytes, raw);
                         success &=  Arrays.equals(bytes, raw);
@@ -141,15 +121,12 @@ public class BinaryTest {
         assert success;
     }
 
-<<<<<<< HEAD
-=======
     @Test
     public void testDouble(){
         System.out.println("NEG. MAX VALUE: "+ -Double.MAX_VALUE);
         System.out.println("MIN VALUE: "+ Double.MIN_VALUE);
     }
 
->>>>>>> dev1
     private boolean identical(byte[] a, byte[] b){
         if(a.length!=b.length){
             return false;
@@ -171,15 +148,4 @@ public class BinaryTest {
         random.nextBytes(bytes);
         return bytes;
     }
-
-<<<<<<< HEAD
-    private String print(byte[] bytes){
-        String nice = "0x";
-        for(byte b : bytes){
-            nice += Integer.toHexString(b);
-        }
-        return nice;
-    }
-=======
->>>>>>> dev1
 }

@@ -1,18 +1,6 @@
 package manualTests;
 
 import com.google.gson.Gson;
-<<<<<<< HEAD
-import command.communicationToUI.ClientInterface;
-import control.PeerOwner;
-import control.TaskManager;
-import files.TaskMeta;
-import files.TaskMetaDataException;
-import network.StringHolder;
-import replica.ReplicaManager;
-import taskbuilder.communicationToClient.TaskListener;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
-=======
 import net.tomp2p.peers.PeerAddress;
 import se.chalmers.gdcn.communicationToUI.ClientInterface;
 import se.chalmers.gdcn.control.PeerOwner;
@@ -23,8 +11,6 @@ import se.chalmers.gdcn.network.StringHolder;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
->>>>>>> dev1
-
 import java.io.*;
 import java.util.concurrent.Semaphore;
 
@@ -123,11 +109,8 @@ public class TaskManagerManual {
 
         TaskManager manager = new TaskManager(mainTaskListener, client);
         TaskMeta taskMeta = resolveMetaFile(taskName, pathManager);
-<<<<<<< HEAD
-        manager.startTask("Primes", taskMeta, new StringHolder(), null);
-=======
+
         manager.startTask("Primes", taskMeta, new StringHolder(), new PeerAddress(client.getID()), null);
->>>>>>> dev1
 
         System.out.println("Await task response");
         semaphore.acquireUninterruptibly();

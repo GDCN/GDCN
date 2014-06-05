@@ -50,16 +50,12 @@ public class TaskMeta implements Serializable {
         return taskName;
     }
 
-    FileDep getModule() {
+    public FileDep getModule() {
         return module;
     }
 
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/files/TaskMeta.java
-    List<FileDep> getDependencies() {
-=======
     //TODO Visibility changed for convenience for QualityControl, may exist better solution
     public List<FileDep> getDependencies() {
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/files/TaskMeta.java
         return new ArrayList<>(dependencies);
     }
 }

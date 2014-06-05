@@ -73,14 +73,6 @@ abstract class AbstractFileMaster{
         this.pathManager = pathManager;
 
         client.addListener(operationListener);
-<<<<<<< HEAD:GDCN_proj/Client/src/main/java/files/AbstractFileMaster.java
-
-        //TODO do locally
-//            if(! taskName.equals(taskMeta.taskName)){
-//                throw new TaskMetaDataException("Must be error in metaFile: taskName doesn't conform with filename!");
-//            }
-=======
->>>>>>> dev1:GDCN_proj/Client/src/main/java/se/chalmers/gdcn/files/AbstractFileMaster.java
 
         for(FileDep fileDep : taskMeta.getDependencies()){
             unresolvedFiles.put(fileDep.getDhtKey(), fileDep);

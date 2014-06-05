@@ -1,15 +1,15 @@
 package unitTests;
 
 import com.google.gson.Gson;
-import files.TaskMeta;
+import se.chalmers.gdcn.files.TaskMeta;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.storage.Data;
-import network.WorkerID;
+import se.chalmers.gdcn.network.WorkerID;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import replica.ReplicaBox;
-import replica.ReplicaManager;
+import se.chalmers.gdcn.replica.ReplicaBox;
+import se.chalmers.gdcn.replica.ReplicaManager;
 
 import java.io.IOException;
 import java.security.KeyPairGenerator;
