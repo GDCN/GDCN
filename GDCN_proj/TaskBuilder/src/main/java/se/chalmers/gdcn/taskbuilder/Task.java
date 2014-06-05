@@ -103,14 +103,6 @@ public class Task implements Runnable{
         command.add(resultFile);
         command.addAll(initDataPaths);
 
-        //TODO remove this output?
-        //System.out.println("\nRun command:");
-        // For demo
-        //for(String c : command){
-        //    System.out.print(c + " ");
-        //}
-        //System.out.println("\n");
-
         System.out.println("Running task...");
         System.out.println();
 
@@ -128,14 +120,6 @@ public class Task implements Runnable{
             else {
                 //TODO Possibly wrap pure result data in a class
 
-//                outputStdErr(IOUtils.toString(proc.getErrorStream()));
-//                outputStdErr(fromInstream(proc.getErrorStream()));
-
-                // Currently haskell doesn't print anything to stderr...
-                //StringWriter writer = new StringWriter();
-                //IOUtils.copy(proc.getErrorStream(), writer, null);
-                //outputStdErr(writer.toString());
-
                 StringWriter writer = new StringWriter();
                 IOUtils.copy(proc.getInputStream(), writer, null);
                 System.out.println("Result of task:");
@@ -143,7 +127,6 @@ public class Task implements Runnable{
                 System.out.println();
 
                 listener.taskFinished(taskName);
-//                return IOUtils.toByteArray(proc.getInputStream());
             }
         }
         catch (Exception e) {
@@ -175,58 +158,4 @@ public class Task implements Runnable{
             listener.taskFailed(taskName, e.getMessage());
         }
     }
-
-    public static String fromInstream(InputStream inputStream){
-        StringBuilder stringBuilder = new StringBuilder();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-
-        String line;
-
-        try {
-            while( (line = reader.readLine()) != null){
-                stringBuilder.append(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-
-        return stringBuilder.toString();
-    }
-
-    private static void outputStdErr(String output){
-        //TODO output in more general fashion
-        //Cleaned up for demo
-        System.out.println();
-        //System.out.println("\n-- StdErr:");
-        //System.out.println(output);
-        //System.out.println("-- end of StdErr.");
-    }
-
-//    public static void main(String[] args) throws IOException, InterruptedException, ExitFailureException {
-//        //NOTE: This test only works for Unix with current GDCN.properties
-//        // Directories /tmp/GDCN and /tmp/GDCNDump must also exist, they will be used
-//	    OLD_PathManager.getInstance().loadFromFile(System.getProperty("user.dir") +
-//                File.separator + "TaskBuilder/resources/pathdata.prop");
-//        Task t = new Task("TaskName_Prime_1", "Prime", "2_2000.raw", new TaskListener() {
-//            @Override
-//            public void taskFinished(String taskName) {
-//                //TODO
-//            }
-//
-//            @Override
-//            public void taskFailed(String taskName, String reason) {
-//                //TODO
-//            }
-//        });
-//	    t.run();
-//    }
 }
