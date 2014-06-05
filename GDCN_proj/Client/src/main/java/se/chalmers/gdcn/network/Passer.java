@@ -7,6 +7,7 @@ import net.tomp2p.p2p.RequestP2PConfiguration;
 import net.tomp2p.p2p.builder.SendBuilder;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.rpc.ObjectDataReply;
+import org.apache.shiro.crypto.CryptoException;
 
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPublicKey;
@@ -212,9 +213,10 @@ abstract class Passer {
             e.printStackTrace();
             System.out.println("in Passer: Invalid key when encrypting message. Message: "+networkMessage);
             return;
+        } catch (CryptoException e) {
+            System.out.println("CryptoException! " + sharedKey.getAlgorithm() +"\n"+ networkMessage.toString());
+            return;
         }
-
-        final Serializable finalMessage = readyMessage;
 
         FutureDHT futureDHT = sendBuilder.setObject( readyMessage ).setRequestP2PConfiguration(requestConfiguration).start();
         futureDHT.addListener(new BaseFutureAdapter<FutureDHT>() {
