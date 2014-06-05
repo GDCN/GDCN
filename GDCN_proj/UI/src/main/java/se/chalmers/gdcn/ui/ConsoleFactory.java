@@ -338,18 +338,6 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("clearNeighbourFile", new UICommand() {
-            @Override
-            public void execute(List<String> args) {
-                client.clearNeighbourFile();
-            }
-
-            @Override
-            public WordInterface getWord() {
-                return nullWord;
-            }
-        });
-
         commandMap.put("deleteNeighbourFile", new UICommand() {
             @Override
             public void execute(List<String> args) {
@@ -365,7 +353,7 @@ public class ConsoleFactory {
         return commandMap;
     }
 
-    private static WordInterface nullWord = new WordInterface() {
+    private static final WordInterface nullWord = new WordInterface() {
         @Override
         public int getArity() {
             return 100;

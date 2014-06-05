@@ -115,6 +115,9 @@ public class TaskPasser extends Passer {
         }, 1000 * 120, 1000 * 120);
     }
 
+    /**
+     * Stop timer and save state to file
+     */
     public void stopTimer() {
         timer.cancel();
 

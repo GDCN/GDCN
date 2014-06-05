@@ -38,6 +38,9 @@ public class SplashScreen {
                 "\n" +
                 "                       General Decentralized Computation Network\n";
 
+    /**
+     * Prints a coloured splash screen to the console.
+     */
     public static void print() {
         System.out.println(FormatString.colour(SPLASH, Colour.GREEN));
     }

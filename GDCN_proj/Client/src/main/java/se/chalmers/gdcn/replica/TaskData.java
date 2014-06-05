@@ -25,6 +25,13 @@ class TaskData implements TaskCompare, Serializable{
     private int replicasToBeReturned;
     private float reputationToBeReturned;
 
+    /**
+     * Creates a TaskData instance
+     * @param taskMeta meta info of the task
+     * @param jobName job name
+     * @param replicas minimal number of replicas to complete task
+     * @param reputationNeeded minimal reputation to complete task
+     */
     public TaskData(TaskMeta taskMeta, String jobName, int replicas, float reputationNeeded) {
         this.taskMeta = taskMeta;
         this.jobName = jobName;
@@ -50,6 +57,11 @@ class TaskData implements TaskCompare, Serializable{
         return taskMeta;
     }
 
+    /**
+     * Call when a worker has timed out
+     * @param workerID worker
+     * @return if state has changed
+     */
     public boolean timedOut(WorkerID workerID){
         Float oldReputation = reputationMap.remove(workerID);
         if(oldReputation == null){
@@ -61,6 +73,11 @@ class TaskData implements TaskCompare, Serializable{
         return true;
     }
 
+    /**
+     * Call when a worker has returned a result for this task
+     * @param workerID worker
+     * @return true
+     */
     public boolean returned(WorkerID workerID){
         Float oldReputation = timeoutMap.remove(workerID);
         if(oldReputation != null){
@@ -76,6 +93,10 @@ class TaskData implements TaskCompare, Serializable{
         return true;
     }
 
+    /**
+     *
+     * @return if enough replicas have been given already
+     */
     public boolean enoughGiven(){
         return replicasToGive <=0 && reputationNeeded <= 0;
     }
@@ -139,6 +160,9 @@ class TaskData implements TaskCompare, Serializable{
         return taskID().toString();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -152,6 +176,9 @@ class TaskData implements TaskCompare, Serializable{
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int hashCode() {
         int result = taskMeta.hashCode();
@@ -159,6 +186,9 @@ class TaskData implements TaskCompare, Serializable{
         return result;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public String toString() {
         return "TaskData{" +

@@ -45,7 +45,7 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
 
     private DataFilesManager dataFilesManager;
 
-    private String testPath = "TEST";
+    private final String testPath = "TEST";
 
     //Listener used by UI to react to results from commands
     private final TaskListener taskListener = new TaskListener() {
@@ -389,16 +389,6 @@ public class PeerOwner implements se.chalmers.gdcn.communicationToUI.ClientInter
         });
     }
 
-
-    @Override
-    public void setNeighbourFile(String file){
-//        dataFilesManager.changeNeighbourFileName(file);
-    }
-
-    @Override
-    public void clearNeighbourFile(){
-        //neighbourFileManager.clearNeighbourFile();
-    }
 
     @Override
     public void deleteNeighbourFile(){

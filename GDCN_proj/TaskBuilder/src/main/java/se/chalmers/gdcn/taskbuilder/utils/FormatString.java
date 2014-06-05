@@ -20,7 +20,7 @@ public class FormatString {
         CYAN(6),
         WHITE(7);
 
-        private String c;
+        private final String c;
 
         private Colour(int n) {
             c = n + "";

@@ -232,16 +232,6 @@ public class SelfWorkTest {
             }
 
             @Override
-            public void setNeighbourFile(String file) {
-
-            }
-
-            @Override
-            public void clearNeighbourFile() {
-
-            }
-
-            @Override
             public void deleteNeighbourFile() {
 
             }

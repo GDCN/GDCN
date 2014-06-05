@@ -7,13 +7,11 @@ package se.chalmers.gdcn.replica;
  */
 public interface TaskCompare{
     /**
-     *
      * @return Primary ordering attribute
      */
     float value();
 
     /**
-     *
      * @return Secondary ordering attribute
      */
     String order();
