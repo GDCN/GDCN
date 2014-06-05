@@ -111,13 +111,7 @@ public class Challenge implements Serializable {
     @Override
     public String toString() {
         return "Challenge{" +
-//                "\n" +
-                //disabled for demo
-//                "\tseed='" + ByteArray.print(seed) + "',\n" +
-//                "\t"+
                 "difficulty='" + difficulty +"'"+
-//                ",\n" +
-//                "\tmac='" + ByteArray.print(mac) + '\n' +
                 '}';
     }
 
