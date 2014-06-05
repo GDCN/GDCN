@@ -12,7 +12,7 @@ import java.security.*;
 public class HashCash {
     public final static String HASH_ALGORITHM = "SHA-1";
     
-    public final int hardDifficulty, easyDifficulty;
+    private final int hardDifficulty, easyDifficulty;
     private final SecretKey key;
 
     public static enum Purpose { REG, AUTH, NONE }

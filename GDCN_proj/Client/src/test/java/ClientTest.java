@@ -27,29 +27,29 @@ public class ClientTest {
 
     //Semaphore used to make sure that everything is finished when doing things over
     //the network before proceeding.
-    Semaphore sem;
+    private Semaphore sem;
 
     //Key used when getting and putting to the DHT
-    String dhtKey = "Key";
+    private String dhtKey = "Key";
 
     //The standard value used when putting to the DHT
-    Data putValue;
+    private Data putValue;
 
     //The standard value which is saved to in getResultListener
-    Data getValue;
+    private Data getValue;
 
     //The standard node used to rendezvous to.
-    PeerOwner bootstrapNode;
+    private PeerOwner bootstrapNode;
 
     //The standard peer used by the tests
-    PeerOwner peer;
+    private PeerOwner peer;
 
     //The boolean used to see if the tests are successful.
-    Boolean success;
+    private Boolean success;
 
     //Information about the bootstrapping node to make it easier to bootstrap
-    String bootstrapAddress = "localhost";
-    int bootstrapPort = 4002;
+    private String bootstrapAddress = "localhost";
+    private int bootstrapPort = 4002;
 
 
     /**
@@ -60,7 +60,7 @@ public class ClientTest {
     //only listens to the bootstrap command. releases the semaphore and sets success to true. Vital that
     //the semaphore is acquired after this and if the test is not about bootstrapping that the
     //success of the test if checked some other way
-    PropertyChangeListener bootstrapListener = new PropertyChangeListener() {
+    private PropertyChangeListener bootstrapListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
@@ -76,7 +76,7 @@ public class ClientTest {
     };
 
     //See bootstrapListener
-    PropertyChangeListener startListener = new PropertyChangeListener() {
+    private PropertyChangeListener startListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
@@ -92,7 +92,7 @@ public class ClientTest {
     };
 
     //See bootstrapListener
-    PropertyChangeListener putListener = new PropertyChangeListener() {
+    private PropertyChangeListener putListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
@@ -109,7 +109,7 @@ public class ClientTest {
 
     //Sets the success and the getValue so it can be confirmed in the test.
     //It also releases the semaphore
-    PropertyChangeListener getListener = new PropertyChangeListener() {
+    private PropertyChangeListener getListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
@@ -126,7 +126,7 @@ public class ClientTest {
     };
 
     //See bootstrapListener
-    PropertyChangeListener stopListener = new PropertyChangeListener() {
+    private PropertyChangeListener stopListener = new PropertyChangeListener() {
         @Override
         public void propertyChange(PropertyChangeEvent evt) {
 
