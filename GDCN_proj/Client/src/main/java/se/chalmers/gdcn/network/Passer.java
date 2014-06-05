@@ -34,7 +34,7 @@ abstract class Passer {
 
                 NetworkMessage message = NetworkMessage.decrypt( request);
                 if(message == null){
-                    //Error has occured in decrypt
+                    //Error has occurred in decrypt
                     System.out.println("Decrypt returned NULL!");
                     return "Decrypt was NULL";
                 }

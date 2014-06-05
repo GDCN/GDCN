@@ -169,7 +169,7 @@ abstract class AbstractFileMaster{
     }
 
     /**
-     * Attempt to solve dependecies that was found
+     * Attempt to solve dependencies that was found
      * @throws TaskMetaDataException if dependent File exist locally but is a directory
      */
     private void resolveDependencies() throws TaskMetaDataException {

@@ -443,7 +443,7 @@ public class ReplicaManager implements Serializable, Cloneable{
         Set<WorkerID> correctWorkers = new HashSet<>();
         double bestQuality = 0;
         ByteArray bestResult = null;
-        Map<ByteArray,TrustQuality> trustMap = null;
+        Map<ByteArray,TrustQuality> trustMap;
 
         //TODO Implement choice of automatic or manual result validation
         try {

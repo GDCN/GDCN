@@ -71,9 +71,8 @@ public class ConsoleFactory {
             @Override
             public void execute(List<String> args) {
                 String name = args.remove(0);
-                Data data = null;
                 try {
-                    data = new Data(args);
+                    Data data = new Data(args);
                     client.put(name, data);
                 } catch (IOException e) {
                     e.printStackTrace();
