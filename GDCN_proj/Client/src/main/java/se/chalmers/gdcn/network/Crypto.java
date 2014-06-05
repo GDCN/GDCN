@@ -29,7 +29,7 @@ public class Crypto {
     public final static String SIGNATURE_KEY_ALGORITHM = "DSA";
     public final static int SIGNATURE_KEY_SIZE = 1024;
 
-    private final static GCMCipherService cipher;
+    private final static GCMCipherService cipher = new GCMCipherService();
     private final static KeyAgreement agreement = initAgreement();
     private final static Signature signer = initSigner();
 
@@ -38,7 +38,6 @@ public class Crypto {
 
     static {
         Security.addProvider(new BouncyCastleProvider());
-        cipher = new GCMCipherService();
     }
 
     /**
