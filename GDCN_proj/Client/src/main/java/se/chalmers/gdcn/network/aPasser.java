@@ -34,7 +34,7 @@ abstract class aPasser {
     //TODO save dhKeys.
     private final KeyPair dhKeys = Crypto.generateAgreementKeyPair();
 
-    public Passer(final Peer peer) {
+    public aPasser(final Peer peer) {
         this.peer = peer;
         peer.setObjectDataReply(new ObjectDataReply() {
             @Override

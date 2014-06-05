@@ -1,6 +1,9 @@
 package se.chalmers.gdcn.network;
 
+import javax.crypto.SecretKey;
 import java.io.Serializable;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
 
 /**
  * Created by Leif on 2014-03-24.
@@ -25,41 +28,25 @@ public class NetworkMessage implements Serializable {
         return type;
     }
 
-    /**
-     * Encrypt message using receiving peer's public key
-     * @return encrypted message
-     */
-    public Object encrypt(){
-        //TODO encrypt and sign message
-//        try {
-//            return new Data(this);
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return this;
+    public byte[] encrypt(SecretKey key) throws InvalidKeyException {
+        return Crypto.encrypt(this, key);
     }
 
-    /**
-     * Decrypt message using private key
-     * @param data Encrypted message
-     * @return Decrypted message
-     */
-    public static NetworkMessage decrypt(Object data){
-//        //TODO decrypt message
-//        try {
-//            return (NetworkMessage) data.getObject();
-//        } catch (ClassNotFoundException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-        return (NetworkMessage) data;
+    public static NetworkMessage decrypt(byte[] ciphertext, SecretKey key) throws InvalidKeyException {
+        Serializable data = Crypto.decrypt(ciphertext, key);
+
+        if (data instanceof NetworkMessage) {
+            return (NetworkMessage) data;
+        } else if (data == null) {
+            return null;
+        } else {
+            throw new InvalidParameterException("The encrypted object was not a NetworkMessage");
+        }
     }
 
     @Override
     public String toString() {
-        return //"NetwM"+
-                "{" + type +
+        return "NetwM{ " + type +
                 ", " + object +
                 '}';
     }
@@ -69,5 +56,11 @@ public class NetworkMessage implements Serializable {
         NO_REPLY
     }
 
+    @Override
+    public boolean equals(Object o) {
+        return o instanceof NetworkMessage
+                ? this.object.equals( ((NetworkMessage) o).object ) && this.type == ((NetworkMessage) o).type
+                : false;
+    }
 
 }

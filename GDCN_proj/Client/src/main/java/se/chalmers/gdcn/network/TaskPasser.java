@@ -4,6 +4,7 @@ import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+import org.apache.commons.lang.SerializationUtils;
 import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.communicationToUI.Operation;
@@ -30,8 +31,7 @@ import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -255,7 +255,6 @@ public class TaskPasser extends Passer {
                         }
                     }
                 });
-                //TODO sign result with private key... Might want to use the class 'Box' or similar for signing
                 byte[] result = null;
                 try {
                     result = FileManagementUtils.fromFile(new File(stringHolder.getString()));
@@ -264,8 +263,21 @@ public class TaskPasser extends Passer {
                     taskFailed(taskName, e.getMessage());
                 }
                 if(result != null){
-                    System.out.println("\nResult holds "+result.length+" bytes.");
-                    client.put(resultKey, jobOwner.getID(), new Data(result));
+                    SignedObject signedResult = null;
+                    try {
+                        signedResult = Crypto.sign(result,getPrivateKey());
+                    } catch (InvalidKeyException|IOException|SignatureException e) {
+                        e.printStackTrace();
+                        System.out.println("in TaskPasser: ERROR! Couldn't sign result.");
+                        return;
+                    }
+                    try {
+                        System.out.println("\nResult holds "+result.length+" bytes.");
+                        client.put(resultKey, new Data(signedResult));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("in TaskPasser: ERROR! Couldn't create Data of the signed result.");
+                    }
                 }
             }
 
@@ -352,7 +364,7 @@ public class TaskPasser extends Passer {
 
         switch (taskMessage.getType()){
             case RESULT_UPLOADED:
-                resultUploaded((ReplicaID) taskMessage.getActualContent());
+                resultUploaded((ReplicaID) taskMessage.getActualContent(), sender);
                 break;
             case TASK_FAIL:
                 FailMessage failMessage = (FailMessage) taskMessage.getActualContent();
@@ -375,8 +387,9 @@ public class TaskPasser extends Passer {
     /**
      * Called when the job owner has been notified that a certain result has been uploaded.
      * @param replicaID ID of the replica who's result was uploaded
+     * @param worker
      */
-    private void resultUploaded(final ReplicaID replicaID){
+    private void resultUploaded(final ReplicaID replicaID, final PeerAddress worker){
         System.out.println("Replica was completed: "+replicaID);
 
         final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
@@ -388,17 +401,66 @@ public class TaskPasser extends Passer {
                 if (operation.isSuccess()) {
 //                    System.out.println("RESULT RAW: "+operation.getResult().toString());
                     Data resultData = (Data) operation.getResult();
+                    SignedObject signedResult;
+                    Serializable result;
+                    byte[] resultBytes;
 
-                    byte[] resultArray = resultData.getData();
-                    System.out.println("Result downloaded successfully, \n\tresult holds "+resultArray.length+" bytes.");
-                    replicaManager.replicaFinished(replicaID, resultArray);
+                    try {
+                        signedResult = (SignedObject) resultData.getObject();
+                        result = (Serializable) signedResult.getObject();
+                        resultBytes = SerializationUtils.serialize(result);
+                    } catch (ClassNotFoundException|IOException e) {
+                        e.printStackTrace();
+                        return;
+                    } catch (ClassCastException e) {
+                        System.out.println("in TaskPasser: ERROR! The result was not signed.");
+                        return;
+                    }
+
+                    PublicKey senderKey = knownKeys.get(worker).publicKey;
+
+                    try {
+                        if (Crypto.verify(signedResult,senderKey)) {
+                            System.out.println("Result downloaded and verified successfully.");
+                            replicaManager.replicaFinished(replicaID, resultBytes);
+                        } else {
+                            System.out.println("Result downloaded successfully, but verification failed!");
+                            return;
+                        }
+                    } catch (SignatureException|InvalidKeyException e) {
+                        e.printStackTrace();
+                    }
+
+
                 } else {
                     System.out.println("DownloadOperation failed! " + operation.getErrorCode()
                             + "\n\t" + operation.getReason());
                 }
             }
         });
-        client.get(resultKey, client.getID());
+        client.get(resultKey);
+//        System.out.println("Replica was completed: "+replicaID);
+//
+//        final Number160 resultKey = replicaManager.getReplicaResultKey(replicaID);
+////        System.out.println("\tResultKey: "+resultKey);
+//
+//        client.addListener(new OperationFinishedListener(client, resultKey, CommandWord.GET) {
+//            @Override
+//            protected void operationFinished(Operation operation) {
+//                if (operation.isSuccess()) {
+////                    System.out.println("RESULT RAW: "+operation.getResult().toString());
+//                    Data resultData = (Data) operation.getResult();
+//
+//                    byte[] resultArray = resultData.getData();
+//                    System.out.println("Result downloaded successfully, \n\tresult holds "+resultArray.length+" bytes.");
+//                    replicaManager.replicaFinished(replicaID, resultArray);
+//                } else {
+//                    System.out.println("DownloadOperation failed! " + operation.getErrorCode()
+//                            + "\n\t" + operation.getReason());
+//                }
+//            }
+//        });
+//        client.get(resultKey, client.getID());
 
     }
 

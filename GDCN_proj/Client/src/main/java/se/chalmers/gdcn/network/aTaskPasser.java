@@ -1,24 +1,15 @@
 package se.chalmers.gdcn.network;
 
-import command.communicationToUI.CommandWord;
-import command.communicationToUI.NetworkInterface;
-import command.communicationToUI.Operation;
-import command.communicationToUI.OperationFinishedListener;
-import control.TaskManager;
-import control.WorkerNodeManager;
-import files.DataFilesManager;
-import files.FileUtils;
-import hashcash.Challenge;
-import hashcash.HashCash;
-import hashcash.Solution;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
 import org.apache.commons.lang.SerializationUtils;
-import replica.ReplicaBox;
-import replica.ReplicaManager;
-import taskbuilder.communicationToClient.TaskListener;
+import se.chalmers.gdcn.communicationToUI.NetworkInterface;
+import se.chalmers.gdcn.control.TaskManager;
+import se.chalmers.gdcn.files.DataFilesManager;
+import se.chalmers.gdcn.hashcash.HashCash;
+import se.chalmers.gdcn.replica.ReplicaManager;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -26,8 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.*;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -60,7 +49,7 @@ public class aTaskPasser extends aPasser {
      * @param taskManager Manager to run a task (replica) that was received
      * @param client Client to put and get results
      */
-    public TaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
+    public aTaskPasser(Peer peer, final ReplicaManager replicaManager, TaskManager taskManager, NetworkInterface client, DataFilesManager dm) {
         super(peer);
         this.replicaManager = replicaManager;
         this.taskManager = taskManager;
