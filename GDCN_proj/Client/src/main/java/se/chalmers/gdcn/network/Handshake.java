@@ -45,6 +45,15 @@ public class Handshake implements Serializable {
         return false;
     }
 
+    @Override
+    public String toString() {
+        return "Handshake{"+
+                "\n\tPhase: "+phase+
+                "\n\tSignKey: "+signKey+
+                "\n\tAgreeKey: "+agreementKey+
+                "\n}";
+    }
+
     public enum Phase {
         INIT,
         REPLY
