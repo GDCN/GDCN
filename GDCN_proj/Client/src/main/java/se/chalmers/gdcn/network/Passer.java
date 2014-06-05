@@ -104,7 +104,7 @@ abstract class Passer {
     protected abstract void handleNoReply(PeerAddress sender, Object messageContent);
 
     private void sendHandshake(final PeerAddress receiver, final OnReplyCommand onCompletion) {
-        final Handshake handshake = new Handshake((DHPublicKey) dhKeys.getPublic(), getPublicKey());
+        final Handshake handshake = new Handshake(dhKeys.getPublic(), getPublicKey());
         SendBuilder sendBuilder = peer.send(receiver.getID());
 
         FutureDHT futureDHT = sendBuilder.setObject(handshake).setRequestP2PConfiguration(requestConfiguration).start();
@@ -124,7 +124,7 @@ abstract class Passer {
                                     secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), receiverKey);
                                 } catch (InvalidKeyException e) {
                                     e.printStackTrace();
-                                    System.out.println("Could not create secret key for node "+receiver+" The agreement keys was invalid.");
+                                    System.out.println("Could not create secret key for node "+receiver+" The agreement keys were invalid.");
                                     return;
                                 }
 
