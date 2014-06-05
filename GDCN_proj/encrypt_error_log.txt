@@ -1,0 +1,4 @@
+Success sending se.chalmers.gdcn.network.Handshake@1c11656b
+CryptoException! AES
+NetwM{ REQUEST, {REQUEST_CHALLENGE}}
+/129.16.179.193:4001 answered with se.chalmers.gdcn.network.Handshake@6cf12b66
