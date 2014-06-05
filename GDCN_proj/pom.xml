@@ -7,7 +7,7 @@
     <groupId>GDCN</groupId>
     <artifactId>GDCN</artifactId>
     <packaging>pom</packaging>
-    <version>0.2</version>
+    <version>0.4</version>
     <modules>
         <module>Client</module>
         <module>UI</module>

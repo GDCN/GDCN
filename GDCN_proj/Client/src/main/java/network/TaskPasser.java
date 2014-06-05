@@ -18,6 +18,7 @@ import net.tomp2p.storage.Data;
 import org.apache.commons.lang.SerializationUtils;
 import replica.ReplicaBox;
 import replica.ReplicaManager;
+import se.chalmers.gdcn.network.Crypto;
 import taskbuilder.communicationToClient.TaskListener;
 
 import javax.crypto.KeyGenerator;
@@ -217,7 +218,7 @@ public class TaskPasser extends Passer {
                 if(result != null){
                     SignedObject signedResult = null;
                     try {
-                        signedResult = Crypto.sign(result,getPrivateKey());
+                        signedResult = Crypto.sign(result, getPrivateKey());
                     } catch (InvalidKeyException|IOException|SignatureException e) {
                         e.printStackTrace();
                         System.out.println("in TaskPasser: ERROR! Couldn't sign result.");

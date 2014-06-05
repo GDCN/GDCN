@@ -1,6 +1,6 @@
 package unitTests;
 
-import network.Crypto;
+import se.chalmers.gdcn.network.Crypto;
 import network.Handshake;
 import org.testng.annotations.Test;
 

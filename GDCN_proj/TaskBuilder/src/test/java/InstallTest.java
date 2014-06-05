@@ -1,7 +1,7 @@
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-import taskbuilder.fileManagement.Install;
-import taskbuilder.fileManagement.PathManager;
+import se.chalmers.gdcn.taskbuilder.fileManagement.Install;
+import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -86,7 +86,7 @@ public class InstallTest {
             return false;
         }
 
-        List<String> paths = new ArrayList<String>();
+        List<String> paths = new ArrayList<>();
 
         paths.add(properties.getProperty("data_path"));
         paths.add(properties.getProperty("bin_path"));

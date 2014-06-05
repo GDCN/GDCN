@@ -5,7 +5,7 @@
     <parent>
         <artifactId>GDCN</artifactId>
         <groupId>GDCN</groupId>
-        <version>0.2</version>
+        <version>0.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -14,9 +14,47 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+
+                <configuration>
+                    <descriptor>jar_runnable.xml</descriptor>
+
+                    <finalName>GDCN_console_${project.version}</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
+                    <outputDirectory>../target</outputDirectory>
+
+                    <archive>
+                        <manifest>
+                            <mainClass>se.chalmers.gdcn.ui.Console</mainClass>
+                        </manifest>
+                    </archive>
+
+                </configuration>
+
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>1.2.1</version>
+
+                <dependencies>
+                    <dependency>
+                        <groupId>org.apache.maven</groupId>
+                        <artifactId>maven-core</artifactId>
+                        <version>3.1.1</version>
+                    </dependency>
+                </dependencies>
+
                 <executions>
                     <execution>
                         <goals>
@@ -25,17 +63,26 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>ui.console.Console</mainClass>
+                    <mainClass>se.chalmers.gdcn.ui.Console</mainClass>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
     <dependencies>
+
+        <!--
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>1.7.5</version>
+        </dependency>
+        -->
+
         <dependency>
             <groupId>GDCN</groupId>
             <artifactId>Client</artifactId>
-            <version>0.2</version>
+            <version>0.4</version>
         </dependency>
 
     </dependencies>

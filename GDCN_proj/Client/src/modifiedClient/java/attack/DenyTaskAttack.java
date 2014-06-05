@@ -1,18 +1,31 @@
 package attack;
 
+<<<<<<< HEAD
 import command.communicationToUI.CommandWord;
 import command.communicationToUI.NetworkInterface;
 import command.communicationToUI.Operation;
 import command.communicationToUI.OperationFinishedSupport;
+=======
+import se.chalmers.gdcn.communicationToUI.CommandWord;
+import se.chalmers.gdcn.communicationToUI.NetworkInterface;
+import se.chalmers.gdcn.communicationToUI.Operation;
+import se.chalmers.gdcn.communicationToUI.OperationFinishedSupport;
+>>>>>>> dev1
 import net.tomp2p.futures.BaseFutureAdapter;
 import net.tomp2p.futures.FutureDHT;
 import net.tomp2p.p2p.Peer;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
+<<<<<<< HEAD
 import network.DeceitfulNetworkUtils;
 import network.OnReplyCommand;
 import network.TaskPasserDeny;
+=======
+import se.chalmers.gdcn.network.DeceitfulNetworkUtils;
+import se.chalmers.gdcn.network.OnReplyCommand;
+import se.chalmers.gdcn.network.TaskPasserDeny;
+>>>>>>> dev1
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -159,6 +172,12 @@ public class DenyTaskAttack {
             public void bootstrap(String host, int port) {}
 
             @Override
+<<<<<<< HEAD
+=======
+            public void bootstrap() {}
+
+            @Override
+>>>>>>> dev1
             public List<PeerAddress> getNeighbours() {return null;}
 
             @Override
@@ -171,10 +190,21 @@ public class DenyTaskAttack {
             public void send(String msg) {}
 
             @Override
+<<<<<<< HEAD
             public void put2(String key, String domain, Object value) {}
 
             @Override
             public void get2(String key, String domain) {}
+=======
+            public void put(Number160 key, Number160 domain, Data value) {
+
+            }
+
+            @Override
+            public void get(Number160 key, Number160 domain) {
+
+            }
+>>>>>>> dev1
 
             @Override
             public void setNeighbourFile(String file) {}
@@ -187,6 +217,14 @@ public class DenyTaskAttack {
 
             @Override
             public void requestWork(int index) {}
+<<<<<<< HEAD
+=======
+
+            @Override
+            public Number160 getID() {
+                return null;
+            }
+>>>>>>> dev1
         };
     }
 

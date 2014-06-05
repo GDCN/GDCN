@@ -1,6 +1,6 @@
 package unitTests;
 
-import network.Crypto;
+import se.chalmers.gdcn.network.Crypto;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

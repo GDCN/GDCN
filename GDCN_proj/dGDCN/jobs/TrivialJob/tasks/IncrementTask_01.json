@@ -1,0 +1,9 @@
+{
+    "resultKey":"Increment1",
+    "taskName":"IncrementTask_01",
+    "module":{"fileName":"Increment.hs","fileLocation":"code","sticky":true,"checkSum":500},
+    "dependencies":
+    [
+        {"fileName":"0.raw","fileLocation":"resources","sticky":false,"checkSum":25}
+    ]
+}

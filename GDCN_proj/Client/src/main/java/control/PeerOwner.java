@@ -15,7 +15,7 @@ import net.tomp2p.p2p.builder.PutBuilder;
 import net.tomp2p.peers.Number160;
 import net.tomp2p.peers.PeerAddress;
 import net.tomp2p.storage.Data;
-import network.Crypto;
+import se.chalmers.gdcn.network.Crypto;
 import network.TaskPasser;
 import replica.ReplicaManager;
 import taskbuilder.communicationToClient.TaskListener;

@@ -5,7 +5,7 @@
     <parent>
         <artifactId>GDCN</artifactId>
         <groupId>GDCN</groupId>
-        <version>0.2</version>
+        <version>0.4</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -19,17 +19,16 @@
     </repositories>
 
     <dependencies>
-
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.5</version>
-        </dependency>
-
         <dependency>
             <groupId>net.tomp2p</groupId>
             <artifactId>TomP2P</artifactId>
             <version>4.4</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         
         <dependency>
@@ -47,7 +46,7 @@
         <dependency>
             <groupId>GDCN</groupId>
             <artifactId>TaskBuilder</artifactId>
-            <version>0.2</version>
+            <version>0.4</version>
         </dependency>
     </dependencies>
 
