@@ -46,13 +46,19 @@ abstract class Passer {
                 }
 
                 if (request instanceof Handshake) {
+                    System.out.println("Received a handshake from "+sender);
+
                     Handshake handshake = (Handshake) request;
                     PublicKey exchangeKey = handshake.agreementKey;
 
                     SecretKey secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), exchangeKey);
                     PeerKeys peerKeys = new PeerKeys<>(handshake.signKey, secretKey);
 
+                    System.out.println("Successfully established a shared secret key with "+sender);
+
                     knownKeys.put(sender, peerKeys);
+
+                    System.out.println("Replying to the handshake...");
 
                     return handshake.reply(dhKeys.getPublic(), getPublicKey());
                 } else if (request instanceof byte[]) {
@@ -139,15 +145,19 @@ abstract class Passer {
                             Handshake handshakeReply = (Handshake) replyMessageContent;
 
                             if (handshakeReply.phase == Handshake.Phase.REPLY) {
+                                System.out.println("Received reply to handshake from "+receiver);
+
                                 PublicKey receiverKey = handshakeReply.agreementKey;
                                 SecretKey secretKey;
                                 try {
                                     secretKey = Crypto.generateSecretKey(dhKeys.getPrivate(), receiverKey);
                                 } catch (InvalidKeyException e) {
                                     e.printStackTrace();
-                                    System.out.println("Could not create secret key for node "+receiver+" The agreement keys was invalid.");
+                                    System.out.println("Could not create secret key for "+receiver+" The agreement keys was invalid.");
                                     return;
                                 }
+
+                                System.out.println("Successfully established a shared secret key with "+receiver);
 
                                 PeerKeys peerKeys = new PeerKeys<>(handshake.signKey,secretKey);
 
