@@ -9,7 +9,7 @@ public interface ValidityListener {
 
     /**
      * Called when a validation of a workers result of a task has been successful
-     * @param quality
+     * @param quality quality of the result
      */
     public void validityOk(double quality);
 

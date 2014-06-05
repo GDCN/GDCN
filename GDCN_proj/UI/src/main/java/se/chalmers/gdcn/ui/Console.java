@@ -21,10 +21,10 @@ import java.util.Map;
  */
 public class Console implements PropertyChangeListener{
 
-
     /**
      * Starts a client, adding a console to it and starts reading commands from CLI.
-     * @param args
+     * <p>-nosplash option disables the splash screen on start</p>
+     * @param args console arguments
      */
     public static void main(String[] args){
         List<String> arguments = Arrays.asList(args);
@@ -46,7 +46,7 @@ public class Console implements PropertyChangeListener{
 
     /**
      * Package-private constructor used by {@link se.chalmers.gdcn.ui.ConsoleFactory#create(se.chalmers.gdcn.communicationToUI.ClientInterface)}.
-     * @param commandMap
+     * @param commandMap map of possible client commands
      */
     Console(Map<String, UICommand> commandMap) {
 
@@ -113,7 +113,7 @@ public class Console implements PropertyChangeListener{
 
     /**
      * Receives results from the Client on various operations.
-     * @param evt
+     * @param evt event
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {

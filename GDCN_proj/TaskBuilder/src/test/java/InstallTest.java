@@ -61,7 +61,7 @@ public class InstallTest {
 
     /**
      * Checks if the path data exist.
-     * @return
+     * @return if is installed or not
      */
     private static boolean isInstalled(){
         File rootPath = new File(Install.APPDATA);

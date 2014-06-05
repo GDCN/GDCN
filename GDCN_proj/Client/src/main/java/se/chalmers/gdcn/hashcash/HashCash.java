@@ -89,7 +89,7 @@ public class HashCash {
      * @param jobOwner The issuer of the challenge.
      * @param worker The worker that wants to register.
      * @param score The worker's current score.
-     * @return
+     * @return The challenge.
      */
     public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
         String seed = jobOwner.toString() + worker + score;
