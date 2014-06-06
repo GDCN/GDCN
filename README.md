@@ -3,7 +3,7 @@ GDCN - General decentralised computation network
 Distribute ALL the computations!
 
 Latest version can be found on [GitHub](https://github.com/GDCN/GDCN).  
-The program is platform dependent but requires `java` and [`ghc`](http://www.haskell.org/ghc/) to be installed in beforehand.
+The program is platform independent but requires `java` and [`ghc`](http://www.haskell.org/ghc/) to be installed in beforehand.
 
 ## Compilation
 Compilation is done with Maven to a runnable jar.
