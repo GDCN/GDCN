@@ -1,6 +1,7 @@
 package se.chalmers.gdcn.network;
 
 import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
 import java.security.Security;
 
 import org.apache.commons.lang.SerializationUtils;
@@ -142,13 +143,9 @@ public class Crypto {
                 agreement.init(myKey);
                 agreement.doPhase(otherKey, true);
 
-                try {
-                    return agreement.generateSecret(ENCRYPTION_ALGORITHM);
-                } catch (NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                    //The Java platform is defective.
-                    return null;
-                }
+                byte[] secret = agreement.generateSecret();
+
+                return new SecretKeySpec(secret, 0, 16, "AES");
             }
         } else {
             throw new InvalidKeyException("Key algorithms must be compatible with "+ AGREEMENT_ALGORITHM);
@@ -195,6 +192,7 @@ public class Crypto {
             super(ENCRYPTION_ALGORITHM);
             setMode(OperationMode.GCM);
             setPaddingScheme(PaddingScheme.NONE);
+            setKeySize(256);
         }
     }
 }

@@ -7,6 +7,7 @@ import se.chalmers.gdcn.network.Crypto;
 import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.*;
@@ -82,11 +83,17 @@ public class CryptoTest {
         backupAgreement.init(keyPair2.getPrivate());
         backupAgreement.doPhase(keyPair1.getPublic(),true);
 
-        SecretKey secretKey2 = backupAgreement.generateSecret(Crypto.ENCRYPTION_ALGORITHM);
+        byte[] secret = backupAgreement.generateSecret();
+
+        SecretKey secretKey2 =  new SecretKeySpec(secret, 0, 16, "AES");//backupAgreement.generateSecret(Crypto.ENCRYPTION_ALGORITHM);
 
         assert secretKey1.equals(secretKey2);
 
         String message = randomString();
+
+
+
+        SecretKey secretKey3 = secretKeygen.generateKey();
 
         byte[] encrypted = Crypto.encrypt(message,secretKey1);
         Serializable decrypted = Crypto.decrypt(encrypted,secretKey2);
