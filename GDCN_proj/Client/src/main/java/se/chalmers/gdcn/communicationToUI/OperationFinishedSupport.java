@@ -22,18 +22,36 @@ public class OperationFinishedSupport {
         this.propertyChangeSupport = new PropertyChangeSupport(sourceBean);
     }
 
+    /**
+     *
+     * Fire new event of an operation finished
+     * @param event event to fire
+     */
     public void fireOperationFinished(OperationFinishedEvent event){
         propertyChangeSupport.firePropertyChange(event);
     }
 
+    /**
+     * Fire new event of an operation finished
+     * @param commandWord kind of command
+     * @param operation operation instance
+     */
     public void fireOperationFinished(CommandWord commandWord, Operation operation){
         this.fireOperationFinished(new OperationFinishedEvent(source, commandWord, operation));
     }
 
+    /**
+     * Add new listener
+     * @param listener listener
+     */
     public void addListener(PropertyChangeListener listener){
         propertyChangeSupport.addPropertyChangeListener(listener);
     }
 
+    /**
+     * Remove previously added listener
+     * @param listener listener
+     */
     public void removeListener(PropertyChangeListener listener){
         propertyChangeSupport.removePropertyChangeListener(listener);
     }

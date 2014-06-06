@@ -18,8 +18,8 @@ class Replica implements Serializable{
      *
      * Generates a ReplicaBox that will be sent to a specific worker node.
      *
-     * @param replicaBox
-     * @param worker
+     * @param replicaBox replicaBox that contains the actual replica information
+     * @param worker worker the replica is given to
      *
      */
     Replica(ReplicaBox replicaBox, WorkerID worker) {

@@ -20,7 +20,7 @@ import java.util.concurrent.Semaphore;
  *
  * Not really Unit testing but manual testing...
  *
- * @deprecated Doesn't read tasks from file anymore but sends in messages
+ * @deprecated Does not read tasks from file anymore but sends in messages
  */
 public class TaskManagerManual {
 

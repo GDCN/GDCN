@@ -71,9 +71,8 @@ public class ConsoleFactory {
             @Override
             public void execute(List<String> args) {
                 String name = args.remove(0);
-                Data data = null;
                 try {
-                    data = new Data(args);
+                    Data data = new Data(args);
                     client.put(name, data);
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -339,18 +338,6 @@ public class ConsoleFactory {
             }
         });
 
-        commandMap.put("clearNeighbourFile", new UICommand() {
-            @Override
-            public void execute(List<String> args) {
-                client.clearNeighbourFile();
-            }
-
-            @Override
-            public WordInterface getWord() {
-                return nullWord;
-            }
-        });
-
         commandMap.put("deleteNeighbourFile", new UICommand() {
             @Override
             public void execute(List<String> args) {
@@ -366,7 +353,7 @@ public class ConsoleFactory {
         return commandMap;
     }
 
-    private static WordInterface nullWord = new WordInterface() {
+    private static final WordInterface nullWord = new WordInterface() {
         @Override
         public int getArity() {
             return 100;

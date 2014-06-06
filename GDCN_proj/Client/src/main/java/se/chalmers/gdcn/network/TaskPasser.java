@@ -96,8 +96,6 @@ public class TaskPasser extends Passer {
 
         if (replicaManager1 == null) {
             ReplicaManagerBuilder replicaManagerBuilder = new ReplicaManagerBuilder(myWorkerID, taskManager);
-            //TODO appropriate timeout
-            replicaManagerBuilder.setTimeoutLength(15, Time.HOUR);
             replicaManagerBuilder.setTimerUpdateInterval(1, Time.MINUTE);
             replicaManager = replicaManagerBuilder.create();
         } else {
@@ -105,17 +103,8 @@ public class TaskPasser extends Passer {
             replicaManager.setTaskManager(taskManager);
         }
         workerReputationManager = replicaManager.getWorkerReputationManager();
-//        WorkerReputationManager workerReputationManager1 = dataFilesManager.getWorkerNodeManager();
-//
-//        if (workerReputationManager1 == null) {
-//            workerReputationManager = new WorkerReputationManager(myWorkerID, 3, WorkerReputationManager.DisciplinaryAction.REMOVE);
-//        } else {
-//            workerReputationManager = workerReputationManager1;
-//        }
-
 
         timer = new Timer(true);
-
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -126,10 +115,12 @@ public class TaskPasser extends Passer {
         }, 1000 * 120, 1000 * 120);
     }
 
+    /**
+     * Stop timer and save state to file
+     */
     public void stopTimer() {
         timer.cancel();
 
-//        dataFilesManager.saveWorkerNodeManager(workerNodeManager);
         dataFilesManager.saveReplicaManager(replicaManager);
         dataFilesManager.saveWorkerChallengesManager(workerChallengesManager);
     }

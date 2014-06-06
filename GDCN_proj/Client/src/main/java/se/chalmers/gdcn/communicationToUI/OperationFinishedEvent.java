@@ -17,10 +17,16 @@ public class OperationFinishedEvent<E> extends PropertyChangeEvent {
         super(source, null, commandWord, operationResult);
     }
 
+    /**
+     * @return kind of command
+     */
     public CommandWord getCommandWord(){
         return (CommandWord) super.getOldValue();
     }
 
+    /**
+     * @return Operation attempted
+     */
     public Operation<E> getOperation(){
         return (Operation<E>) super.getNewValue();
     }

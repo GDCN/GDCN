@@ -6,7 +6,6 @@ import se.chalmers.gdcn.communicationToUI.CommandWord;
 import se.chalmers.gdcn.communicationToUI.NetworkInterface;
 import se.chalmers.gdcn.taskbuilder.communicationToClient.TaskFailureListener;
 import se.chalmers.gdcn.taskbuilder.fileManagement.PathManager;
-import sun.tools.jar.resources.jar;
 
 import java.io.File;
 

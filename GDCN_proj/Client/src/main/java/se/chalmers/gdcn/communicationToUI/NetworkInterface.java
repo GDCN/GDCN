@@ -44,10 +44,6 @@ public interface NetworkInterface {
 
     void get(Number160 key, Number160 domain);
 
-    void setNeighbourFile(String file);
-
-    void clearNeighbourFile();
-
     void deleteNeighbourFile();
 
     void requestWork(int index);

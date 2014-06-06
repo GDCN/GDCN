@@ -12,7 +12,7 @@ import java.security.*;
 public class HashCash {
     public final static String HASH_ALGORITHM = "SHA-1";
     
-    public final int hardDifficulty, easyDifficulty;
+    private final int hardDifficulty, easyDifficulty;
     private final SecretKey key;
 
     public static enum Purpose { REG, AUTH, NONE }
@@ -89,7 +89,7 @@ public class HashCash {
      * @param jobOwner The issuer of the challenge.
      * @param worker The worker that wants to register.
      * @param score The worker's current score.
-     * @return
+     * @return The challenge.
      */
     public Challenge generateAuthenticationChallenge(WorkerID jobOwner, WorkerID worker, int score) {
         String seed = jobOwner.toString() + worker + score;

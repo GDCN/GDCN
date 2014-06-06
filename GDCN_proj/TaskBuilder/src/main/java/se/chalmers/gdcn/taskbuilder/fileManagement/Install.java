@@ -37,14 +37,6 @@ public class Install {
     }
 
     /**
-     * Simply runs {@link Install#install()}
-     * @param args
-     */
-    public static void main(String[] args){
-        install();
-    }
-
-    /**
      * Creates directory for application data. Creates file containing important paths used by application.
      * Must be run from GDCN_proj/ directory.
      */
@@ -99,7 +91,7 @@ public class Install {
      *
      * http://stackoverflow.com/questions/7768071/how-to-delete-folder-content-in-java
      * @param directory Folder to delete
-     * @return
+     * @return true if the directory was deleted, false otherwise
      */
     static boolean deleteContents(File directory){
         if(!directory.exists()){
@@ -120,7 +112,7 @@ public class Install {
 
     /**
      * Creates Property object containing paths critical for the program to work on tasks
-     * @return
+     * @return standard paths
      */
     private static Properties paths(){
         Properties props = new Properties();

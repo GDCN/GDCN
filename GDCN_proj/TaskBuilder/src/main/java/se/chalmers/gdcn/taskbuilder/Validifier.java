@@ -75,26 +75,4 @@ public class Validifier {
                 proc.destroy();
         }
     }
-
-    public static void main(String[] args) {
-        ValidityListener vl = new ValidityListener() {
-            @Override
-            public void validityOk(double quality) {
-                System.out.println("Validity Ok. Q: "+quality);
-            }
-
-            @Override
-            public void validityCorrupt() {
-                System.out.println("Validity corrupt");
-            }
-
-            @Override
-            public void validityError(String reason) {
-                System.out.println("Validity error: " + reason);
-            }
-        };
-
-        Validifier v = new Validifier(vl);
-        v.testResult("someProgram", "someResultFile", new ArrayList<String>());
-    }
 }

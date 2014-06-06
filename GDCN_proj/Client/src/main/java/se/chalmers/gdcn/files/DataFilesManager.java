@@ -34,7 +34,7 @@ public class DataFilesManager {
     private String keyFileName = "keypair";
 
     private String replicaManagerFileName = "replicaManager";
-    private String seretKeyFileName = "secretKey";
+    private String secretKeyFileName = "secretKey";
     private String workerNodeManagerFileName = "workerNodeManager";
     private String workerChallengesManagerFileName = "workerChallengesManager";
 
@@ -69,7 +69,7 @@ public class DataFilesManager {
 
         keyPairLocation = new File(filePath + keyFileName);
         replicaManagerLocation = new File(filePath + replicaManagerFileName);
-        secretKeyLocation = new File(filePath + seretKeyFileName);
+        secretKeyLocation = new File(filePath + secretKeyFileName);
         workerNodeManagerLocation = new File(filePath + workerNodeManagerFileName);
         workerChallengesManagerLocation = new File(filePath + workerChallengesManagerFileName);
 

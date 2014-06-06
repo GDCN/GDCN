@@ -18,26 +18,45 @@ public class Operation<E>{
         this.reason = reason;
     }
 
+    /**
+     * @return if the operation succeeded
+     */
     public boolean isSuccess() {
         return success;
     }
 
+    /**
+     * @return result of operation
+     */
     public E getResult() {
         return result;
     }
 
+    /**
+     * @return ErrorCode if failed, null otherwise
+     */
     public ErrorCode getErrorCode() {
         return errorCode;
     }
 
+    /**
+     * @return key if the operation used any special key, null otherwise
+     */
     public Object getKey() {
         return key;
     }
 
+    /**
+     * @return Reason for failure, null if succeeded
+     */
     public String getReason() {
         return reason;
     }
 
+    /**
+     * Builder class for Operation<E>
+     * @param <E> result type of Operation
+     */
     public static class OperationBuilder<E>{
 
         private final boolean success;
@@ -70,11 +89,18 @@ public class Operation<E>{
             return this;
         }
 
+        /**
+         * @param reason String for reason why the operation failed, null if succeeded.
+         * @return Builder
+         */
         public OperationBuilder<E> setReason(String reason) {
             this.reason = reason;
             return this;
         }
 
+        /**
+         * @return Operation instance to be used in events
+         */
         public Operation<E> create(){
             return new Operation<>(success, result, errorCode, key, reason);
         }
