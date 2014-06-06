@@ -92,10 +92,6 @@ public class CryptoTest {
 
         String message = randomString();
 
-
-
-        SecretKey secretKey3 = secretKeygen.generateKey();
-
         byte[] encrypted = Crypto.encrypt(message,secretKey1);
         Serializable decrypted = Crypto.decrypt(encrypted,secretKey2);
 
