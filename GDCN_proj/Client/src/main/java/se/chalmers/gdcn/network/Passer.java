@@ -224,7 +224,8 @@ abstract class Passer {
             System.out.println("in Passer: Invalid key when encrypting message. Message: "+networkMessage);
             return;
         } catch (CryptoException e) {
-            System.out.println("CryptoException!\n"+ networkMessage.toString());
+            System.out.println("ERROR! Got CryptoException when encrypting "+ networkMessage.toString());
+            e.printStackTrace();
             return;
         }
 
