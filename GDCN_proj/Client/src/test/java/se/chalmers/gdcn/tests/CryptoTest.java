@@ -1,5 +1,6 @@
 package se.chalmers.gdcn.tests;
 
+import org.apache.shiro.crypto.CryptoException;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 import se.chalmers.gdcn.network.Crypto;
@@ -29,7 +30,7 @@ public class CryptoTest {
         //TODO give seed. Tests should be fully deterministic even when using Random. can run same test multiple times instead.
     }
 
-    @Test
+    @Test(expectedExceptions = CryptoException.class)
      public void testEncryptDecrypt() throws Exception {
         SecretKey key = secretKeygen.generateKey();
         String message = randomString();
@@ -43,7 +44,7 @@ public class CryptoTest {
 
         encMsg[1] = (byte) (encMsg[1] == 0 ? 1 : 0);
 
-        assert Crypto.decrypt(encMsg,key) == null;
+        Crypto.decrypt(encMsg,key);
     }
 
     @Test

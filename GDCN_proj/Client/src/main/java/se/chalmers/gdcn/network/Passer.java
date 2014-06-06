@@ -211,7 +211,7 @@ abstract class Passer {
 
         SecretKey sharedKey = peerKeys.secretKey;
 
-        Serializable readyMessage;
+        byte[] readyMessage;
 
         SendBuilder sendBuilder = peer.send(receiver.getID());
 

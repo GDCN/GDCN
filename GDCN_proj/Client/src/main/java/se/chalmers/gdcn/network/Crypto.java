@@ -67,13 +67,7 @@ public class Crypto {
      */
     public static Serializable decrypt(byte[] ciphertext, SecretKey key) throws InvalidKeyException {
         if (ENCRYPTION_ALGORITHM.equals(key.getAlgorithm())) {
-            ByteSource plaintext;
-
-            try {
-                plaintext = cipher.decrypt(ciphertext,key.getEncoded());
-            } catch (CryptoException e) {
-                return null;
-            }
+            ByteSource plaintext = cipher.decrypt(ciphertext,key.getEncoded());
 
             return (Serializable) SerializationUtils.deserialize(plaintext.getBytes());
         } else {
