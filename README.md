@@ -48,3 +48,9 @@ To load a job into the program, after running `start`, type `push <jobname>`. In
 
 _The ability to set custom values for minimal replication and minimal reputation for each job is an upcoming feature. Currently, you would have to edit the default values in code in `se.chalmers.gdcn.replica.ReplicaManagerBuilder`._
 
+## A note on encryption
+Sadly, our master branch contains no cryptographic functionality. This is due to a bug in Bouncy Castle, the encryption library we depend on. Details can be found here: http://www.bouncycastle.org/jira/browse/BJA-473
+
+This causes decryption to fail at the recipient, even though the ciphertext is identical to the one produced by the sender, which does *not* fail to decrypt. (Yes, the keys are identical as well...) The bug has already been fixed by the maintainers, but the version containing the fix (1.51) has not been released at the time of this writing.
+
+The cryptographic functionality can instead be found in the branch 'dev2'.
