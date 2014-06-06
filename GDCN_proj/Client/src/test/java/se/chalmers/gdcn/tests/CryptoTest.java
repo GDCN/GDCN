@@ -7,6 +7,7 @@ import se.chalmers.gdcn.network.Crypto;
 import javax.crypto.KeyAgreement;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import java.io.Serializable;
 import java.math.BigInteger;
 import java.security.*;
 import java.util.Random;
@@ -84,6 +85,13 @@ public class CryptoTest {
         SecretKey secretKey2 = backupAgreement.generateSecret(Crypto.ENCRYPTION_ALGORITHM);
 
         assert secretKey1.equals(secretKey2);
+
+        String message = randomString();
+
+        byte[] encrypted = Crypto.encrypt(message,secretKey1);
+        Serializable decrypted = Crypto.decrypt(encrypted,secretKey2);
+
+        assert message.equals(decrypted);
     }
 
     private String randomString() {
